@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component testRecImport
+import RecA.{...}
+import RecB.{...}
+export Executable
+
+object MyOdd extends Odd
+  getter asString():String = "MyOdd"
+  anEven():Even = MyEven
+end
+
+object MyEven extends Even
+  getter asString():String = "MyEven"
+  anOdd():Odd = MyOdd
+end
+
+run():() = do
+    assert(even(0),"even(0)")
+    assert(NOT odd(0),"odd(0)")
+    assert(NOT even(5),"even(5)")
+    assert(odd(5),"odd(5)")
+    assert(even(-8),"even(-8)")
+    assert(NOT odd(-8),"odd(-8)")
+    assert(MyOdd.asString,"MyOdd", "MyOdd")
+    assert(MyEven.asString,"MyEven", "MyEven")
+    assert(MyEven.anOdd().asString,"MyOdd", "MyEven.anOdd")
+    assert(MyEven.anOdd().anEven().asString,"MyEven", "MyEven.anOdd.anEven")
+  end
+
+end

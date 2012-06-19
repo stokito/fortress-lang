@@ -1,0 +1,23 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled6.z
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled6.z.fss:21:13:\n\
+\ Variable z is not defined.\n\
+${STATIC_TESTS_DIR}/Compiled6.z.fss:22:13:\n\
+\ Variable z is not defined.\n\
+${STATIC_TESTS_DIR}/Compiled6.z.fss:30:13:\n\
+\ Variable y is not defined.\n\
+${STATIC_TESTS_DIR}/Compiled6.z.fss:31:13:\n\
+\ Variable y is not defined.\n\
+File Compiled6.z.fss has 4 errors.\n
+compile_out_equals=

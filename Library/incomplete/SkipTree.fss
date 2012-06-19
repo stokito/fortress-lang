@@ -1,0 +1,453 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SkipTree
+import PureList.{...}
+
+
+export SkipTree
+
+trait SkipTree[\Key,Value\]
+
+    getter asDotString(name:String):String
+
+    getter count():ZZ32
+
+    opr |self| : ZZ32
+
+    (** Takes a querykey as input and returns either a %Just[\Value\]%
+      * object if the %(key, val)% pair lives in this map, or
+      * returns %Nothing[\Value\]% otherwise.
+      *)
+    find(querykey : Key) : Maybe[\Value\]
+
+    (** Takes a newkey and newvalue as input and returns a
+      * new skip tree with the %(key, val)% pair inserted.
+      * Currently, if newkey already exists in the tree,
+      * then this operation does not insert %(key, val)%
+      * into the tree.
+      *)
+    insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\]
+
+    (**
+     *  Return a random level %>=% 1 with a negative binomial distribution.
+     *)
+    randomLevel():ZZ32 = do
+        level:ZZ32 := 1
+        while random(1.0) < 0.5 do
+            level += 1
+        end
+        level
+    end
+
+    (**
+     * The verify method will throw an error
+     * if this structure does not satisfy the properties
+     * of a Skip Tree.
+     **)
+    verify():()
+
+
+
+end
+
+
+
+object EmptySkipTree[\Key,Value\] extends { SkipTree[\Key,Value\] }
+
+    getter asString():String = "(EMPTY)"
+
+    getter asDotString(name:String):String = "digraph " || name || " {}"
+
+    getter count():ZZ32 = 0
+
+    opr |self| : ZZ32 = 0
+
+    find(querykey : Key) : Maybe[\Value\] = Nothing[\Value\]
+
+    insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\] = do
+        newheight = randomLevel()
+        root = LeafNode[\Key,Value\](newkey, newvalue, newheight)
+        NonEmptySkipTree[\Key,Value\](root)
+    end
+
+    verify():() = ()
+
+
+end
+
+
+
+object NonEmptySkipTree[\Key,Value\](root : Node[\Key,Value\]) extends { SkipTree[\Key,Value\] }
+
+    getter asString():String = root.asString
+
+    getter asDotString(name:String):String =  "digraph " || name  || (" {" //
+        "node [shape=record];" // "ordering=out;"  //  root.asDotString() ) || "}"
+
+    getter count():ZZ32 = root.count()
+
+    opr |self| : ZZ32 = |root|
+
+    find(querykey : Key) : Maybe[\Value\] = root.find(querykey)
+
+    insert(newkey : Key, newvalue : Value) : SkipTree[\Key,Value\] = do
+        newheight = randomLevel()
+        if root.find(newkey).isEmpty() then
+            root' = root.insert(newkey,newvalue,newheight)
+            NonEmptySkipTree[\Key,Value\](root')
+        else
+            self
+        end
+    end
+
+    verify():() = root.verify()
+
+end
+
+
+
+
+object Node[\Key,Value\](keys     : List[\Key\],
+                         values   : List[\Value\],
+                         children : List[\Maybe[\Node[\Key,Value\]\]\],
+                         height   : ZZ32)
+
+
+    getter asString() : String = keys "" values "" children " h" height
+
+    getter asDotString() : String = do
+        name = keys[0]
+        s1 = "node" || name || " [label=\"" || childrenDotString() || "\"];"//
+        s2 = children.generate[\String\](StringReduction,fn (child) => typecase child of
+                Just[\Node[\Key,Value\]\] => child.get().asDotString()
+                else => "" end)
+        s3 = children.indexValuePairs().generate[\String\](StringReduction,
+            fn (i,child) => typecase child of
+                Just[\Node[\Key,Value\]\] => do
+                    childname = child.get().keys[0]
+                    "\"node" || name || "\":" || i || "-> \"node" || childname || "\";"//
+                end
+                else => "" end)
+        s1 s2 s3
+    end
+
+    getter childrenDotString() : String = do
+        s1 = keys.indexValuePairs().generate[\String\](StringReduction,
+            fn (i, key) => "<" || i  || "> " || key || " | ")
+        s1 || "<" || |keys| || "> h" || height
+    end
+
+    getter count() : ZZ32 = 1 + children.generate[\Number\](SumReduction,
+        fn (child) => typecase child of
+                Just[\Node[\Key,Value\]\] => child.get().count()
+                else => 0 end)
+
+    opr |self| : ZZ32 = |keys| + children.generate[\Number\](SumReduction,
+        fn (child) => typecase child of
+                Just[\Node[\Key,Value\]\] => |child.get()|
+                else => 0 end)
+
+    opr =(self, other:Node[\Key,Value\]): Boolean =
+        if self SEQV other then true
+        else
+            (keys = other.keys AND values = other.values
+            AND children = other.children AND height = other.height)
+        end
+
+
+    (** Takes a querykey as input and returns either a %Just[\Value\]%
+      * object if the %(key,val)% pair lives in this map, or
+      * returns %Nothing[\Value\]% otherwise.
+      *)
+    find(querykey : Key) : Maybe[\Value\] = do
+        parentIndex = binarySearch[\Key\](keys, querykey)
+        if parentIndex >= 0 then
+            Just[\Value\](values[parentIndex])
+        else
+            childIndex = insertionPoint(parentIndex)
+            typecase child = children[childIndex] of
+                Just[\Node[\Key,Value\]\] => child.get().find(querykey)
+                else => Nothing[\Value\]
+            end
+        end
+    end
+
+
+    (** Takes a newkey and newvalue as input and returns a
+      * new node with the %(key, val)% pair inserted.
+      * Currently, if newkey already exists in the tree,
+      * then this operation does not insert %(key, val)%
+      * into the tree.
+      *)
+    insert(newkey:Key, newvalue:Value, newheight:ZZ32) : Node[\Key,Value\] = do
+        if newheight < height then
+            insertBelowHeight(newkey,newvalue,newheight)
+        elif newheight = height then
+            insertEqualHeight(newkey,newvalue)
+        else
+            insertAboveHeight(newkey,newvalue,newheight)
+        end
+    end
+
+
+    (** perform the insert operation when %self.height > newheight% *)
+    private insertBelowHeight(newkey:Key, newvalue:Value, newheight:ZZ32) : Node[\Key,Value\] = do
+        i = insertionPoint(binarySearch[\Key\](keys,newkey))
+        newchild:Maybe[\Node[\Key,Value\]\]
+        typecase child = children[i] of
+            Just[\Node[\Key,Value\]\] =>
+                newchild = Just[\Node[\Key,Value\]\](child.get().insert(newkey,newvalue,newheight))
+            else =>
+                newchild = Just[\Node[\Key,Value\]\](LeafNode[\Key,Value\](newkey,newvalue,newheight))
+        end
+        newchildren = children[0 # i].addRight(newchild) || children[(i + 1) : (|children| - 1)]
+        Node[\Key,Value\](keys,values,newchildren,height)
+    end
+
+
+    (** perform the insert operation when %self.height = newheight% *)
+    private insertEqualHeight(newkey:Key, newvalue:Value) : Node[\Key,Value\] = do
+        i = insertionPoint(binarySearch[\Key\](keys,newkey))
+        newkeys = keys[0#i].addRight(newkey) || keys[i:(|keys| - 1)]
+        newvalues = values[0#i].addRight(newvalue) || values[i : (|values| - 1)]
+        (newleft, newright) =
+                (filterTarget(newkey, children[i], true),
+                 filterTarget(newkey, children[i], false))
+        leftchildren = children[0#i].addRight(newleft)
+        rightchildren = children[(i + 1):(|children| - 1)].addLeft(newright)
+        newchildren =  leftchildren || rightchildren
+        Node[\Key,Value\](newkeys,newvalues,newchildren,height)
+    end
+
+
+    (** perform the insert operation when %self.height < newheight% *)
+    private insertAboveHeight(newkey:Key,newvalue:Value,newheight:ZZ32) : Node[\Key,Value\] = do
+        newkeys     = singleton[\Key\](newkey)
+        newvalues   = singleton[\Value\](newvalue)
+        (newleft,newright) = (filterTarget(newkey, Just[\Node[\Key,Value\]\](self), true),
+                         filterTarget(newkey, Just[\Node[\Key,Value\]\](self), false))
+        newchildren = <|[\Maybe[\Node[\Key,Value\]\]\] newleft, newright |>
+        Node[\Key,Value\](newkeys,newvalues,newchildren,newheight)
+    end
+
+
+    private filterTarget(newkey : Key,
+                   target : Maybe[\Node[\Key,Value\]\],
+                   lessThanOrEquals : Boolean)
+                  : Maybe[\Node[\Key,Value\]\] = do
+        filter = Filter[\Key\](newkey, lessThanOrEquals)
+        typecase target of
+            Just[\Node[\Key,Value\]\] =>
+                target.get().applyFilter(filter)
+            else =>
+                Nothing[\Node[\Key,Value\]\]
+        end
+    end
+
+
+    private applyFilter(filter : Filter[\Key\]) : Maybe[\Node[\Key,Value\]\] = do
+        parentIndex = binarySearch[\Key\](keys, filter.pivot)
+        childIndex = if (parentIndex >= 0 AND filter.lessThanOrEquals = false) then
+            insertionPoint(parentIndex) + 1
+        else
+            insertionPoint(parentIndex)
+        end
+        filteredChild : Maybe[\Node[\Key,Value\]\]
+        typecase child = children[childIndex] of
+            Just[\Node[\Key,Value\]\] =>
+                filteredChild = child.get().applyFilter(filter)
+            else =>
+                filteredChild = child
+        end
+        if filter.lessThanOrEquals then
+            filterLessThanOrEquals(childIndex, filteredChild)
+        else
+            filterGreaterThan(childIndex, filteredChild)
+        end
+    end
+
+
+    private filterLessThanOrEquals(insertIndex   : ZZ32,
+                                   filteredChild : Maybe[\Node[\Key,Value\]\])
+                                  : Maybe[\Node[\Key,Value\]\] = do
+        if insertIndex = 0 then
+            filteredChild
+        else
+            newkeys = keys[0 # insertIndex]
+            newvalues = values[0 # insertIndex]
+            newchildren = children[0 # insertIndex].addRight(filteredChild)
+            Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
+        end
+    end
+
+
+    private filterGreaterThan(insertIndex   : ZZ32,
+                              filteredChild : Maybe[\Node[\Key,Value\]\])
+                             : Maybe[\Node[\Key,Value\]\] = do
+        if insertIndex = |keys| then
+            filteredChild
+        else
+            newkeys = keys[insertIndex : (|keys| - 1)]
+            newvalues = values[insertIndex : (|values| - 1)]
+            newchildren = children[(insertIndex + 1) : |children| - 1].addLeft(filteredChild)
+            Just[\Node[\Key,Value\]\](Node[\Key,Value\](newkeys,newvalues,newchildren,height))
+        end
+    end
+
+
+    (** transform the index from %binarySearch[\T\](list, key)%
+     * into an insertion point.
+     **)
+    private insertionPoint(index : ZZ32) : ZZ32 = do
+        if index >= 0 then index
+        else |index| - 1 end
+    end
+
+
+    smallestKey():Key = do
+        typecase child = children[0] of
+            Just[\Node[\Key,Value\]\] => child.get().smallestKey()
+            else => keys[0]
+        end
+    end
+
+
+    largestKey():Key = do
+        typecase child = children[|children| - 1] of
+            Just[\Node[\Key,Value\]\] => child.get().largestKey()
+            else => keys[|keys| - 1]
+        end
+    end
+
+    (**
+     * The verify method will throw an error
+     * if this structure does not satisfy the properties
+     * of a Skip Tree.
+     **)
+    verify():() = do
+        if height <= 0 then
+            fail(self.asString " : All nodes must have a height that is a positive integer")
+        end
+        if |keys| =/= |values| then
+            fail(self.asString " : Size of keys is not equal to size of values")
+        end
+        if |keys| + 1 =/= |children| then
+            fail(self.asString " : Size of children is not equal to size of keys plus one")
+        end
+        for i <- 0 # (|keys| - 1) do
+            if keys[i] >= keys[i + 1] then
+                fail(self.asString " : Keys " keys[i] " and " keys[i + 1] " are not in sorted order")
+            end
+        end
+        for i <- 0 # |keys| do
+            typecase child = children[i] of
+                Just[\Node[\Key,Value\]\] => do
+                    if child.get().largestKey() > keys[i] then
+                        fail(self.asString " : " child.get().largestKey() " > " keys[i])
+                    end
+                end
+                else => ()
+            end
+            typecase child = children[i + 1] of
+                Just[\Node[\Key,Value\]\] => do
+                    if child.get().smallestKey() < keys[i] then
+                        fail(self.asString " : " child.get().smallestKey() " < " keys[i])
+                    end
+                end
+                else => ()
+            end
+        end
+        (* recusively check non-empty children *)
+        for i <- 0 # |children| do
+            typecase child = children[i] of
+                Just[\Node[\Key,Value\]\] => child.get().verify()
+                else => ()
+            end
+        end
+    end
+
+end
+
+LeafNode[\Key,Value\](key : Key, val : Value, height : ZZ32) = do
+    keys = <| key |>
+    values = <| val |>
+    child = <|[\Maybe[\Node[\Key,Value\]\]\] Nothing[\Node[\Key,Value\]\] |>
+    children = child || child
+    Node[\Key,Value\](keys,values,children,height)
+end
+
+
+(**
+  *  Implementation of java.util.Collections.binarySearch
+  *  JavaDoc from http://java.sun.com/javase/6/docs/api/java/util/Collections.html
+  *
+  *  Searches the specified list for the specified object using
+  *  the binary search algorithm. The list must be sorted into
+  *  ascending order according to the natural ordering of its
+  *  elements prior to making this call. If it is not sorted, the
+  *  results are undefined. If the list contains multiple elements
+  *  equal to the specified object, there is no guarantee which one will be found.
+  *
+  *  Parameters:
+  *      list - the list to be searched.
+  *      key - the key to be searched for.
+  *  Returns:
+  *      the index of the search key, if it is contained in the list;
+  *      otherwise, (-(insertion point) - 1). The insertion point is defined
+  *      as the point at which the key would be inserted into the list:
+  *      the index of the first element greater than the key, or |list|
+  *      if all elements in the list are less than the specified key.
+  *      Note that this guarantees that the return value will be %>=% 0
+  *      if and only if the key is found.
+  **)
+binarySearch[\T\](list : List[\T\], key : T) : ZZ32 = do
+    if |list| <= 8 then (* base case *)
+        index:ZZ32 := - |list| - 1
+        label loop
+            for i <- seq(0 # |list|) do
+                if list[i] = key then
+                    index := i
+                    exit
+                elif list[i] > key then
+                    index := -i - 1
+                    exit
+                end
+           end
+        end loop
+        index
+    else (* recursive step *)
+        split = |list| DIV 2
+        if (key < list[split]) then
+            binarySearch[\T\](list[0 # split], key)
+        else
+            right = binarySearch[\T\](list[split:(|list| - 1)], key)
+            if right >= 0 then right + split
+            else right - split end
+        end
+    end
+end
+
+
+object Filter[\Key\](pivot : Key, lessThanOrEquals : Boolean)
+
+    filter(query : Key) : Boolean = do
+        if lessThanOrEquals then
+            query <= pivot
+        else
+            query > pivot
+        end
+    end
+
+end
+
+
+end

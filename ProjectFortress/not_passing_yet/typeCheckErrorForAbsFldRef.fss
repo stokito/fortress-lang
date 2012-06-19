@@ -1,0 +1,27 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component typeCheckErrorForAbsFldRef
+export Executable
+
+trait XTrait
+    v:ZZ32
+end
+
+object XObj(v:ZZ32) extends XTrait
+    foo():ZZ32 = v
+end
+
+run() = do
+    println "Pass."
+end
+
+end

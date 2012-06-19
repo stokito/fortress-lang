@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component tupleTypeParam2
+export Executable
+
+trait A[\T\]
+   f(x:T):ZZ32
+end
+
+object B extends A[\ (ZZ32, ZZ32) \]
+   f(a:ZZ32, b:ZZ32) = a+b
+end
+
+
+run():() = do
+   println B.f(3, 4)
+end
+
+end

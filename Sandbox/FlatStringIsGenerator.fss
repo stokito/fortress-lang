@@ -1,0 +1,40 @@
+component FlatStringIsGenerator
+(*
+import FlatString.{...}
+*)
+export Executable
+
+  run():() = do
+    for ch <- "H" do
+        println ch
+    end
+
+    typecase chs="Hell" of
+        Generator[\Char\] => println "Hell is a Generator[[Char]]"
+        else => println "Hell is NOT a Generator[[Char]]"
+    end
+
+    typecase chs="Hell" of
+        String => println "Hell is a String"
+        else => println "Hell is NOT a String"
+    end
+
+(*
+    typecase chs="Hell" of
+        FlatString => println "Hell is a FlatString"
+        else => println "Hell is NOT a FlatString"
+    end
+*)
+
+    c : Char = 'd'
+
+    if c MATCH "Hold" then println "It matches!"
+    end
+
+    case c of
+        "Hold" => println "d is in \"Hold\""
+        else => println "d is not in \"Hold\""
+    end
+  end
+
+end

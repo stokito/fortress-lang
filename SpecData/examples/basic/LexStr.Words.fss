@@ -1,0 +1,29 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component LexStr.Words
+
+export Executable
+
+object A'bc_123a
+  def = println
+end
+
+phi456= 3
+
+run() =
+(** EXAMPLE **)
+  A'bc_123a.def phi456
+(** END EXAMPLE **)
+
+end

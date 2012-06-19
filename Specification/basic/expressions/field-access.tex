@@ -1,0 +1,39 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Dotted Field Accesses}
+\seclabel{field-access}
+
+\begin{Grammar}
+\emph{Primary} &::=& \emph{Primary}\EXP{.}\emph{Id}\\
+\end{Grammar}
+
+An expression consisting of a single subexpression (called the
+\emph{receiver expression}), followed by `\txt{.}', followed by an
+identifier, not immediately followed by a parenthesis or a white
+square bracket, is a
+\emph{field access}.
+The receiver expression must denote an object
+(called the \emph{receiver}) and the field access is evaluated to a call
+to a getter mapped from that identifier by the receiver.
+The type of the field access is the return type of its getter.
+The static type of
+the receiver indicates whether a getter mapped from that identifier is
+provided by the denoted object.  If a getter is not provided, it is a
+static error.
+\marginnote{Not exactly: An object (i.e., the actual value at run time)
+may provide a getter but if the static type of the receiver expression doesn't
+provide the getter, then the getter can't be called in this context.  So just say that
+it is a static error if the static type of the receiver doesn't provide the getter,
+without making any claim about whether the denoted object provides the getter.}
+See \secref{methods} for a discussion of getters.
+The evaluation of the receiver must complete normally before the body of
+the getter is evaluated.

@@ -1,0 +1,31 @@
+(********************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+
+component atomic2
+export Executable
+
+
+run():()=do
+   var count7: ZZ32 := 0
+   var count9: ZZ32 := 0
+   seven:ZZ32 = 7
+   nine:ZZ32 := 9
+
+   for i <- 1#100 do
+      count7 := count7 + seven
+      count9 := count9 + nine
+   end
+
+   println("count should be a multiple of 7 = " || count7)
+   println("count should be a multiple of 9 = " || count9)
+   println("PASS");
+end
+end

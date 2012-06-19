@@ -1,0 +1,39 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXwrongArrayDim
+export Executable
+
+(* In response to bug report from dmitrey:
+
+what are  these lines demonstrating?
+ r4 : RR64[4] = [ 9 14 18 ]
+ r3 : RR64[3] = [ 2 3 5 31 ]
+
+It seems to be a very inconsistent problem.
+
+*)
+
+run() = do
+  r3 : RR64[4] = [ 9 14 18 ]
+  r4 : RR64[3] = [ 2 3 5 31 ]
+  r7 : Array1[\RR64,0,4\] = [ 9 14 18 ]
+  r8 : Array1[\RR64,0,3\] = [ 2 3 5 31 ]
+  s3 : RR64[4] = identity([ 9 14 18 ])
+  s4 : RR64[3] = identity([ 2 3 5 31 ])
+  s7 : Array1[\RR64,0,4\] = identity([ 9 14 18 ])
+  s8 : Array1[\RR64,0,3\] = identity([ 2 3 5 31 ])
+  println(r3 // r4 // r7 // r8)
+  println(s3 // s4 // s7 // s8)
+  ()
+end
+
+end

@@ -1,0 +1,27 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Overview.Expression.comprehension.l
+import PureList.{...}
+import Set.{...}
+
+export Executable
+
+run() = do
+  v:Set[\ZZ32\] = {0, 1, 2, 3, 4}
+(** EXAMPLE **)
+  l = <| 2 x | x <- v |>
+(** END EXAMPLE **)
+end
+
+end

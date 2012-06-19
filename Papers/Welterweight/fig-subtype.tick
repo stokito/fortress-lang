@@ -1,0 +1,153 @@
+%%%%%%%%%%%%%%%%%%%%% BEGIN FIGURE %%%%%%%%%%%%%%%%%%%%%%
+\begin{figure*}[htbp]
+\centering\leavevmode
+\newjudge{Subtyping Rules That Generate Constraints}{\jsub{\alpha}{\alpha}{\C}}
+\par\bigskip
+\begin{minipage}[t]{.3\textwidth}
+\centering
+\textbf{Logical rules}
+
+\infax
+  { \jsub{\Bottom}{\alpha}{\TRUE} }
+
+\infax
+  { \jsub{c}{\Bottom}{\FALSE} }
+  
+\infax
+  { \jsub{\arrowtype{\alpha}{\rho}}{\Bottom}{\FALSE} }
+  
+\infax
+  { \jsub{\alpha}{\Any}{\TRUE} }
+
+\infax
+  { \jsub{\Any}{\arrowtype{\alpha}{\omega}}{\FALSE} }
+
+\infrule
+  { \jsub{\alpha}{\eta}{\C} \\ \jsub{\alpha}{\chi}{\C'} }
+  { \jsub{\alpha}{\intersectiontype{\eta}{\chi}}{\C \wedge \C'} }
+
+\infrule
+  { \jsub{\alpha}{\chi}{\C} \\ \jsub{\eta}{\chi}{\C'} \\
+    \jexc{\alpha}{\eta}{\C''} }
+  { \jsub{\intersectiontype{\alpha}{\eta}}{\chi}{\C \vee \C' \vee \C''} }
+  
+\infrule
+  { \jsub{\alpha}{\eta}{\C} \\ \jsub{\alpha}{\chi}{\C'} }
+  { \jsub{\alpha}{\uniontype{\eta}{\chi}}{\C \vee \C'} }
+  
+\infrule
+  { \jsub{\alpha}{\chi}{\C} \\ \jsub{\eta}{\chi}{\C'} }
+  { \jsub{\uniontype{\alpha}{\eta}}{\chi}{\C \wedge \C'} }
+\end{minipage}%
+\begin{minipage}[t]{.3\textwidth}
+\centering
+\textbf{Inference Variables}
+
+\infrule
+  {`I` \not\in \mathit{parameters}(\Delta) }
+  { \jsub{I}{I}{\TRUE} }
+
+\infrule
+  {`I` \not\in \mathit{parameters}(\Delta) }
+  { \jsub{I}{\alpha}{I \subtypeof \alpha} }
+ 
+\infrule
+  {`I` \not\in \mathit{parameters}(\Delta) }
+  { \jsub{\alpha}{I}{\alpha \subtypeof `I`} }
+ 
+\bigskip
+\textbf{Bound Variables}
+
+\infax
+  { \jsub{P}{P}{\TRUE} }
+
+\infrule
+  { \bd{\dontcare} \extends P \extends \bdb{\xi} \in \Delta }
+  { \jbsub{\underline{P}}{\xi}{\TRUE} }
+
+\infrule
+  { \bdb{\zeta} \extends P \extends \bd{\dontcare} \in \Delta }
+  { \jbsub{\zeta}{\underline{P}}{\TRUE} }
+
+\infrule
+  { \jsub{\alpha}{\Bottom}{\C} }
+  { \jsub{\alpha}{P}{\C} }
+
+\end{minipage}%
+\begin{minipage}[t]{.4\textwidth}
+\centering
+\textbf{Structural rules}
+
+\infrule
+  {\countof(\bar{\alpha}) = \countof(\bar{\eta}) \andalso  \jbsub{\alpha}{\eta}{\C} \\[2pt]
+   \jbsub{\alpha}{\Bottom}{\C'} }
+  { \jsub{\tupleb{\alpha}}{\tupleb{\eta}}{\big(\bigwedge\bigsetb{\C}\big) \vee \big(\bigvee\bigsetb{\C'}\big)} }
+
+\infrule
+  {\countof(\bar{\alpha}) \neq 1 \andalso \quad \jbsub{\alpha}{\Bottom}{\C} }
+  { \jsub{\tupleb{\alpha}}{\eta}{\bigvee\bigsetb{\C}} }
+
+\infrule
+  { \jsub{\alpha'}{\alpha}{\C} \andalso \jsub{\rho}{\rho'}{\C'} }
+  { \jsub{\arrowtype{\alpha}{\rho}}{\arrowtype{\alpha'}{\rho'}}{\C \wedge \C'} }
+  
+\infrule
+  { \countof(\bar{\eta}) \neq 1 }
+  { \jsub{\arrowtype{\alpha}{\rho}}{(\bar{\eta})}{\FALSE} }
+  
+\infrule
+  { \countof(\bar{\alpha}) \neq 1 }
+  { \jsub{c}{\tupleb{\alpha}}{\FALSE} }
+
+\infax
+  { \jsub{\arrowtype{\alpha}{\rho}}{c}{\FALSE} }
+
+\infax
+  { \jsub{c}{\arrowtype{\alpha}{\rho}}{\FALSE} }
+
+\end{minipage}
+
+\bigskip
+
+\begin{minipage}[t]{.667\textwidth}
+\centering
+\textbf{Constructed types}
+
+\infrule
+  { \mathit{distinct}(T,T') \andalso
+    \setb{\tau} = \myextends{T\obb{\alpha}} \andalso
+    \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
+  { \jsub{T\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
+
+\infrule
+  { \setb{\tau} = \myextends{O\obb{\alpha}} \andalso
+    \jbsub{\tau}{\underline{T'\obb{\eta}}}{\C} }
+  { \jsub{O\obb{\alpha}}{T'\obb{\eta}}{\bigvee\bigsetb{\C}} }
+
+\infrule
+  { \kwd{trait} \; T\bigob{\bar{V\;P \extends \bd{\dontcare}}} \; \dontcare \; \kwd{end} \in \set{\Delta} \\[1pt]
+     \jbvaries{\alpha}{V}{\eta}{\C} }
+  { \jsub{T\obb{\alpha}}{T\obb{\eta}}{\bigwedge\bigsetb{\C}} }
+
+\end{minipage}%
+\begin{minipage}[t]{.333\textwidth}
+\centering\leavevmode
+\newjudge{Variance test}{\jvaries{\alpha}{V}{\alpha}{\C}}
+
+\infrule
+  { \jsub{\alpha}{\eta}{\C} }
+  { \jvaries{\alpha}{\kwd{covariant}}{\eta}{\C} }
+
+\infrule
+  { \jsub{\eta}{\alpha}{\C} }
+  { \jvaries{\alpha}{\kwd{contravariant}}{\eta}{\C} }
+
+\infrule
+  { \jequiv{\alpha}{\eta}{\C} }
+  { \jvaries{\alpha}{\kwd{invariant}}{\eta}{\C} }
+
+\end{minipage}
+
+  \caption{Algorithm for generating subtyping constraints. Apply the first rule that matches.}
+  \label{fig:jsub}
+\end{figure*}

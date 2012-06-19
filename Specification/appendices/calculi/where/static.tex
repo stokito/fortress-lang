@@ -1,0 +1,480 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Static Semantics}\label{where-static}
+A static semantics for \wherecore\ is provided in
+Figures~\ref{fig:where-static1}, \ref{fig:where-static2},
+\ref{fig:where-static3}, and \ref{fig:where-static4}.
+
+For simplicity, we use the following conventions:
+\begin{itemize}
+\item \FTV(\ty) collects all free type variables in \ty.
+\item Similarly, \FTV(\exp) collects all free type variables in all
+types in \exp.
+\end{itemize}
+
+\begin{figure}[htbp!]
+Environments and method types \\
+
+$
+\begin{array}{llll}
+\tvenv &::=& \tvenvone& \mbox{bound environment}\\
+\tyenv &::=& \mt{\seq{\vname:\ty}}& \mbox{type environment}\\
+\fty   &::=& \ftntyTemplate& \mbox{method type}\\ \\
+\end{array}
+$
+
+Program typing: \fbox{\provesP{\pgm}{\ty}} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\pgm = \seq{\d}~\exp
+\rulesep
+\provesD{\seq{\d}}
+\rulesep
+\provesE{\emptyset}{\emptyset}{\exp}{\ty}
+\end{array}
+}
+{\provesP{\pgm}{\ty}}
+{\tProgramRule} \\ \\
+\end{tabular}
+
+Definition typing: \fbox{\provesD{\d}} \\ \\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\validMI(\tname)\rulesep
+\tvenv = \tvenvone\ \tvenvtwo
+\\
+\provesW{\seq{\seq\tappone}}\rulesep
+\provesW{\seq{\tappfour}}\rulesep
+\provesW{\seq{\seq\tapptwo}}\rulesep
+\provesM{\self:\tname\bsTP{\seq{\tvone}}}{T}{\seq{\fd}}
+\end{array}
+}
+{\provesD{\tdsyntaxTD}}
+{\tTraitDefRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\validMI(\oname)\rulesep
+\tvenv  = \tvenvone\rulesep
+\tvenv' = \tvenv~~ \tvenvtwo
+\\
+\provesWD{\tvenv'}{\seq{\seq\tappone}}\rulesep
+\provesW{\tys}\rulesep
+\provesWD{\tvenv'}{\seq{\tappfour}}\rulesep
+\provesWD{\tvenv'}{\seq{\seq\tapptwo}}\\
+\provesMD{\tvenv'}{\self:\oname\bsTP{\seq{\tvone}}~~\seq{\vname:\ty}}{O}{\fds}
+\end{array}
+}
+{\provesD{\odsyntaxOD}}
+{\tObjectDefRule} \\ \\
+\end{tabular}
+
+Method typing: \fbox{\provesM{\tyenv}{C}{\fd}} \\ \\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\override(\fname, \cname, \ftnty)
+\rulesep
+\tvenv' = \tvenv~~ \tvenvone
+\rulesep
+\provesWD{\prm\tvenv}{\seq{\seq\tappone}}\\
+\provesWD{\prm\tvenv}{\tys}
+\rulesep
+\provesWD{\prm\tvenv}{\retty}
+\rulesep
+{\provesE {\prm\tvenv}
+          {\tyenv~\seq{\vname:\ty}}
+          {\exp}{\tyP}}\rulesep
+\provesSD{\prm\tvenv}{\tyP}{\retty}
+\end{array}
+}
+{\provesM{\tyenv}{C}{\fdsyntaxMD}}
+{\tMethodDefRule} \\ \\
+\end{tabular}
+
+Method overriding: \fbox{\overrideTemplateW} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\ignore\ \cname\bsTP{\seq{\tvone''\extends\set{\seq{\super''}}}}
+\ignore\extends\{\supersfour\}\where\tparamstwoWH\ignore\ \inp
+\\
+\tvenv = \seq{\tvone''\subtype\set{\seq{\super''}}}~\tvenvtwo
+\\
+\bigcup_{\cname'\bsTP{\seq{\tyPP}}\in\set{\seq{\tappfour}}} 
+\mtypeFD{\cname'\bsTP{\seq{\tyPP}}}{\tvenv} = 
+\set{(\tparamsP~\mkftnty\tyP\rettytwo, \tvenv')}
+
+\\
+\seq{\seq{\tappone}} = \substseq{\tvone}{\tvone'}\seq{\seq{\tappone'}}
+\smallrulesep
+{\provesSD{\tvenv'}
+{\substseq{\tvone}{\tvone'}\seq\tyP}{\seq\ty}}
+\smallrulesep
+\provesSD{\tvenv'}{\retty}
+{\substseq{\tvone}{\tvone'}\rettytwo}
+
+\end{array}
+}
+{\overrideDW}
+{\overrideRule}\\ \\
+\end{tabular}
+
+Valid multiple inheritance: \fbox{\validMI(\cname)} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\oneOwner(\cname) \rulesep
+\validWhere(\cname) \\
+\end{array}
+}
+{\validMI(\cname)}
+{\validMIRule}\\
+\end{tabular}
+
+\caption{Static Semantics of \wherecore\ (I)}\label{fig:where-static1}
+\end{figure}
+
+\begin{figure}[htbp]
+One owner for all the visible methods: \fbox{\oneOwner(\cname)} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\forall\fname\in\visible(\cname)~.~
+\mbox{$f$ \emph{only occurs once in }}\visible(\cname)
+\end{array}
+}
+{\oneOwner(\cname)}
+{\oneOwnerRule}\\ \\
+\end{tabular}
+
+Valid where clauses: \fbox{\validWhere(\cname)} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{lll}
+\lefteqn{
+\forall\fname\in\visible(\cname)~.~}\\
+\mbox{where}&
+\lefteqn{\dsyntaxDEFN\inp}\\
+&\lefteqn{
+\mbody(\fname\bsTP{\seq{\tvone^f}}, \ctapp, \ctapp) = 
+\set{{\ignore}\rightarrow{\exp_f}},
+\rulesep
+\mtypeFD{\ctapp}{\emptyset} = \set{(\fty_f, \tvenv)}
+}\\
+& \mbox{1. }&
+\forall\tvtwo\in(\FTV(\exp_f)\setminus\set{\seq\tvone~\seq{\tvone^f}})~.~
+\tvtwo\in\FTV(\fty_f)\\
+& \mbox{2. }&
+\forall\tvtwo\in(\FTV(\fty_f)\setminus\set{\seq\tvone~\seq{\tvone^f}})~.~
+\forall\cname'\bsTP{\seq{\ty^c}}
+\in
+\bigcup_{\tappfour_i\in\set{\seq\tappfour}}
+\defining(\fname, \tappfour_i)~.\\
+& &
+\tvtwo = \ty^c_i \smallrulesep
+\tvenv(\tvtwo) = \seq{\tappone'_i} \smallrulesep
+\mbox{for } 1\leq i \leq |\seq{\ty^c}|
+\mbox{ where }
+\ignore\ \cname'\bsTP{\seq{\tvone'\extends\set{\seq{\super'}}}} \ignore\ \inp
+\end{array}
+}
+{\validWhere(\cname)}
+{\validWhereRule}\\ \\
+\end{tabular}
+
+Valid witnesses: \fbox{\ensuremath{\validWitness(\tvenv, 
+\seq{\tvone\subtype\set{\tys}}, \tys)}} \\ \\
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\provesW{\seq{\substseq{\tyW}{\tvtwo}\tys}}
+\rulesep
+\provesW{\seq{\tyW}}
+\rulesep
+\provesSD{\tvenv}{\seq{\tyW}}{\seq{\substseq{\tyW}{\tvtwo}\tys}}
+\\
+\set{\seq{\tvtwo}}\cap\me{dom}(\tvenv) = \emptyset
+\end{array}
+}
+{\validWitness(\tvenv, \seq{\tvtwo\subtype\set{\tys}}, \seq\tyW)}
+{\validWitnessRule}\\ \\
+\end{tabular}
+
+Expression typing: \fbox{\provesEd{\exp}{\ty}} \\ \\
+
+\begin{tabular}{lc}
+\newrule{\provesEd{\vname}{\tyenv(\vname)}}{\tVarRule} \\ \\
+
+\newrule{\provesEd{\self}{\tyenv(\self)}}{\tSelfRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\odsyntaxObj\inp\rulesep
+\provesW{\oapp}\\
+\provesEd{\seq{\exp}}{\seq{\tyPP}}\rulesep
+\provesS{\seq{\tyPP}}{\substseq{\ty}{\tvone}\seq{\tyP}}
+\end{array}
+}
+{\provesEd{\oapp\parens{\seq{\exp}}}{\oapp}}
+{\tObjectRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesEd{\sub\exp 0}{\retty}\smallrulesep
+\boundF(\retty) = \braces\oappP\smallrulesep
+\odsyntaxFld\inp
+\end{array}
+}
+{\provesEd{\sub\exp 0\mt{.}\sub\vname i}{\substseq{\tyP}{\tvone}{\tyn i}}}
+{\tFieldRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesEd{\sub\exp 0}{\retty}\smallrulesep
+\provesS{\retty}{\strecv}
+\smallrulesep
+\mtypeFD{\strecv}{\emptyset} = \set{(
+\tparamsP~\mkftnty\tyP\rettytwo, \tvenv')}
+\\
+\provesW{\seq{\ty}}\smallrulesep
+\smallrulesep
+\provesW{\strecv}\smallrulesep
+\smallrulesep
+\provesW{\seq{\argty}}\smallrulesep
+\smallrulesep
+\provesW{\resty}\smallrulesep
+\\
+\provesEd{\seq\exp}{\seq{\tyPP}}
+\smallrulesep
+\provesSD{\tvenv}{\seq{\tyPP}}{\seq\argty}
+\smallrulesep
+\dom{\tvenv'} = \set{\seq{\tvtwo}}
+\smallrulesep
+S = \substseq{\tyW}{\tvtwo}
+\\
+\validWitness(\tvenv, \tvenv', \seq\tyW)
+\smallrulesep
+\provesSD{\tvenv}{\seq{\ty}}
+{S(\substseq{\ty}{\tvone'}\seq{\seq{\tappone'}})}
+\smallrulesep
+{S(\substseq{\ty}{\tvone'}\tysP)} = {\seq{\argty}}
+\smallrulesep
+{S(\substseq{\ty}{\tvone'}\rettytwo)} = {\resty}
+\end{array}
+}
+{\provesEd{\exp_0\ \static{\strecv}\mt.\fname
+\bsTP{\seq{\ty}}\parens{\seq{\exp\ \argtysAS}}\restyAS}{
+\resty}}
+{\tInvkRule}\\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesEd{\exp}{\ty}
+\rulesep
+\provesE{\Delta}{\Gamma~~x:\ty_i}{\exp_i}{\ty^\exp_i}
+\rulesep
+\provesS{\ty^\exp_i}{\tyP}
+\rulesep
+1 \le i \le |\tys|
+\\
+\provesE{\Delta}{\Gamma~~x:\ty}{\exp'}{\ty^{\exp'}}
+\rulesep
+\provesS{\ty^{\exp'}}{\tyP}
+\end{array}
+}
+{\provesEd{\typecase{\exp}{\seq{\ty \Rightarrow \exp}}{\exp'}}{\tyP}}
+{\tTypecaseRule} \\
+\end{tabular}
+
+\caption{Static Semantics of \wherecore\ (II)}\label{fig:where-static2}
+\end{figure}
+
+\begin{figure}[htbp]
+Subtyping: \fbox{\provesS{\ty}{\ty}}\\\\
+
+\begin{tabular}{lc}
+\newrule{{\provesS{\ty}{\obj}}}{\sObjRule} \\ \\
+
+\newrule{{\provesS{\ty}{\ty}}}{\sReflRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\provesS{\tyn 1}{\tyn 2}\rulesep
+\provesS{\tyn 2}{\tyn 3}
+\end{array}
+}
+{\provesS{\tyn 1}{\tyn 3}}{\sTransRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\ty\in\tvenv(\tvone)
+\end{array}
+}
+{\proves{p; \tvenv} {\tvone \subtype \ty}}{\sVarRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\ignore\ \cname\tparams\extends\{\supersfour\}
+\where\tparamstwoWH\ignore\ \inp\\
+\provesW{\seq{\ty}}\rulesep
+\provesS{\seq{\ty}}
+{\substseq{\tyW}{\tvtwo}\substseq{\ty}{\tvone}\seq{\seq\tappone}}\rulesep
+\validWitness(\tvenv, 
+\seq{\tvtwo\subtype\set{\substseq{\ty}{\tvone}\seq\tapptwo}}, \seq\tyW)
+\end{array}
+}
+{\provesS{\capp}
+{\substseq{\tyW}{\tvtwo}\substseq{\ty}{\tvone}\sub\tappfour i}}
+{\sBothRule}\\ \\
+
+\end{tabular}
+
+Well-formed types: \fbox{\provesW\ty} \\ \\
+\begin{tabular}{lc}
+\newrule{\provesW{\obj}}{\wObjRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\tvone\in\me{dom}(\tvenv)
+\end{array}
+}
+{\provesW{\tvone}}{\wVarRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\ignore\ \cname\tparams\ignore
+\where\tparamstwoWH\ignore\ \inp\\
+\provesW{\seq{\ty}}\rulesep
+\provesS{\seq{\ty}}
+{\substseq{\tyW}{\tvtwo}\substseq{\ty}{\tvone}\seq{\seq\tappone}}\rulesep
+\validWitness(\tvenv, 
+\seq{\tvtwo\subtype\set{\substseq{\ty}{\tvone}\seq\tapptwo}}, \seq\tyW)
+\end{array}
+}
+{\provesW{\capp}}{\wBothRule}\\ \\
+
+\end{tabular}
+
+\renewcommand{\rulesep}{\:\:\:\:\:\:\:}
+Method type lookup: \fbox{\mtypeFD{\ty}{\tvenv} = 
+\set{(\fty, \tvenv)}}\\
+
+\begin{tabular}{lc}
+\newinfrule{
+\begin{array}{c}
+\ignore\ \cname\tparamsL\ignore\where\tparamstwoWH\ignore\seq\fd\ignore\ \inp
+\rulesep
+\fname\tparamsP\vparamsR\colon\retty \ignore\ \in\set{\seq\fd}
+\\
+\tvenv' = \tvenv\ \tvenvtwo
+\end{array}
+}
+{\mtypeFD{\capp}{\tvenv} =
+  \set{(\substseq{\ty}{\tvone}\tparamsP~\mkftnty{\tyP}{\retty},
+         \substseq{\ty}{\tvone}\tvenv')}}
+{\mtBothRule} \\ \\
+
+\newinfrule{
+\begin{array}{c}
+\ignore\ \cname\tparamsL\extends\{\supersfour\}
+\where\tparamstwoWH\ignore\seq\fd\ignore\ \inp\rulesep
+\fname\not\in\set{\seq{\Fname(\fd)}}
+\\
+\tvenv' = \tvenv\ \tvenvtwo
+\end{array}
+}
+{\mtypeFD{\capp}{\tvenv} = 
+\bigcup_{\sub\tappfour i\in{\set{\seq\tappfour}} }
+ \mtypeFD{\substseq{\ty}{\tvone}{\sub\tappfour i}}
+{\substseq{\ty}{\tvone}\tvenv'}}
+{\mtSuperRule}\\ \\
+
+\newrule{\mtypeFD{\obj}\tvenv = \emptyset}{\mtObjRule}\\
+\end{tabular}
+\renewcommand{\rulesep}{\quad}
+
+Bound of type: \fbox{\boundF(\ty) = \set{\seq\tynontv}}\\
+
+$
+\begin{array}{lcl}
+\boundF(\tvone) &=& 
+\bigcup_{\ty_i\in\tvenv(\tvone)} \boundF(\ty_i) \\
+\boundF(\tynontv) &=& \set{\tynontv}
+\end{array}
+$ \\
+
+\caption{Static Semantics of \wherecore\ (III)}\label{fig:where-static3}
+\end{figure}
+
+\begin{figure}[htbp]
+Traits defining a method:
+\fbox{\defining(\fname, \tappfour) = \set{\seq\tappfour}}
+
+\newcommand{\isOnlyHere}{=}
+\[
+\begin{array}{l}
+\defining(\fname, \obj)  \isOnlyHere \emptyset\\
+\defining(\fname, \capp) \isOnlyHere
+\left\{ \begin{array}{ll}
+\lefteqn{
+\bigcup_{\sub \tappfour i\in\set{\seq{\tappfour}}} 
+\defining(\fname, \substseq{\ty}{\tvone}\sub \tappfour i)
+}\\
+\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad\quad
+& \mbox{if } \dsyntaxDEFN \inp
+\mbox{ and } \fname \not\in\defined(\cname)\\
+\lefteqn{
+\bigcup_{\sub \tappfour i\in\set{\seq{\tappfour}}} 
+\defining(\fname, \substseq{\ty}{\tvone}\sub \tappfour i)
+\cup\set{\capp}
+}\\
+& \mbox{if } \dsyntaxDEFN \inp
+\mbox{ and } \fname \in\defined(\cname)\\
+\end{array} \right.
+\end{array}
+\]
+
+Auxiliary functions for methods:
+\fbox{\defined~/~\inherited~/~\visible(\cname) = \set{\seq\fname}}\\
+
+$
+\begin{array}{rlll}
+\defined(\cname) = & 
+\set{\seq{\Fname(\fd)}}
+& \mbox{where } \ignore\ \cname\ignore\fds\ignore\ \inp
+\\ \\
+
+\inherited(\cname) = & 
+\biguplus_{\tappfour_i\in\set{\seq\tappfour}}\
+\set{\fname_i~|~
+\fname_i\in\visible(\tappfour_i),
+\fname_i\not\in\defined(\cname)}
+& \mbox{where } \dsyntaxOVER \inp 
+\\ \\
+
+\visible(\cname) = & \defined(\cname) \uplus\ \inherited(\cname)
+\\ \\
+\end{array}
+$
+
+\caption{Static Semantics of \wherecore\ (IV)}\label{fig:where-static4}
+\end{figure}
+
+
+We proved the type soundness of \wherecore\ using the standard
+technique of proving a progress theorem and a subject reduction
+theorem.

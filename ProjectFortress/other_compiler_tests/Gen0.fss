@@ -1,0 +1,128 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+object FailCalled(s:String) extends UncheckedException
+    getter asString(): String = "FAIL: " s
+end
+
+ignore(_:Any):() = ()
+
+identity[\T extends Any\](x:T):T = x
+
+(* Function composition *)
+opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
+
+(* fail[\T\](s:String):T = do
+    println("FAIL: " s)
+    throw FailCalled(s) 
+  end *)
+
+
+trait Equality[\Self extends Equality[\Self\]\]
+    opr =(self, other:Self): Boolean = self SEQV other
+end
+
+
+
+(** Total ordering *)
+
+trait Comparison
+        extends { StandardPartialOrder[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+    getter asString(): String
+
+end
+
+(** Unordered is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unordered extends Comparison
+    getter asString(): String = "Unordered"
+ 
+end
+
+trait TotalComparison
+        extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        comprises { LessThan, EqualTo, GreaterThan }
+end
+
+object LessThan extends TotalComparison
+    getter asString(): String = "LessThan"
+ 
+end
+
+object GreaterThan extends TotalComparison
+    getter asString(): String = "GreaterThan"
+
+end
+
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+
+end
+
+(** StandardPartialOrder is partial ordering using <,>,<=,>=,=, and CMP.
+    This is primarily for floating-point values.  Minimal complete
+    definition: CMP or { <, = }. **)
+trait StandardPartialOrder[\Self extends StandardPartialOrder[\Self\]\]
+        extends { Equality[\Self\] }
+
+end
+
+(** %StandardMin% is a MIN operator; most types that implement %MIN%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MIN b = a% when %a <= b% and that
+    %a MIN b = b MIN a%. **)
+trait StandardMin[\T extends StandardMin[\T\]\]
+end
+
+(** %StandardMax% is a MAX operator; most types that implement %MAX%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MAX b = a% when %a <= b% and that
+    %a MAX b = b MAX a%. **)
+trait StandardMax[\T extends StandardMax[\T\]\]
+end
+
+(** %StandardMinMax% combines MIN and MAX operators, and provides a
+    combined MINMAX operator.  This operator returns both its
+    arguments; if equality is possible, self should be the leftmost
+    result.  This effectively means that %(a MINMAX b)% stably sorts
+    %a% and %b%.  In addition, %a MINMAX b = (a MIN b, a MAX b)% must
+    always hold. **)
+
+trait StandardMinMax[\T extends StandardMinMax[\T\]\]
+        extends { StandardMin[\T\], StandardMax[\T\] }
+
+end
+
+(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and
+    CMP.  Most values that define a comparison should do so using
+    this.  Minimal complete definition: either CMP or < (it's
+    advisable to define = in the latter case).  As noted above, %MIN%
+    and %MAX% respect the total order and are defined in the obvious
+    way. **)
+trait StandardTotalOrder[\Self extends StandardTotalOrder[\Self\]\]
+        extends { StandardPartialOrder[\Self\], StandardMinMax[\Self\] }
+
+end
+
+
+
+run():() = do
+
+end

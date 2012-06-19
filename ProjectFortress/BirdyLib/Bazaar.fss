@@ -1,0 +1,211 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Bazaar
+
+  import Util.{...}
+  import Maybe.{...}
+  import List.{...}
+  import GeneratorLibrary.{DefaultGeneratorImplementation, DefaultSequentialGeneratorImplementation}
+  export Bazaar
+
+  object AndRed extends MonoidReduction[\Boolean\]
+    getter asString(): String = "And cat"
+    getter id(): Boolean = true
+    join(x: Boolean, y: Boolean) = x AND y
+  end
+
+  opr BIG AND() :BigReduction[\Boolean,Boolean\] = BigReduction[\Boolean,Boolean\](AndRed)
+
+  object SumRed extends MonoidReduction[\ZZ32\]
+    getter asString(): String = "Plus red"
+    getter id(): ZZ32 = 0
+    join(x: ZZ32, y: ZZ32) = x + y    
+  end
+
+  opr BIG +() :BigReduction[\ZZ32,ZZ32\] = BigReduction[\ZZ32,ZZ32\](SumRed) 
+
+  object SumRR64Red extends MonoidReduction[\RR64\]
+    getter asString(): String = "RR64 red"
+    getter id(): RR64 = 0.0
+    join(x: RR64, y: RR64) = x + y    
+  end
+
+  opr BIG $() :BigReduction[\RR64,RR64\] = BigReduction[\RR64,RR64\](SumRR64Red) 
+
+
+  object ProdRed extends MonoidReduction[\ZZ32\]
+    getter asString(): String = "Prod red"
+    getter id(): ZZ32 = 1
+    join(x: ZZ32, y: ZZ32) = x y    
+  end
+
+
+  opr PROD() :BigReduction[\ZZ32,ZZ32\] = BigReduction[\ZZ32,ZZ32\](ProdRed) 
+
+  object ProdRedRR64 extends MonoidReduction[\RR64\]
+    getter asString(): String = "Prod red RR64"
+    getter id(): RR64 = 1.0
+    join(x: RR64, y: RR64) = x y    
+  end
+
+  (*)opr PROD() :BigReduction[\RR64,RR64\] = BigReduction[\RR64,RR64\](ProdRedRR64) 
+
+  opr PROD(g: Generator[\RR64\]): RR64 =
+    __bigOperatorSugar[\RR64,RR64,RR64,RR64\](BigReduction[\RR64,RR64\](ProdRedRR64) , g) 
+
+  object BXRed extends AssociativeReduction[\ZZ32\]
+    simpleJoin(x: ZZ32, y: ZZ32): ZZ32 = x BITXOR y
+  end
+
+  opr BIG BITXOR(): BigReduction[\ZZ32,Maybe[\ZZ32\]\] = BigReduction[\ZZ32,Maybe[\ZZ32\]\](BXRed)
+
+  object MinRed extends AssociativeReduction[\RR64\]
+    simpleJoin(x: RR64, y: RR64): RR64 = x MIN y
+  end
+
+  opr BIG MIN() : BigReduction[\RR64,Maybe[\RR64\]\] = BigReduction[\RR64,Maybe[\RR64\]\](MinRed)
+
+  strToFloat(s: String): RR64 = 1.0
+
+  opr <|g: Generator[\ZZ32\]|>: List[\ZZ32\] = <|[\ZZ32\] x | x <- g |>
+
+  opr |r: Range|: ZZ32 = r.upperBound - r.lowerBound
+
+  object StrRed extends MonoidReduction[\String\]
+    getter asString(): String = "String concat reduction"
+    getter id(): String = ""
+    join(x: String, y: String) = x || y      
+  end
+
+  opr BIG ||() : BigReduction[\String,String\] = BigReduction[\String,String\](StrRed)
+
+  opr BIG||(g: Generator[\String\]): String =
+    __bigOperatorSugar(BIG ||(),g)
+    
+  opr ||(c: Character, s: String): String = c.asString || s  
+
+  opr =/=(x: Range, y: Range): Boolean = x.lowerBound =/= y.lowerBound  OR x.upperBound =/= y.upperBound
+
+  object CharGen(s: String) extends DefaultGeneratorImplementation[\Character\] 
+    generate[\R extends Any\](r: Reduction[\R\], body: Character->R): R = do
+      n = |s|
+      if n > 1 then
+        m = |s| >> 1
+        r.join(CharGen(s.substring(0 typed ZZ32, m.asZZ32)).generate(r,body),
+               CharGen(s.substring(m.asZZ32, |s|)).generate(r,body))
+      elif n = 1 then body(s[0])
+      else r.id end
+    end
+    seq() = SequentialCharGen(s)
+  end
+
+  object SequentialCharGen(s: String) extends DefaultSequentialGeneratorImplementation[\Character\] 
+    generate[\R extends Any\](r: Reduction[\R\], body: Character->R): R =  
+      if |s| = 0 then r.id
+      else
+        q = body(s[0])
+        r.join(q, SequentialCharGen(s.substring(1,|s| - 1)).generate(r,body))
+      end
+  end
+  
+  toGenString(s: String) : Generator[\Character\] = CharGen(s)
+  
+  object ZZ32Gen(x: Range) extends DefaultGeneratorImplementation[\ZZ32\]
+    generate[\R extends Any\](r: Reduction[\R\], body: ZZ32->R): R = 
+      do dis = x.upperBound - x.lowerBound 
+         if dis = 0 then body(x.lowerBound) else 
+              do firsthalf = dis DIV 2
+                 range1 = ZZ32Gen(x.lowerBound#firsthalf)
+                 range2 = ZZ32Gen((x.lowerBound + firsthalf + 1):x.upperBound)  (*) WATCH OUT
+                 r.join(range1.generate(r,body),range2.generate(r,body))
+              end
+        end
+      end
+    seq() = SeqZZ32Gen(x) 
+  end
+  
+  object SeqZZ32Gen(x: Range) extends DefaultSequentialGeneratorImplementation[\ZZ32\]
+    generate[\R extends Any\](r: Reduction[\R\], body: ZZ32->R): R = 
+      do dis = x.upperBound - x.lowerBound 
+         if dis = 0 then body(x.lowerBound) else 
+              do range1 = ZZ32Gen(x.lowerBound#1)
+                 range2 = ZZ32Gen((x.lowerBound + 1):x.upperBound)  (*) WATCH OUT
+                 q = range1.generate(r,body)
+                 r.join(q,range2.generate(r,body))
+              end
+        end
+      end   
+  end
+
+  toGenZZ32(x: Range): Generator[\ZZ32\] = ZZ32Gen(x)
+
+  object BoolGen(b: Boolean) extends DefaultSequentialGeneratorImplementation[\Boolean\]
+     generate[\R extends Any\](r: Reduction[\R\], body: Boolean->R): R =  
+      body(b)
+     seq() = self
+  end
+
+  toBoolGen(x: Boolean): Generator[\Boolean\] = BoolGen(x)
+
+  split(s: String): (String,String) =
+  do l = |s| 
+     ld = l DIV 2
+     (*)println("ld:" || ld)
+     (s.substring(0,ld),s.substring(ld, l))
+  end
+
+  upto(s: String,c: Character): String = 
+    if |s| = 0 then s 
+               else if |s| = 1 then if s[0] = c then "" 
+                                    else s end 
+                    else do (left,right) = split(s)
+                            (utl,utr) = (upto(left,c),upto(right,c))
+                            if |utl| < |left| then utl else utl || utr end 
+                    end
+               end
+    end
+  
+  beyond(s: String,c: Character): String = 
+    if |s| = 0 then s 
+               else if |s| = 1 then if s[0] = c then "" 
+                                    else s end 
+                    else do (left,right) = split(s)
+                            (utl,utr) = (beyond(left,c),beyond(right,c))
+                            if |utr| < |right| then utr else utl || utr end 
+                    end
+               end
+    end    
+
+  reverse(s: String): String = 
+  if |s| = 0 OR |s| = 1 then s else 
+    do (left,right) = split(s)
+       (*)println("left:" || left)
+       (*)println("right:" || right)
+       reverse(right) || reverse(left) 
+    end
+  end  
+    
+
+  extract_val[\T\](l : List[\T\]): T =
+    if x <- l.left() then x else throw MatchFailure end
+
+  list_filter[\T\](l: List[\T\], p : T -> Boolean): List[\T\] = 
+    if |l| = 0 then emptyList[\T\]()
+    else if |l| = 1 then if p(extract_val(l)) then l else emptyList[\T\]() end
+         else do (left,right) = l.split()
+                 (list_filter(left,p)).concat(list_filter(right,p))
+              end
+         end
+    end
+  
+
+end

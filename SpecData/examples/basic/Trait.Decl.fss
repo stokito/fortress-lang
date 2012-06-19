@@ -1,0 +1,27 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Trait.Decl
+
+export Executable
+
+object Reaction end
+(** EXAMPLE **)
+trait Catalyst extends Object
+  catalyze(reaction: Reaction): ()
+end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

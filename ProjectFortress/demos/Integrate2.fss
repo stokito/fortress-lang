@@ -1,0 +1,63 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(************************************************************
+ * Sample program using Gaussian Quadrature for numerical integration.
+ *
+ * Essentially a translation of Java code by Doug Lea, in turn
+ * inspired by a <A href="http://www.cs.uga.edu/~dkl/filaments/dist.html"> Filaments</A>
+ * demo program.
+ ************************************************************)
+
+component Integrate2
+export Executable
+
+start : RR64 = 0.0
+finish : RR64 = 1536.0
+errorTolerance : RR64 = 10.0^(-4) (* should be 10^(-12) *)
+reps : ZZ32 = 10
+expect = 1.391570583 10.0^12
+
+computeArea(l: RR64, r: RR64): RR64 =
+    recEval(l, r, l l + 1.0, (r r + 1.0) r, 0)
+
+recEval(l: RR64, r: RR64, fl: RR64, fr: RR64, a: RR64): RR64 = do
+    h = 0.5 (r-l)
+    c = l+h
+    fc = (c c + 1.0) c
+    hh = 0.5 h
+    al = (fl + fc) hh
+    ar = (fr + fc) hh
+    alr = al + ar
+    if |alr - a| <= errorTolerance then
+        alr
+    else
+        recEval(c,r,fc,fr,ar) + recEval(l,c,fl,fc,al)
+    end
+  end
+
+elapsedSec(init:ZZ64, final:ZZ64): RR64 =
+    (final - init) / (10.0^9)
+
+run(): () = do
+    println("Time(s)\tArea")
+    for _ <- 0#reps do
+        startTime = nanoTime()
+        a = computeArea(start,finish)
+        endTime = nanoTime()
+        println(elapsedSec(startTime,endTime) "\t" a)
+        if |a-expect| > errorTolerance a then
+            println("    FAIL: Bad error tolerance!")
+        end
+    end
+  end
+
+end Integrate2

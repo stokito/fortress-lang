@@ -1,0 +1,61 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component SimpleOverload4a
+import java com.sun.fortress.nativeHelpers.{simplePrintln.nativePrintln => jPrintln}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.bar => jBar}
+
+import java com.sun.fortress.nativeHelpers.{simpleOverload.baz => jBaz}
+import java com.sun.fortress.nativeHelpers.{simpleOverload.duo => jDuo}
+
+export Executable
+
+print2(x:String, y:String):() = do
+  jPrintln(jDuo(x.asJavaString,y.asJavaString))
+end
+
+(* jDuo(x:String, y:ZZ32):String = do
+   jPrintln("cat");
+   jPrintln("dog");
+   "catdog"
+end *)
+
+local(x:String, y:String):String = "10"
+local(x:ZZ32, y:ZZ32):String = "11"
+local(x:Object, y:ZZ32):String = "12"
+local(x:ZZ32, y:Object):String = "13"
+local(x:Object, y:Object):String = "FAIL"
+
+lokal(x:Object, y:Object) = local(x,y)
+
+run(): () = do
+  print2("PA","SS")
+
+  (* NOTE: if you use IntegerLiterals 5 and 6 in the calls,
+     the coercion does not happen, because "Object" is good
+     enough, you get FAILs. *)
+
+  five:ZZ32=5
+  six:ZZ32=6
+
+  jPrintln(local("b", "az").asJavaString)
+  jPrintln(local(five,six).asJavaString)
+  jPrintln(local("5",six).asJavaString)
+  jPrintln(local(five,"6").asJavaString)
+  
+  jPrintln(lokal("b", "az").asJavaString)
+  jPrintln(lokal(five,six).asJavaString)
+  jPrintln(lokal("5",six).asJavaString)
+  jPrintln(lokal(five,"6").asJavaString)
+
+end
+
+end

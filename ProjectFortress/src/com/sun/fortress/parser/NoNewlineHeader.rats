@@ -1,0 +1,362 @@
+/*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress headers.
+ */
+module com.sun.fortress.parser.NoNewlineHeader(Other, NoNewlineType,
+                                               NoNewlineExpr, MayNewlineHeader,
+                                               Literal, Identifier, Keyword,
+                                               Symbol, Spacing);
+
+import NoNewlineType;
+import NoNewlineExpr;
+import MayNewlineHeader;
+import Identifier;
+import Keyword;
+import Symbol;
+import Spacing;
+
+/* ExtendsWhere ::= extends w TraitTypeWheres */
+/* TraitTypeWheres ::= TraitTypeWhere | { w TraitTypeWhereList w } */
+/* TraitTypeWhereList ::= TraitTypeWhere (w , w TraitTypeWhere)* */
+List<TraitTypeWhere> ExtendsWhere =
+     extends w a1:TraitTypeWhere
+     { yyValue = Useful.list(a1);
+       NodeUtil.validTraitTypeWheres(writer, yyValue);
+     }
+   / extends w void:opencurly w a1:TraitTypeWhere a2s:(w comma w TraitTypeWhere)*
+     w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.validTraitTypeWheres(writer, yyValue);
+     };
+
+/* TraitTypeWhere ::= TraitType (w Where)? */
+private TraitTypeWhere TraitTypeWhere =
+     a1:TraitTypeWithError a2:(w Where)?
+     { Option<WhereClause> where;
+       if (a2 == null)
+           where = Option.<WhereClause>none();
+       else {
+           where = Option.<WhereClause>some(a2);
+           NodeUtil.checkWhereClauses(writer, a2);
+       }
+       yyValue = NodeFactory.makeTraitTypeWhere(createSpan(yyStart,yyCount),
+                                                a1, where);
+     };
+
+/* Extends ::= extends w TraitTypes */
+List<BaseType> Extends = extends w TraitTypes ;
+
+/* Dominates ::= dominates w TraitTypes */
+List<BaseType> Dominates = dominates w TraitTypes ;
+
+/* The following actions are a bit of a hack, but they allow for a plesant BNF 
+without too many modifications of the AST. The size of the list is used to pass
+an information: did we parse an extend or a dominate? */
+/* Bounds ::= Extends | Dominates */
+List<List<BaseType>> Bounds = 
+    a:Extends {
+    	List<List<BaseType>> l = new ArrayList<List<BaseType>>();
+    	l.add(a);
+		yyValue = l; 
+    }
+  / a:Dominates {
+        List<List<BaseType>> l = new ArrayList<List<BaseType>>();
+        List<BaseType> dummy = new ArrayList<BaseType>();
+        l.add(dummy);
+        l.add(a);
+  		yyValue = l;
+  }
+  ;
+
+/* Excludes ::= excludes w TraitTypes */
+List<BaseType> Excludes = excludes w TraitTypes ;
+
+/* TraitTypes ::= TraitType | { w TraitTypeList w } */
+/* TraitTypeList ::= TraitType (w , w TraitType)* */
+List<BaseType> TraitTypes =
+     a1:TraitTypeWithError
+     { yyValue = Useful.list(a1);
+       NodeUtil.validTraitTypes(writer, yyValue);
+     }
+   / void:opencurly w a1:TraitTypeWithError a2s:(w comma w TraitTypeWithError)* w void:closecurly
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.validTraitTypes(writer, yyValue);
+     };
+
+/*    Comprises ::= comprises w ComprisingTypes */
+/* AbsComprises ::= comprises w AbsComprisingTypes */
+/* AbsComprisingTypes ::= ComprisingType | { (w AbsComprisingTypeList)? w } */
+Comprises Comprises =
+     comprises w a1:ComprisingTypes
+     { yyValue = new Comprises(createSpan(yyStart,yyCount), a1);
+       NodeUtil.validTraitTypes(writer, Useful.list(a1));
+     }
+   / comprises w opencurly a1:(w AbsComprisingTypeList)? w closecurly
+     { if (a1 == null) {
+           Span span = createSpan(yyStart,yyCount);
+           log(span, "Comprises clauses should not be empty.");
+           yyValue = new Comprises(span, Collections.<NamedType>emptyList(), false);
+       } else yyValue = a1;
+     };
+
+/* AbsComprisingTypeList ::=
+     ...
+   | ComprisingTypeList (w , w ...)?
+ */
+private Comprises AbsComprisingTypeList =
+     ellipses
+     { yyValue = new Comprises(createSpan(yyStart,yyCount),
+                               Collections.<NamedType>emptyList(), true);
+     }
+   / a1:ComprisingTypeList a2:(w comma w ellipses)?
+     { yyValue = new Comprises(createSpan(yyStart,yyCount), a1, a2 != null);
+       NodeUtil.validTraitTypes(writer, a1);
+     };
+
+/* ComprisingTypes ::= ComprisingType | { w ComprisingTypeList w } */
+List<NamedType> ComprisingTypes =
+     a1:ComprisingTypeWithError
+     { yyValue = Useful.list(a1);
+       NodeUtil.validTraitTypes(writer, yyValue);
+     }
+   / void:opencurly w yyValue:ComprisingTypeList w void:closecurly;
+
+/* ComprisingTypeList ::= ComprisingType (w , w ComprisingType)* */
+List<NamedType> ComprisingTypeList =
+     a1:ComprisingTypeWithError a2s:(w comma w ComprisingTypeWithError)*
+     { yyValue = Useful.cons(a1, a2s.list());
+       NodeUtil.validTraitTypes(writer, yyValue);
+     };
+
+/* ComprisingType ::= TraitType | Id */
+NamedType ComprisingTypeWithError =
+     TraitTypeWithError
+   / a1:Id
+     { yyValue = NodeFactory.makeVarType(createSpan(yyStart,yyCount), a1); };
+
+/* Where ::=
+     where w [\ w WhereBindingList w \] (w { w WhereConstraintList w })?
+   | where w { w WhereConstraintList w }
+   WhereBindingList ::= WhereBinding (w , w WhereBinding)*
+ */
+transient WhereClause Where =
+     where w opendoublesquare w a1:WhereBinding a2s:(w comma w WhereBinding)* w
+     closedoublesquare a3:(w void:opencurly w WhereConstraintList w void:closecurly)?
+     { List<WhereBinding> bindings = Useful.cons(a1, a2s.list());
+       if (a3 == null)
+           yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
+                                                 bindings,
+                                                 Collections.<WhereConstraint>emptyList());
+       else
+           yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
+                                                 bindings, a3);
+     }
+   / where w opencurly w a1:WhereConstraintList w closecurly
+     { yyValue = NodeFactory.makeWhereClause(createSpan(yyStart,yyCount),
+                                             Collections.<WhereBinding>emptyList(), a1);
+     };
+
+/* WhereBinding ::=
+     nat w Id
+   | int w Id
+   | bool w Id
+   | unit w Id
+   | Id (w Extends)?
+ */
+transient WhereBinding WhereBinding =
+     nat w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindNat());
+     }
+   / int w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindInt());
+     }
+   / bool w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindBool());
+     }
+   / unit w a1:IdOrOpName
+     { yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, new KindUnit());
+     }
+   / a1:IdOrOpName a2:(w a2:Extends)?
+     { if (a2 == null) a2 = Collections.<BaseType>emptyList();
+       yyValue = NodeFactory.makeWhereBinding(writer, createSpan(yyStart,yyCount),
+                                              a1, a2, new KindType());
+     }
+   / <ErrorProduction> opendoublesquare
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "White square bracket is not a valid where-clause binding.");
+       yyValue = NodeFactory.makeWhereBinding(writer, span,
+                                              NodeFactory.bogusId(span),
+                                              new KindType());
+     };
+
+/* FnHeaderClause ::= (w NoNewlineIsTypeOrThrow)? FnClauses */
+FnHeaderClause FnHeaderClause = a1:(w NoNewlineIsTypeOrZilch)? a2:FnClauses
+     { NodeUtil.checkWhereClauses(writer, a2.getWhereClause());
+       yyValue = new FnHeaderClause(a2.getThrowsClause(), a2.getWhereClause(),
+                                    a2.getContractClause(), Option.<Type>wrap(a1));
+     } ;
+
+/* FnClauses ::= (w Throws)? (w Where)? Contract */
+/* Contract ::= (w Requires)? (w Ensures)? (w Invariant)? */
+FnHeaderClause FnClauses = a1s:FnClause*
+     { yyValue = NodeFactory.makeFnClauses(writer, createSpan(yyStart,yyCount),
+                                           a1s.list()); };
+FnHeaderClause FnClause =
+     w a1:Throws
+     { yyValue = NodeFactory.makeThrowsClause(Option.<List<Type>>some(a1)); }
+   / w a1:Where
+     { yyValue = NodeFactory.makeWhereClause(Option.<WhereClause>some(a1)); }
+   / w a1:Requires
+     { yyValue = NodeFactory.makeRequiresClause(Option.<List<Expr>>some(a1)); }
+   / w a1:Ensures
+     { yyValue = NodeFactory.makeEnsuresClause(Option.<List<EnsuresClause>>some(a1)); }
+   / w a1:Invariant
+     { yyValue = NodeFactory.makeInvariantsClause(Option.<List<Expr>>some(a1)); }
+   / w ExtendsWhere
+     { log(createSpan(yyStart,yyCount),
+           "Extends clauses should come before throws/where/contract clauses.");
+       yyValue = NodeFactory.makeWhereClause(Option.<WhereClause>none());
+     };
+
+/* Throws ::= throws w MayTraitTypes */
+/* MayTraitTypes ::= { w } | TraitTypes  */
+List<Type> Throws =
+     throws w opencurly w closecurly
+     { yyValue = Collections.<Type>emptyList(); }
+   / throws w TraitTypes ;
+
+/* Mods ::= (Mod w)+ */
+transient Modifiers Mods = a1s:(Mod w)+
+     { yyValue = NodeUtil.checkModifiers(writer, createSpan(yyStart,yyCount),
+                                         a1s.list());
+     };
+
+/* Mod ::=
+     abstract | atomic | getter | hidden | io | override | private | settable
+   | setter | test | value | var | wrapped
+ */
+transient Modifiers Mod =
+     abstract { yyValue = Modifiers.Abstract; }
+   / atomic   { yyValue = Modifiers.Atomic; }
+   / getter   { yyValue = Modifiers.Getter; }
+   / hidden   { yyValue = Modifiers.Hidden; }
+   / io       { yyValue = Modifiers.IO; }
+   / override { yyValue = Modifiers.Override; }
+   / private  { yyValue = Modifiers.Private; }
+   / settable { yyValue = Modifiers.Settable; }
+   / setter   { yyValue = Modifiers.Setter; }
+   / test     { yyValue = Modifiers.Test; }
+   / value    { yyValue = Modifiers.Value; }
+   / var      { yyValue = Modifiers.Var; }
+   / wrapped  { yyValue = Modifiers.Wrapped; };
+
+/* StaticParams ::= [\ w StaticParamList w \] */
+/* StaticParamList ::= StaticParam (w , w StaticParam)* */
+List<StaticParam> StaticParams =
+     opendoublesquare w a1:StaticParam a2s:(w comma w StaticParam)* w
+     closedoublesquare
+     { yyValue = Useful.cons(a1, a2s.list()); };
+
+/* StaticParam ::=
+     (Variance w)? nat w Id
+   | (Variance w)? int w Id
+   | (Variance w)? bool w Id
+   | dim w Id
+   | unit w Id (w : w NoNewlineType)? (w absorbs w unit)?
+   | opr w Op
+   | (Variance w)? IdOrOpName w Extends (w absorbs w unit)?
+   | (Variance w)? Id (w Extends)? (w absorbs w unit)?
+   | (Variance w)? Id (w Dominates)? (w absorbs w unit)?
+   | (Variance w)? SelfTypeId
+*/
+private StaticParam StaticParam =
+     a1:(Variance w)? nat w a2:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, new KindNat());
+     }
+   / a1:(Variance w)? int w a2:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, new KindInt());
+     }
+   / a1:(Variance w)? bool w a2:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, new KindBool());
+     }
+   / dim w a1:IdOrOpName
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               null, a1, new KindDim());
+     }
+   / unit w a1:IdOrOpName a2:(w void:colon w NoNewlineType)? a3:(w absorbs w unit)?
+     { boolean absorbs = (a3 == null) ? false : true;
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               null, a1, Collections.<BaseType>emptyList(), Collections.<BaseType>emptyList(),
+                                               Option.<Type>wrap(a2), absorbs,
+                                               new KindUnit());
+     }
+   / opr w a1:Op
+     { yyValue = NodeFactory.makeStaticParam(createSpan(yyStart,yyCount), null, a1,
+                                             Collections.<BaseType>emptyList(), Collections.<BaseType>emptyList(),
+                                             Option.<Type>none(), false,
+                                             new KindOp());
+     }
+   / a1:(Variance w)? a2:IdOrOpName w a3:Extends a4:(w absorbs w unit)?
+     { boolean absorbs = (a4 == null) ? false : true;
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, a3, Collections.<BaseType>emptyList(),Option.<Type>none(),
+                                               absorbs, new KindType());
+     }
+   / a1:(Variance w)? a2:Id a3:(w Bounds)? a4:(w absorbs w unit)?
+     { List<BaseType> eextends = Collections.<BaseType>emptyList();
+       List<BaseType> dominates = Collections.<BaseType>emptyList();
+       if (a3 != null) {       
+       		if (a3.size() == 2) dominates = a3.get(1);
+       		else eextends = a3.get(0);
+       }
+       boolean absorbs = (a4 == null) ? false : true;
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, eextends, dominates,Option.<Type>none(),
+                                               absorbs, new KindType());
+     }     
+     /*  
+   / a1:(Variance w)? a2:Id a3:(w Extends)? a4:(w absorbs w unit)?
+     { if (a3 == null) a3 = Collections.<BaseType>emptyList();
+       boolean absorbs = (a4 == null) ? false : true;
+       yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, a3, Collections.<BaseType>emptyList(),Option.<Type>none(),
+                                               absorbs, new KindType());
+     } 
+     */
+   / a1:(Variance w)? a2:SelfTypeId
+     { yyValue = NodeFactory.makeStaticParamId(writer, createSpan(yyStart,yyCount),
+                                               a1, a2, Collections.<BaseType>emptyList(), Collections.<BaseType>emptyList(),Option.<Type>none(),
+                                               false, new KindType());
+     }
+   / <ErrorProduction>
+     opendoublesquare
+     { Span span = createSpan(yyStart,yyCount);
+       log(span, "White square bracket is not a valid static parameter.");
+       yyValue = NodeFactory.makeStaticParamId(writer, span, null,
+                                               NodeFactory.bogusId(span),
+                                               new KindNat());
+     };
+
+
+transient String Variance =
+     contravariant
+   / covariant     
+   ;   
+     

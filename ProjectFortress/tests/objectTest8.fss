@@ -1,0 +1,80 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component objectTest8
+export Executable
+
+trait T
+  getI():ZZ32
+  getJ():ZZ32
+end
+
+trait U
+  getMyX():ZZ32
+  getMyXAlt():ZZ32
+  getParentX():ZZ32
+end
+
+object A(ii:ZZ32, jj:ZZ32) extends T
+
+     k:ZZ32 = 4
+     x:ZZ32 = 9
+     getI():ZZ32 = ii
+     getJ():ZZ32 = jj
+
+
+  b(n:ZZ32):T = do object extends {T,U}
+                        m:ZZ32 = n
+                        xx:ZZ32 = 7
+                        getI():ZZ32 = m
+                        getJ():ZZ32 = ii+jj+1
+                        getMyX():ZZ32 = xx
+                        getMyXAlt():ZZ32 = xx+1
+                        getParentX():ZZ32 = x
+                   end
+  end
+
+end
+
+i = 5
+j = 6
+
+object B extends T
+  getI():ZZ32 = i
+  getJ():ZZ32 = j
+end
+
+t(s:String, got:ZZ32, expected:ZZ32):() = do
+  println(
+    if got = expected then
+      s ": " got " = " expected " OK"
+    else
+      s ": " got " /= " expected " FAIL"
+    end
+  )
+end
+
+run():()=do
+  a:A = A(1,2)
+  b:T = a.b(3)
+  c:U = a.b(3)
+  t("a.getI()", a.getI(), 1) (* 1 *)
+  t("a.getJ()", a.getJ(), 2) (* 2 *)
+  t("b.getI()", b.getI(), 3) (* 3 *)
+  t("b.getJ()", b.getJ(), 4) (* 4 *)
+  t("B.getI()", B.getI(), 5) (* 5 *)
+  t("B.getJ()", B.getJ(), 6) (* 6 *)
+  t("c.getMyX()", c.getMyX(), 7) (* 7 *)
+  t("c.getMyXAlt()", c.getMyXAlt(), 8) (* 8 *)
+  t("c.getParentX()", c.getParentX(), 9) (* 9 *)
+
+end
+end

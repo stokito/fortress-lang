@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component hello
+import System.getProperty
+import CompilerSystem.args
+export Executable
+
+run() = do
+ println("fortress.home is " getProperty("fortress.home", "not found"))
+ println("Hello, World!")
+ for i <- 0#|args| do
+   println args[i]
+ end
+end
+
+end

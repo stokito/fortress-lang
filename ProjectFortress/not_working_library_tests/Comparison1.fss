@@ -1,0 +1,97 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Comparison1
+export Executable
+
+(*) Test various operators on the type Comparison.
+
+run(): () = do
+  U = Unordered
+  L = LessThan
+  G = GreaterThan
+  E = EqualTo
+
+  assert(U.asString = "Unordered")
+  assert(L.asString = "LessThan")
+  assert(E.asString = "EqualTo")
+  assert(G.asString = "GreaterThan")
+
+  assert(U.asExprString = "Unordered")
+  assert(L.asExprString = "LessThan")
+  assert(E.asExprString = "EqualTo")
+  assert(G.asExprString = "GreaterThan")
+
+  assert(U.asDebugString = "Unordered")
+  assert(L.asDebugString = "LessThan")
+  assert(E.asDebugString = "EqualTo")
+  assert(G.asDebugString = "GreaterThan")
+
+  assert((U LEXICO U) = U, "Wanted (U LEXICO U) = U")
+  assert((U LEXICO L) = U, "Wanted (U LEXICO L) = U")
+  assert((U LEXICO G) = U, "Wanted (U LEXICO G) = U")
+  assert((U LEXICO E) = U, "Wanted (U LEXICO E) = U")
+  assert((L LEXICO U) = L, "Wanted (L LEXICO U) = L")
+  assert((L LEXICO L) = L, "Wanted (L LEXICO L) = L")
+  assert((L LEXICO G) = L, "Wanted (L LEXICO G) = L")
+  assert((L LEXICO E) = L, "Wanted (L LEXICO E) = L")
+  assert((G LEXICO U) = G, "Wanted (G LEXICO U) = G")
+  assert((G LEXICO L) = G, "Wanted (G LEXICO L) = G")
+  assert((G LEXICO G) = G, "Wanted (G LEXICO G) = G")
+  assert((G LEXICO E) = G, "Wanted (G LEXICO E) = G")
+  assert((E LEXICO U) = U, "Wanted (E LEXICO U) = U")
+  assert((E LEXICO L) = L, "Wanted (E LEXICO L) = L")
+  assert((E LEXICO G) = G, "Wanted (E LEXICO G) = G")
+  assert((E LEXICO E) = E, "Wanted (E LEXICO E) = E")
+
+  assert((U LEXICO: U) = U, "Wanted (U LEXICO: U) = U")
+  assert((U LEXICO: L) = U, "Wanted (U LEXICO: L) = U")
+  assert((U LEXICO: G) = U, "Wanted (U LEXICO: G) = U")
+  assert((U LEXICO: E) = U, "Wanted (U LEXICO: E) = U")
+  assert((L LEXICO: U) = L, "Wanted (L LEXICO: U) = L")
+  assert((L LEXICO: L) = L, "Wanted (L LEXICO: L) = L")
+  assert((L LEXICO: G) = L, "Wanted (L LEXICO: G) = L")
+  assert((L LEXICO: E) = L, "Wanted (L LEXICO: E) = L")
+  assert((G LEXICO: U) = G, "Wanted (G LEXICO: U) = G")
+  assert((G LEXICO: L) = G, "Wanted (G LEXICO: L) = G")
+  assert((G LEXICO: G) = G, "Wanted (G LEXICO: G) = G")
+  assert((G LEXICO: E) = G, "Wanted (G LEXICO: E) = G")
+  assert((E LEXICO: U) = U, "Wanted (E LEXICO: U) = U")
+  assert((E LEXICO: L) = L, "Wanted (E LEXICO: L) = L")
+  assert((E LEXICO: G) = G, "Wanted (E LEXICO: G) = G")
+  assert((E LEXICO: E) = E, "Wanted (E LEXICO: E) = E")
+
+  assert(U SQCAP U = U, "Wanted U SQCAP U = U")
+  assert(U SQCAP L = U, "Wanted U SQCAP L = U")
+  assert(U SQCAP G = U, "Wanted U SQCAP G = U")
+  assert(U SQCAP E = U, "Wanted U SQCAP E = U")
+  assert(L SQCAP U = U, "Wanted L SQCAP U = U")
+  assert(L SQCAP L = L, "Wanted L SQCAP L = L")
+  assert(L SQCAP G = U, "Wanted L SQCAP G = U")
+  assert(L SQCAP E = L, "Wanted L SQCAP E = L")
+  assert(G SQCAP U = U, "Wanted G SQCAP U = U")
+  assert(G SQCAP L = U, "Wanted G SQCAP L = U")
+  assert(G SQCAP G = G, "Wanted G SQCAP G = G")
+  assert(G SQCAP E = G, "Wanted G SQCAP E = G")
+  assert(E SQCAP U = U, "Wanted E SQCAP U = U")
+  assert(E SQCAP L = L, "Wanted E SQCAP L = L")
+  assert(E SQCAP G = G, "Wanted E SQCAP G = G")
+  assert(E SQCAP E = E, "Wanted E SQCAP E = E")
+
+  assert(CONVERSE U = U, "Wanted CONVERSE U = U but got " (CONVERSE U).asString)
+  assert(CONVERSE L = G, "Wanted CONVERSE L = G but got " (CONVERSE L).asString)
+  assert(CONVERSE G = L, "Wanted CONVERSE G = L but got " (CONVERSE G).asString)
+  assert(CONVERSE E = E, "Wanted CONVERSE E = E but got " (CONVERSE E).asString)
+
+  println("PASS")
+end
+
+end

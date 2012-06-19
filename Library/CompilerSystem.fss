@@ -1,0 +1,19 @@
+(*******************************************************************************
+    Copyright 2009,2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component CompilerSystem
+import java com.sun.fortress.nativeHelpers.{systemOps.getArgs => jGetArgs}
+export CompilerSystem
+
+
+args : StringVector = jGetArgs()
+
+end

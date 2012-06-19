@@ -1,0 +1,22 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Tests that mutually recursive local function definitions work as intended. *)
+
+  run():() = ()
+
+  blah(b:ZZ32, one:ZZ32):Boolean = do
+    myOdd(x:ZZ32, one': ZZ32):Boolean = if x = 1 then true else myEven(x-one',one') end
+    myEven(x:ZZ32, one':ZZ32):Boolean = if x = 0 then true else myOdd(x-one',one') end
+    myOdd(b,one)
+  end

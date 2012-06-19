@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ioTests
+export Executable
+
+object Error extends Exception end
+
+run() = do
+  a: io ZZ32->String
+  e: io ZZ32->String throws Error
+  f: io ZZ32 Length -> (String Time / Length) throws Error
+  g: ZZ32 -> (io String -> ())
+  h: io ZZ32 -> (String -> ())
+end
+
+end
