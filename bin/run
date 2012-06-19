@@ -31,7 +31,7 @@ else
 fi
 
 if [ -z "$JAVA_FLAGS" ] ; then
-  JAVA_FLAGS="-Xmx768m"
+  JAVA_FLAGS="-Xmx1536m"
 fi
 
 JAVA_FLAGS="$JAVA_FLAGS -Dfile.encoding=UTF-8 -Xfuture"

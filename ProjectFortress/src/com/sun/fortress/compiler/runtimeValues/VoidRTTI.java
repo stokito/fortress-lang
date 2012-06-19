@@ -4,7 +4,7 @@ import com.sun.fortress.runtimeSystem.Naming;
 
 abstract public class VoidRTTI extends RTTI {
 	
-	// public static final RTTI ONLY = new VoidRTTI(VoidRTTI.class);
+	public static final RTTI ONLY = new FVoid.RTTIc(); // FVoid.RTTIc.ONLY;
 	
 	public VoidRTTI(Class javaRep) {
 		super(javaRep);

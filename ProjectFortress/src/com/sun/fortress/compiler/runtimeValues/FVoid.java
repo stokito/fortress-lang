@@ -19,10 +19,10 @@ public class FVoid  extends FValue {
     public static FVoid make() {return V;}
     
     @Override
-    public RTTI getRTTI() { return RTTIc.ONLY; }
+    public RTTI getRTTI() { return /* RTTIc.ONLY*/ VoidRTTI.ONLY; }
     
     public static class RTTIc extends VoidRTTI {
-        private RTTIc() { super(FVoid.class); };
-        public static final RTTI ONLY = new RTTIc();
+        public RTTIc() { super(FVoid.class); };
+        // public static final RTTI ONLY = new RTTIc();
     }
 }
