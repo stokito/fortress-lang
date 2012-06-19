@@ -1,0 +1,261 @@
+(*******************************************************************************
+Copyright 2010 Michael Zody and Sun Microsystems, Inc. 
+All rights reserved.
+
+Sun Microsystems, Inc. is the Copyright owner of the Fortress programming language software,
+and Michael Zody is the developer of the algorithm which this software implements and the
+Copyright owner of the software implementation of the algorithm, to which Sun Microsystems, Inc.
+has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+ ******************************************************************************)
+
+component BirdCount2d
+
+import File.{...}; import FileSupport.{...}; import FlatString.{...}; import List.{...}
+import Map.{...}; import Pairs.{...}; import Set.{...}; import Tuple.{...}; import System.{getProperty}
+import GenomeUtil2d.{...}
+
+export Executable
+
+chunkSize: ZZ32 = 237
+readSize: ZZ32 = 35   (*) This may change with newer technology, but for now it is OK.
+
+homeDir: String = getProperty("fortress.autohome", ".")
+referenceFile = homeDir || "/ProjectFortress/demos/ChickenData/chr10.fa.head" 
+sampleFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/test_data"
+errorRateFilesDir = homeDir || "/ProjectFortress/demos/ChickenData/error_rates"
+sampleFilesFileName = "chr10.csfasta.ma.sorted.head"
+errorFilesFileName = "composite_error_model.txt"
+
+sampleNames: List[\String\] = <|[\String\]
+    "10a_LA_Frag35_20080704_white_leghorn_A",
+    "10b_LA_Frag35_20080704_white_leghorn_B"
+(*)    "17_LA_Frag35_20080909_high_grow_line",
+(*)    "18_LA_Frag35_20080909_low_grow_line",
+(*)    "17.1_LA_Frag35_20080925_high_grow_line",
+(*)    "18.1_LA_Frag35_20080925_low_grow_line",
+(*)    "16_LA_Frag35_20080829_broiler",
+(*)    "22_LA_Frag35_20081016_RJF",
+(*)    "16.1_LA_Frag35_20080925_broiler",
+(*)    "22.1_LA_Frag35_20081114_RJF"
+|>
+
+(* An `Event` object records an observation that some subsequence of a `Read` does not
+   match the corresponding subsequence of the reference genome.
+   ; `s`: the `Read` in question
+   ; `startPos`: the index within the `Read` sequence of the start of the mismatching subsequence
+   ; `len`: the length of the mismatching subsequence
+   ; `errorProb`: the probability that (?)
+   ; `fileName`: the name of the file from which the read came
+   Methods are provided for easily retrieving the relevant subsequence from either the read or
+   the reference genome, and as either a color sequence of an ACGT sequence.  (When retrieving
+   an ACGT subsequence for the read, a starting ACGT base from the reference genome is used
+   to initialize the conversion from colors to ACGT.)
+                                                                                                              *)
+object Event(s: Read, startPos: ZZ32, len: ZZ32, errorProb: RR64, fileName: String)
+  refStart: ZZ32 = s.pos + startPos
+  refEnd: ZZ32 = refStart + len - 1
+  refACGTSequence: String = s.refACGT[startPos # len+1]
+  refColorsSequence = s.refColors[startPos # len]
+  sampleColorsSequence = s.sampleColors[startPos # len]
+  sampleACGTSequence: String = colorsToACGT(s.refACGT[startPos], s.sampleColors[startPos#len])
+  valid: Boolean = (if startPos + len = |s.sampleColors|
+                    then isValidTransitionString(refColorsSequence[0#len-1], sampleColorsSequence[0#len-1])
+                    else isValidTransitionString(refColorsSequence, sampleColorsSequence))
+  getter asString(): String =
+    (fileName "    " refStart "    " refEnd "    "
+     refColorsSequence "    " sampleColorsSequence "   "
+     refACGTSequence "    " sampleACGTSequence "   " errorProb)
+  getter asDetailedString() = do
+    (s.header "  " errorProb " "  refStart "  " refEnd "  " refColorsSequence "  " sampleColorsSequence "  "
+     (if valid then "VALID" else "inv") "  " refACGTSequence "   "
+     (if valid then sampleACGTSequence else ("x")^(len+1)) "    " startPos)
+  end
+end Event
+
+isValidTransitionString(ref: String, sample: String) =
+  BIG AND[i <- 0 # |ref| - 1]  ((ref[i].codePoint BITXOR ref[i+1].codePoint) = (sample[i].codePoint BITXOR sample[i+1].codePoint))
+
+object MergedEvent(count: ZZ32, refStart: ZZ32, refEnd: ZZ32, 
+                   refNumberFormat: String, sampleNumberFormat: String,
+                   refACGTFormat: String, sampleACGTFormat: String,
+                   totalCoverage: RR64, probability: RR64, eventList: List[\Event\])
+  getter asString(): String = 
+    (count "  " refStart "  " refEnd "  " refNumberFormat "  " sampleNumberFormat "  "
+     refACGTFormat "  " sampleACGTFormat "  " totalCoverage "  " probability "  ")
+end MergedEvent
+
+calculateCoverage(fileName: String, refEnd: ZZ32, coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):ZZ32 =
+  SUM[i <- seq(refEnd - readSize + 1 : refEnd)] coverage[fileName].member(i,0)
+
+calculateBonferroniLibrary(fileName: String, events: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  gmp = geometricMean <|[\RR64\] e.errorProb | e <- events |>
+  cov = calculateCoverage(fileName, events.left.get.refEnd, coverage)
+  SUM[j <- seq((|events|):cov)] gmp^j (cov CHOOSE j)
+end
+
+calculateBonferroniTotal(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  totcov = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left.get.refEnd, coverage)
+  totcalls = SUM[(_, events) <- eventsByFile] |events|
+  gmp = geometricMean <|[\RR64\] e.errorProb | (_, events) <- seq(eventsByFile), e <- seq(events) |>
+  SUM[j <- seq(totcalls:totcov)] gmp^j (totcov CHOOSE j)
+end
+
+calculateBonferroni(eventsByFile: Map[\String, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]): RR64 = do
+  minlibpval: RR64 = BIG MIN[(file, events) <- eventsByFile] calculateBonferroniLibrary(file, events, coverage)
+  combpval: RR64 = calculateBonferroniTotal(eventsByFile, coverage)
+  2 (combpval MIN minlibpval)
+end
+
+validEventsByChange(events: List[\Event\]) =
+  BIG UNIONCAT[\String,Event\] [e <- events, e.valid] {[\String, List[\Event\]\] e.sampleACGTSequence |-> <|[\Event\] e |> }
+
+makeMergedDatabase(database: Map[\ZZ32, List[\Event\]\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\(ZZ32,String), List[\MergedEvent\]\] =
+  BIG UPLUS[\(ZZ32,String), List[\MergedEvent\]\][(key, events) <- database,
+                                                  (change, changeEvents) <- validEventsByChange(events),
+                                                  |changeEvents| > 0] mergeEvents(key, change, changeEvents, coverage)
+
+mergeEvents(key: ZZ32, change: String, changeEvents: List[\Event\], coverage: Map[\String, Map[\ZZ32,ZZ32\]\]):
+    Map[\(ZZ32, String),List[\MergedEvent\]\] = do
+  firstEvent: Event = changeEvents.left.get
+  eventsByFile: Map[\String, List[\Event\]\] =
+    BIG UNIONCAT[\String,Event\] [e <- changeEvents] {[\String, List[\Event\]\] e.fileName |-> <|[\Event\] e |> }
+  totalCoverage: ZZ32 = SUM[(file, events) <- eventsByFile] calculateCoverage(file, events.left.get.refEnd, coverage)
+  {[\(ZZ32, String),List[\MergedEvent\]\] (key, change) |->
+   <| MergedEvent(|changeEvents|, firstEvent.refStart, firstEvent.refEnd, 
+                  firstEvent.refColorsSequence, firstEvent.sampleColorsSequence,
+                  firstEvent.refACGTSequence, firstEvent.sampleACGTSequence,
+                  totalCoverage, calculateBonferroni(eventsByFile, coverage), changeEvents) |> }
+end
+
+errorProbability(ref: String, sample: String, r: CompactFullRange[\ZZ32\], name: String, er: ErrorRates): RR64 =
+  if (|r| = 2) then er.single[r.lower] else PROD[i <- seq(r), sample[i] =/= ref[i]] er.multiple[i] end
+
+(* An error rates table is simply a pair of lists, each indexed by a position with a `Read`.
+   Such a table directly reflects the data taken from the error rates file for a sample.      *)
+
+object ErrorRates(multiple: List[\RR64\], single: List[\RR64\]) end
+
+(* The composite-error-model error rates file has one line for each possible position in a read.
+   Each line has three numbers: the position, the multiple error rate, and the single error rate.
+   The function `readErrorRateFile` simply extracts the two rates from each line,
+   then transposes the data from a list of pairs into a pair of lists and feeds these
+   two lists to the `ErrorRates` constructor.                                                        *)
+
+readErrorRateFile(name: String): ErrorRates =
+  ErrorRates (transpose <|[\(RR64, RR64)\] (strToFloat(line.beyond('\t').upto('\t')),
+                                            strToFloat(line.beyond('\t').beyond('\t'))) |
+                          line <- FileReadStream(name).lines() |>)
+
+
+(* Process one sample against one chunk of the reference genome,
+   producing an event database and a coverage database.
+
+   =Arguments=
+   ; `rd`:       a read (of type `Read`)
+   ; `name`:     the name of the sample from which the read was taken
+   ; `er`:       the error rates table for the sample
+   ; `range`:    an index range identifying the limited portion of the reference genome to be considered
+                 (only events that start within this range will be generated)
+
+   =Result=
+   A map from positions in the reference genome to events within the given read that begin at that reference position
+
+   A position within the reference genome is considered to be part of an event if either of two things is true:
+   # There is a color mismatch with the read at that position
+   # There is a color mismatch with the read at **both** adjacent positions
+
+   The varable `eventPositions` is a list of Boolean values corresponding to positions in the read;
+   an element is `true` if that position is part of an event.  It is computed by:
+   # computing a list of Boolean values where `true` indicates a mismatch at that position;
+   # padding this is with a `false` on either end and then processing triples of adjacent elements;
+   # for each such triple, producing `true` if the middle item is `true` or both end items are `true`.
+
+   The function `runRanges` takes a list of Boolean values and returns a list of index ranges that
+   select the maximal runs of consecutive `true` elements; each such maximal run indicates one event.
+   For each such event whose length is greater than 1 and whose start position within the reference
+   genome lies with the specified `range`, one Event data structure is constructed.
+
+   The result maps each event starting position to a singleton list of the corresponding event object.                          *)
+
+eventGenerator(rd: Read, name: String, er: ErrorRates, range: CompactFullRange[\ZZ32\]): Map[\ZZ32, List[\Event\]\] = do
+  (sample, ref) = (rd.sampleColors, rd.refColors)
+  eventPositions = <| q OR (p AND r) | (p,q,r) <- triples (<| false |> || <| sample[i]=/=ref[i] | i <- 0 # |sample| |> || <| false |>) |> 
+  (*) `diffs = BIG || [i <- seq(0 # |sample|)] (if eventPositions[i] then "X" else ".")`
+  {[\ZZ32, List[\Event\]\] rd.pos + r.lower |->
+   <|[\Event\] Event(rd, r.lower, |r|, errorProbability(ref, sample, r, name, er), name) |> |
+     r <- runRanges eventPositions, |r| > 1, (rd.pos + r.lower) IN range }
+end
+
+(* Process one sample against one chunk of the reference genome,
+   producing an event database and a coverage database.
+
+   =Arguments=
+   ; `name`:     the name of the sample
+   ; `rl`:       a `ReadList` for the sample
+   ; `er`:       the error rates table for the sample
+   ; `refChunk`: the chunk of the reference genome
+
+   =Results=
+   # A map from positions in the reference genome to events that begin at that position
+   # A singleton map from the name of the sample to a map from positions in the genome to the number of reads beginning at that position
+
+   For every read in the sample that overlaps the given chunk of reference genome, events within that read are identified
+   by calling `eventGenerator`, which returns a map from positions in the reference genome to a list of events starting at that position.
+   The position of the read is also remembered in order to calculate coverage.  Thus `eventData` is a list of pairs `(map, position)`.
+
+   The event database is simply the result of merging all the maps returned by `eventGenerator`; for each position,
+   all the lists for that position are concatenated.  This merge is performed by the `UNIONCAT` operator.
+
+   The coverage database simply maps the name of the sample to a histogram of the reads in that sample by their position in the reference genome;
+   for each position, the "unit histogram" `{ position |-> 1 }` is constructed, and the operator `UNIONPLUS` merges histograms.                       *)
+
+processSample(name: String, rl: ReadList, er: ErrorRates, refChunk: ReferenceGenomeChunk): (Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32, ZZ32\]\]) = do
+  eventData = <| (eventGenerator(rd, name, er, refChunk.range), rd.pos) | rd <- rl.getReads(refChunk) |>
+  database = BIG UNIONCAT[\ZZ32,Event\][sd <- eventData] first(sd)
+  coverageDatabase = BIG UNIONPLUS[\ZZ32\][sd <- eventData] {[\ZZ32, ZZ32\] second(sd) |-> 1 }
+  (database, {[\String, Map[\ZZ32, ZZ32\]\] name |-> coverageDatabase })
+end
+
+(* Given the name of a sample, obtain a `readList` for the reads of that sample and also the associated error rate data.
+
+   =Arguments=
+   ; `name`:     the name of the sample
+
+   =Results=
+   # The name of the sample
+   # A `ReadList` for the sample
+   # The error rates table for the sample                                                                                     *)
+
+getSampleData(name: String): (String, ReadList, ErrorRates) = do
+  rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
+  er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
+  (name, rl, er)
+end
+
+run() = do
+  ref = getReferenceGenomeFromFile(referenceFile, chunkSize, readSize)
+  samples = <|[\(String, ReadList, ErrorRates)\] getSampleData(name) | name <- sampleNames |>
+  for refChunk <- ref do
+    (databaseData, coverageData) = transpose <|[\(Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32,ZZ32\]\])\]
+                                                  processSample(name, rl, er, refChunk) | (name, rl, er) <- samples |>
+    database: Map[\ZZ32, List[\Event\]\] = BIG UNIONCAT[x <- databaseData] x
+    coverage: Map[\String, Map[\ZZ32,ZZ32\]\] = BIG UPLUS[\String, Map[\ZZ32,ZZ32\]\] coverageData
+
+    mergedDatabase: Map[\(ZZ32,String), List[\MergedEvent\]\] = makeMergedDatabase(database, coverage)
+
+    println("Events")
+    for (_, entries) <- seq(database), entry <- seq(entries) do println(entry.asDetailedString) end
+
+    println("Merged Events:")
+    for (_, events) <- seq(mergedDatabase), event <- seq(events) do
+      println(event)
+      for e <- seq(event.eventList) do println(e) end
+      println("-------")
+    end
+  end
+end
+
+end

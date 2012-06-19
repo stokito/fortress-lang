@@ -75,11 +75,7 @@ public class DeterministicRandom {
     public static int deterministicRandomInt(int inclusiveMin, int exclusiveMax) {
         int difference = exclusiveMax - inclusiveMin;
         double randomDouble = deterministicRandomDouble((double) difference);
-        for (int i = 0; i < difference - 1; i++) {
-            if (randomDouble < ((i + 1.0) / difference)) 
-                return i + inclusiveMin;
-        }
-        return (difference - 1) + inclusiveMin;
+        return ((int) Math.floor(randomDouble)) + inclusiveMin;
     }
 
 }

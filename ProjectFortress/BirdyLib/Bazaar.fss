@@ -99,9 +99,9 @@ component Bazaar
     generate[\R extends Any\](r: Reduction[\R\], body: Character->R): R = do
       n = |s|
       if n > 1 then
-        m = |s| >> 1
-        r.join(CharGen(s.substring(0 typed ZZ32, m.asZZ32)).generate(r,body),
-               CharGen(s.substring(m.asZZ32, |s|)).generate(r,body))
+        m = |s| >> (1).asZZ32
+        r.join(CharGen(s.substring(0, m)).generate(r,body),
+               CharGen(s.substring(m, |s|)).generate(r,body))
       elif n = 1 then body(s[0])
       else r.id end
     end
