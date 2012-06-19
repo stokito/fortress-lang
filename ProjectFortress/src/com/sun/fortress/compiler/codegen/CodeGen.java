@@ -1287,7 +1287,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
                      *   shadowing and collisions.
                      *  
                      */
-                    if (name.toString().contains("seq")) {
+                    if (DEBUG_OVERLOADED_METHOD_CHAINING && name.toString().contains("seq")) {
                       System.out.println("******* " + noself_domain.toStringReadable() + " { " + noself_domain.getInfo().getStaticParams() + " } "
                       + "\nvs super " + super_noself_domain.toStringReadable() + " { " + super_noself_domain.getInfo().getStaticParams() + " }");
                       System.out.println("** raw super is " + raw_super_noself_domain.toStringReadable() +
@@ -3620,7 +3620,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         debug("forFunctionalRef ", x);
 
         /* Arrow, or perhaps an intersection if it is an overloaded function. */
-        com.sun.fortress.nodes.Type arrow = exprType(x);
+        com.sun.fortress.nodes.ArrowType arrow = (ArrowType) exprType(x);
 
         List<StaticArg> sargs = x.getStaticArgs();
         TraitType trait_self_t = null;
@@ -3726,8 +3726,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         }
 
         callStaticSingleOrOverloaded(x, arrow, pkgClass, theFunction);
+        if (arrow.getRange() instanceof BottomType) {
+            infiniteLoop(); // prevent bottoms from reaching other code and generating verify errors.
+        }
     }
 
+    private void infiniteLoop() {
+        org.objectweb.asm.Label loop = new org.objectweb.asm.Label();
+        mv.visitLabel(loop);
+        mv.visitJumpInsn(GOTO, loop);
+    }
+    
     /**
      * @param x
      * @return

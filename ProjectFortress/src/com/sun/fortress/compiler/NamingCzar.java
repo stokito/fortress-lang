@@ -203,7 +203,7 @@ public class NamingCzar {
     public static final String internalFortressZZ32Vector   = makeFortressInternal("ZZ32Vector");
     public static final String internalFortressStringVector   = makeFortressInternal("StringVector");
     public static final String internalFortressVoid   = makeFortressInternal("Void");
-    public static final String internalFortressBottom   = internalFortressVoid; // Naming.BOTTOM;
+    public static final String internalFortressBottom   = "java/lang/Object"; // internalFortressVoid; // Naming.BOTTOM;
 
     // fortress interpreter types: type descriptors
     public static final String descFortressIntLiteral  = Naming.internalToDesc(internalFortressIntLiteral);
