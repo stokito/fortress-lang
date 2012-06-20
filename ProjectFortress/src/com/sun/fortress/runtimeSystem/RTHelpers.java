@@ -140,6 +140,9 @@ public class RTHelpers {
                 }
                 return o;
             }
+        } catch (VerifyError e) {
+            System.err.println("Class " + class_we_want + " failed to verify.");
+            e.printStackTrace();
         } catch (ClassNotFoundException e) {
             System.err.println("Class " + class_we_want + " failed to load (class not found).");
             e.printStackTrace();

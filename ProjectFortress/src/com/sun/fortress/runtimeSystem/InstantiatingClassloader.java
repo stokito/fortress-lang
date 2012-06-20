@@ -1348,7 +1348,10 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
              */         
             
             MethodVisitor mv = cw.visitMethod(ACC_PUBLIC + ACC_STATIC, CAST_TO,
-                    "(" + Naming.internalToDesc(obj_intf_sig) + ")" + Naming.internalToDesc(typed_intf_sig),
+                    "(" + 
+                    // Naming.internalToDesc(obj_intf_sig)
+                    "Ljava/lang/Object;"
+                    + ")" + Naming.internalToDesc(typed_intf_sig),
                     null, null);
 
             Label not_instance1 = new Label();
@@ -1359,11 +1362,13 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
             mv.visitJumpInsn(Opcodes.IFEQ, not_instance1);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.CHECKCAST, typed_intf_sig);
             mv.visitInsn(Opcodes.ARETURN);
             
             // unwrap
             mv.visitLabel(not_instance1);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.CHECKCAST, obj_intf_sig);
             mv.visitMethodInsn(INVOKEINTERFACE, obj_intf_sig, getWrappee, "()"+ Naming.internalToDesc(obj_intf_sig));
             mv.visitVarInsn(Opcodes.ASTORE, 0);
 
@@ -1372,6 +1377,7 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             mv.visitTypeInsn(Opcodes.INSTANCEOF, typed_intf_sig);
             mv.visitJumpInsn(Opcodes.IFEQ, not_instance2);
             mv.visitVarInsn(Opcodes.ALOAD, 0);
+            mv.visitTypeInsn(Opcodes.CHECKCAST, typed_intf_sig);
             mv.visitInsn(Opcodes.ARETURN);
             
             // wrap and return
@@ -2350,6 +2356,9 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
      * @param cast_to
      */
     public static void generalizedCastTo(MethodVisitor mv, String cast_to) {
+        generalizedCastTo(mv, cast_to, true);
+    }
+    public static void generalizedCastTo(MethodVisitor mv, String cast_to, boolean from_object) {
         if (cast_to.startsWith(Naming.UNION_OX)) {
             // do nothing, it will be erased!
         } else if (cast_to.startsWith(Naming.TUPLE_OX)) {
@@ -2372,8 +2381,12 @@ public class InstantiatingClassloader extends ClassLoader implements Opcodes {
             List<String> objectified_parameters = Useful.applyToAll(unwrapped_parameters, toJLO);
             objectified_parameters = normalizeArrowParametersAndReturn(objectified_parameters);
             String obj_sig = stringListToGeneric(Naming.ARROW_TAG, objectified_parameters);
-
-           String sig = "(L" + obj_sig + ";)L" + cast_to + ";";
+//            if (from_object) {
+//                mv.visitTypeInsn(Opcodes.CHECKCAST, obj_sig);
+//            }
+            // Experiment with boring signature
+           String sig = "(L" + "java/lang/Object" + // obj_sig +
+           ";)L" + cast_to + ";";
            mv.visitMethodInsn(Opcodes.INVOKESTATIC, ABSTRACT_+cast_to, CAST_TO, sig);
 
         } else {
