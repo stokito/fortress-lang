@@ -109,6 +109,12 @@ class PatternMatchingDesugarer(component: ComponentIndex,
         } else result
       }
 
+    // checks if patterns in typecase clauses has well-formed structures 
+    // and get the information of binders for pattern variables
+    case STypecase(info, bindExpr, clauses, elseClause) =>
+      STypecase(info, walk(bindExpr).asInstanceOf[Expr], clauses.map(checkClause), 
+                  walk(elseClause).asInstanceOf[Option[Block]])
+
     case _ => super.walk(node)
   }
 
@@ -119,6 +125,14 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     case _ =>
       signal(param, "Trait value parameters should be declared with their types.")
       NF.makeVarDecl(NU.getSpan(param), toJavaList(List[LValue]()), None)
+  }
+
+ /* check whether a given pattern is a keyword pattern or not */
+  def isKeywordPattern(pattern : PatternBinding, paramlist : List[Id]) : Boolean = {
+    toOption(pattern.getField) match {
+      case Some(kw) => !(paramlist.contains(kw))
+      case _ => false
+    }
   }
 
   def desugarLValue(lv: LValue) : (LValue, List[LValue], List[Expr]) = lv match {
@@ -139,23 +153,14 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           ty match {
             case t: TraitType if typeConses.keySet.contains(t.getName) =>
                val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
-               val numParams = toOption(params) match {
-                                 case Some(ps) => ps.size
-                                 case _ => 0
-                               }
-               val paramIdlist = toOption(params) match {
-                                   case Some(ps) => toList(ps).map(_.getName)
-                                   case _ => List()
-                                 }
-               /* check whether a given pattern is a keyword pattern or not */
-               def isKeywordPattern(pattern : PatternBinding) : Boolean = {
-                 toOption(pattern.getField) match {
-                   case Some(kw) => !(paramIdlist.contains(kw))
-                   case _ => false
-                 }
-               }
-               if(ps.filter(! isKeywordPattern(_)).size != numParams){
-                 signal(ty, "The number of patterns to bind should be greater than or equal to " + numParams)
+               val (numParams, paramIdlist) = toOption(params) match {
+                                             case Some(ps) => (ps.size, toList(ps).map(_.getName))
+                                             case _ => (0, List())
+                                           }
+            
+              
+               if(ps.filter(! isKeywordPattern(_, paramIdlist)).size != numParams){
+                 signal(ty, "The number of patterns for value parameters in " + ty + " should be equal to " + numParams)
                  return (lv, Nil, Nil)
                }
              case _ =>
@@ -190,22 +195,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           ty match {
             case t: TraitType if typeConses.keySet.contains(t.getName) =>
                val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
-               val numParams = toOption(params) match {
-                                 case Some(ps) => ps.size
-                                 case _ => 0
-                               }
-               val paramIdlist = toOption(params) match {
-                                   case Some(ps) => toList(ps).map(_.getName)
-                                   case _ => List()
-                                 }
-               /* check whether a given pattern is a keyword pattern or not */
-               def isKeywordPattern(pattern : PatternBinding) : Boolean = {
-                 toOption(pattern.getField) match {
-                   case Some(kw) => !(paramIdlist.contains(kw))
-                   case _ => false
-                 }
-               }
-               if(ps.filter(! isKeywordPattern(_)).size != numParams) { // error
+               val (numParams, paramIdlist) = toOption(params) match {
+                                             case Some(ps) => (ps.size, toList(ps).map(_.getName))
+                                             case _ => (0, List())
+                                           }
+            
+                 
+               if(ps.filter(! isKeywordPattern(_, paramIdlist)).size != numParams) { // error
                  signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
                  return (p, Nil, Nil)
                }
@@ -246,23 +242,14 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           ty match {
             case t: TraitType if typeConses.keySet.contains(t.getName) =>
                val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
-               val numParams = toOption(params) match {
-                                 case Some(ps) => ps.size
-                                 case _ => 0
-                               }
-               val paramIdlist = toOption(params) match {
-                                   case Some(ps) => toList(ps).map(_.getName)
-                                   case _ => List()
-                                 }
-               /* check whether a given pattern is a keyword pattern or not */
-               def isKeywordPattern(pattern : PatternBinding) : Boolean = {
-                 toOption(pattern.getField) match {
-                   case Some(kw) => !(paramIdlist.contains(kw))
-                   case _ => false
-                 }
-               }
-              if (ps.filter(! isKeywordPattern(_)).size != numParams) { // error
-                signal(p, "The number of patterns to bind should be greater than or equal to " + numParams)
+               val (numParams, paramIdlist) = toOption(params) match {
+                                             case Some(ps) => (ps.size, toList(ps).map(_.getName))
+                                             case _ => (0, List())
+                                           }
+            
+               
+              if (ps.filter(! isKeywordPattern(_, paramIdlist)).size != numParams) { // error
+                signal(p, "The number of patterns for value parameters in " + p + " should be equal to " + numParams)
                 return (p, Nil, Nil, (Nil, Nil))
               }
             case _ =>
@@ -463,7 +450,7 @@ class PatternMatchingDesugarer(component: ComponentIndex,
   /* get a type information from a pattern */
   def patternBindingToType(pb : PatternBinding) = {
     pb match {
-      case SPlainPattern(_, _, _, _, Some(idType)) =>
+      case SPlainPattern(_, _, _,  _, _, Some(idType)) =>
         if(idType.isInstanceOf[Pattern]){
           val pattern = idType.asInstanceOf[Pattern]
           toOption(pattern.getName) match {
@@ -474,11 +461,11 @@ class PatternMatchingDesugarer(component: ComponentIndex,
           }
         }
         else idType.asInstanceOf[Type]
-      case SPlainPattern(_, _, _, _, None) =>
+      case SPlainPattern(_, _, _, _, _, None) =>
         signal(pb, "A tuple pattern is expected to have types for all elements")
         NF.makeVoidType(NU.getSpan(pb))
-      case STypePattern(_, _, typ) => typ
-      case SNestedPattern(_, _, pat) =>
+      case STypePattern(_, _, _, typ) => typ
+      case SNestedPattern(_, _, _, pat) =>
         toOption(pat.getName) match {
           case Some(ty) => ty
           case None =>
@@ -491,13 +478,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
   def patternBindingToLValue(pb: PatternBinding, mods: Modifiers) = {
     val span = NU.getSpan(pb)
     pb match {
-      case SPlainPattern(_, _, name, _, Some(idType)) =>
+      case SPlainPattern(_, _, _, name, _, Some(idType)) =>
         NF.makeLValue(name, idType, mods)
-      case SPlainPattern(_, _, name, _, None) =>
+      case SPlainPattern(_, _, _, name, _, None) =>
         NF.makeLValue(span, name, mods, toJavaOption(None), false)
-      case STypePattern(_, _, typ) =>
+      case STypePattern(_, _, _, typ) =>
         NF.makeLValue(span, NF.makeId(span, "_"), mods, toJavaOption(Some(typ)), false)
-      case SNestedPattern(_, _, pat) =>
+      case SNestedPattern(_, _, _, pat) =>
         NF.makeLValue(span, NF.makeId(span, DU.gensym("temp")), mods,
                       toJavaOption(Some(pat)), false)
     }
@@ -507,13 +494,13 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     val (pb, ty) = pbi
     val span = NU.getSpan(pb)
     pb match {
-      case SPlainPattern(_, _, name, _, Some(idType)) =>
+      case SPlainPattern(_, _,  _, name, _, Some(idType)) =>
         NF.makeParam(span, mods, name, idType)
-      case SPlainPattern(_, _, name, _, None) =>
+      case SPlainPattern(_, _, _, name, _, None) =>
         NF.makeParam(span, mods, name, toJavaOption(ty))
-      case STypePattern(_, _, typ) =>
+      case STypePattern(_, _, _, typ) =>
         NF.makeParam(span, mods, NF.makeId(span, DU.gensym("temp")), typ)
-      case SNestedPattern(_, _, pat) =>
+      case SNestedPattern(_, _, _, pat) =>
         NF.makeParam(span, mods, NF.makeId(span, DU.gensym("temp")), pat)
     }
   }
@@ -523,8 +510,8 @@ class PatternMatchingDesugarer(component: ComponentIndex,
     val (pb, i) = pbi
     pb match {
       case t:TypePattern => pbTe(None, i, recv, ty)
-      case SPlainPattern(_, field, _, _, _) => pbTe(field, i, recv, ty)
-      case SNestedPattern(_, field, _) => pbTe(field, i, recv, ty)
+      case SPlainPattern(_, field, _,  _, _, _) => pbTe(field, i, recv, ty)
+      case SNestedPattern(_, field, _, _) => pbTe(field, i, recv, ty)
     }
   }
 
@@ -571,4 +558,115 @@ class PatternMatchingDesugarer(component: ComponentIndex,
       List((name.toString, toOption(returnType)))
     case _ => List(("", None))
   }
-}
+
+  // checks for ill-formed patterns in the typecase expression
+  // add binder information for pattern variables
+  def checkPattern(tp : TypeOrPattern) : TypeOrPattern = {
+    def checkPatternBinding (pbi : (PatternBinding, Int), ty : TraitType) : PatternBinding = { 
+      val (pb, i) = pbi
+      val valueParams = toOption(typeConses.get(ty.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams) 
+       pb match {
+        // keyword plain pattern with TypeOrPattern
+        case SPlainPattern(p1, Some(key), p2, p3, p4, Some(idType)) =>
+          SPlainPattern(p1, Some(key), p2, p3, p4, Some(checkPattern(idType)))
+        // keyword plain pattern without TypeOrPattern
+        case SPlainPattern(p1, Some(key), p2, p3, p4, None) =>
+          pb 
+        // non-keyword plain pattern with TypeOrPattern
+        case SPlainPattern(p1, None, p2, p3, p4, Some(idType)) =>
+          valueParams match {
+            case Some(ps) => 
+              val binder = toList(ps).apply(i)
+              SPlainPattern(p1, None, Some(binder.getName()), p3, p4, Some(checkPattern(idType)))
+            // a value parameter for a pattern variable is guaranteed to be present, 
+            // thanks to the ill-formedness check for pattern in checkPattern
+            case None => pb
+          } 
+        // non-keyword plain pattern without TypeOrPattern
+        case SPlainPattern(p1, None, p2, p3, p4, None) =>
+          valueParams match {
+            case Some(ps) => 
+              val binder = toList(ps).apply(i)
+              SPlainPattern(p1, None, Some(binder.getName()), p3, p4, None)
+            // a value parameter for a pattern variable is guaranteed to be present, 
+            // thanks to the ill-formedness check for pattern in checkPattern
+            case None => pb
+          } 
+        // keyword type pattern
+        case STypePattern(p1, Some(key), p2, typ) =>
+          STypePattern(p1, Some(key), p2, checkPattern(typ).asInstanceOf[Type])
+        // non-keyword type pattern
+        case STypePattern(p1, None, p2, typ) =>
+          valueParams match {
+            case Some(ps) => 
+              val binder = toList(ps).apply(i)
+              STypePattern(p1, None, Some(binder.getName()), checkPattern(typ).asInstanceOf[Type])
+            // a value parameter for a pattern variable is guaranteed to be present, 
+            // thanks to the ill-formedness check for pattern in checkPattern
+            case None => pb
+          }          
+        // keyword nested pattern
+        case SNestedPattern(p1, Some(key), p2, pat) =>
+          SNestedPattern(p1, Some(key), p2, checkPattern(pat).asInstanceOf[Pattern])
+        // non-keyword nested pattern
+        case SNestedPattern(p1, None, p2, pat) =>
+          valueParams match {
+            case Some(ps) => 
+              val binder = toList(ps).apply(i)
+              SNestedPattern(p1, None, Some(binder.getName()), checkPattern(pat).asInstanceOf[Pattern])
+            // a value parameter for a pattern variable is guaranteed to be present, 
+            // thanks to the ill-formedness check for pattern in checkPattern
+            case None => pb
+          }                   
+      }
+    }
+    // For tuple patterns
+    def checkPatternBinding_tuplePattern (pb : PatternBinding) : PatternBinding = 
+      pb match {
+        case SPlainPattern(p1, p2, p3, p4, p5, Some(idType)) =>
+          SPlainPattern(p1, p2, p3, p4, p5, Some(checkPattern(idType)))          
+        case SPlainPattern(_, _, _, _, _, None) => pb
+        case STypePattern(p1, p2, p3, typ) =>
+          STypePattern(p1, p2, p3, checkPattern(typ).asInstanceOf[Type])
+        case SNestedPattern(p1, p2, p3, pat) =>
+          SNestedPattern(p1, p2, p3, checkPattern(pat).asInstanceOf[Pattern])
+      }
+
+    tp match {
+      // Trait or Object pattern
+      case SPattern(p1, Some(name), SPatternArgs(p2, patterns)) => 
+        name match {
+          case t: TraitType if typeConses.keySet.contains(t.getName) =>
+            val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
+            val (numParams, paramIdlist) = toOption(params) match {
+                                             case Some(ps) => (ps.size, toList(ps).map(_.getName))
+                                             case _ => (0, List())
+                                           }
+            
+            if (patterns.filter(! isKeywordPattern(_, paramIdlist)).size != numParams) { // error
+              signal(name, "The number of patterns for value parameters in " + name + " should be equal to " + numParams)
+              tp
+            }
+            else {
+              val checkedPatterns = toList(patterns).zipWithIndex.map(checkPatternBinding(_, t))
+              SPattern(p1, Some(name), SPatternArgs(p2, checkedPatterns))
+            }
+          case _ =>
+            signal(name, "Type " + name + " not found.")
+            tp
+        }
+      // Tuple pattern
+      case SPattern(p1, None, SPatternArgs(p2, patterns)) => 
+        val checkedPatterns = toList(patterns).map(checkPatternBinding_tuplePattern)
+        SPattern(p1, None, SPatternArgs(p2, checkedPatterns))  
+      // Type
+      case _ => tp
+    }
+    
+  }
+
+  def checkClause(c: TypecaseClause) = 	{
+    val STypecaseClause(info, nameOpt, matchType, body) = c
+    STypecaseClause(info, nameOpt, checkPattern(matchType), walk(body).asInstanceOf[Block])
+  }  
+} 

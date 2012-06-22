@@ -610,13 +610,13 @@ class ExprDisambiguator(compilation_unit: CompilationUnit,
 
         def extendWithPattern(tp : TypeOrPattern) : Unit = {
           def extendWithId(pb : PatternBinding) = pb match {
-            case SPlainPattern(_, _, name, _, Some(idType)) =>
+            case SPlainPattern(_, _, _, name, _, Some(idType)) =>
               extendWithVars(Set(name))
               extendWithPattern(idType)
-            case SPlainPattern(_, _, name, _, None) =>
+            case SPlainPattern(_, _, _, name, _, None) =>
               extendWithVars(Set(name))
             case t:TypePattern => ()
-            case SNestedPattern(_, _, pat) =>
+            case SNestedPattern(_, _, _, pat) =>
               extendWithPattern(pat)
           }
           if(tp.isInstanceOf[Pattern]){

@@ -1242,7 +1242,7 @@ interface Node() extends HasAt;
              *                     | Pattern
              *                     | Type
              */
-            abstract PatternBinding(Option<Id> field);
+            abstract PatternBinding(Option<Id> field, Option<Id> binderName=Option.<Id>none());
                 /**
                  * plain pattern
                  * PatternPlainParam ::= BindId (w IsTypeOrPattern)?

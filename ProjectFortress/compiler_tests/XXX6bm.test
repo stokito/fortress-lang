@@ -1,4 +1,4 @@
-#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    Copyright 2009, Oracle and/or its affiliates.
 #    All rights reserved.
 #
 #
@@ -11,7 +11,7 @@ tests=Compiled6.bm
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled6.bm.fss:18:7-27:\n\
-\ A typecase clause is unreachable.\n\
+${STATIC_TESTS_DIR}/Compiled6.bm.fss:18:7-14:13:\n\
+\    The typecase clause, (String, String, String), is unreachable.\n\
 File Compiled6.bm.fss has 1 error.\n
 compile_out_equals=

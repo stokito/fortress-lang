@@ -2878,18 +2878,20 @@ public class FortressAstToConcrete extends NodeDepthFirstVisitor<String> {
     }
 
     @Override
-    public String forPlainPatternOnly(PlainPattern that, String info, Option<String> field,
+    public String forPlainPatternOnly(PlainPattern that, String info, Option<String> field, Option<String> binderName,
                                       String name, Option<String> type) {
         return "PlainPattern name=" + name + " idType=" + type;
     }
 
     @Override
-    public String forTypePatternOnly(TypePattern that, String info, Option<String> field, String type) {
+    public String forTypePatternOnly(TypePattern that, String info, Option<String> field, Option<String> binderName,
+                                      String type) {
         return "TypePattern " + type;
     }
 
     @Override
-    public String forNestedPatternOnly(NestedPattern that, String info, Option<String> field, String pat) {
+    public String forNestedPatternOnly(NestedPattern that, String info, Option<String> field, Option<String> binderName,
+                                      String pat) {
         return "NestedPattern " + pat;
     }
 }
