@@ -4735,7 +4735,7 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         for (VarCodeGen v : freeVars) {
             if (v.isAMutableLocalVar()  || v.isAMutableTaskVar())
                 result = result + NamingCzar.descFortressMutableFValueInternal;
-            else result = result + NamingCzar.jvmTypeDesc(v.fortressType, thisApi());
+            else result = result + NamingCzar.jvmBoxedTypeDesc(v.fortressType, thisApi());
         }
         return result + ")V";
     }

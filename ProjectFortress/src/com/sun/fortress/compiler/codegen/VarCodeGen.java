@@ -473,7 +473,7 @@ public abstract class VarCodeGen {
             mv.visitVarInsn(Opcodes.ALOAD, mv.getThis());
             mv.visitFieldInsn(Opcodes.GETFIELD, taskClass,
                               getName(),
-                              NamingCzar.jvmTypeDesc(fortressType, ifNone)) ;
+                              NamingCzar.jvmBoxedTypeDesc(fortressType, ifNone)) ;
 
         }
 
@@ -482,7 +482,7 @@ public abstract class VarCodeGen {
             mv.visitInsn(Opcodes.SWAP);
             mv.visitFieldInsn(Opcodes.PUTFIELD, taskClass,
                               getName(),
-                              NamingCzar.jvmTypeDesc(fortressType, ifNone)
+                              NamingCzar.jvmBoxedTypeDesc(fortressType, ifNone)
                               );
 //            mv.visitMethodInsn(Opcodes.INVOKESTATIC, NamingCzar.internalFortressVoid, NamingCzar.make,
 //                           Naming.makeMethodDesc("", NamingCzar.descFortressVoid));
