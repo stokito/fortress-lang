@@ -1091,6 +1091,32 @@ nameTemp + "\n" +
         }
     }
     
+    static class SelfTypeStructure extends TypeStructure {
+        final TypeStructure chainee; 
+        public SelfTypeStructure(String fullname, String stem,
+                TypeStructure[] parameters, int localIndex, int successorIndex,
+                int variance, boolean containsTypeVariables, boolean isObject,
+                TypeStructure chained) {
+            super(fullname, stem, parameters, localIndex, successorIndex, variance,
+                    containsTypeVariables, isObject);
+            chainee = chained;
+        }
+        void emitInstanceOf(MethodVisitor mv, Label if_fail, boolean value_cast)  {
+            Label pop_then_fail = new Label();
+            Label second_arm = new Label();
+            mv.visitInsn(Opcodes.DUP);
+            chainee.emitInstanceOf(mv, pop_then_fail, value_cast);
+            mv.visitJumpInsn(Opcodes.GOTO, second_arm);
+            mv.visitLabel(pop_then_fail);
+            mv.visitInsn(Opcodes.POP);
+            mv.visitJumpInsn(Opcodes.GOTO, if_fail);
+            mv.visitLabel(second_arm);
+            super.emitInstanceOf(mv, if_fail, value_cast);
+            
+        }
+        
+    }
+    
     /**
      * Returns a type decision structure for the given input type.
      * 
@@ -1104,7 +1130,8 @@ nameTemp + "\n" +
      */
     TypeStructure makeTypeStructure(Type t, MultiMap<String, TypeStructure> spmap,
             int variance, int storeAtIndex,
-            List<StaticParam> staticParams) {
+            List<StaticParam> staticParams,
+            Functional eff) {
         String fullname = NamingCzar.jvmBoxedTypeName(t, ifNone);
         String rttiStem = null;
         TypeStructure[] parameters = null;
@@ -1137,7 +1164,7 @@ nameTemp + "\n" +
             
         } else if (t instanceof TraitSelfType) {
             return makeTypeStructure(((TraitSelfType)t).getNamed(), spmap,
-                    variance, storeAtIndex, staticParams);
+                    variance, storeAtIndex, staticParams, eff);
             
         } else if (t instanceof TraitType) {
             // Would love to inquire if this is an object type
@@ -1214,7 +1241,7 @@ nameTemp + "\n" +
             int i = 0;
             int next_index = storeAtIndex+1;
             for (Type tt : type_elements) {
-                TypeStructure ts = makeTypeStructure(tt, spmap, variances[i], next_index, staticParams);
+                TypeStructure ts = makeTypeStructure(tt, spmap, variances[i], next_index, staticParams, null);
                 
                 //has type variable if it or any nested structures have type variables
                 hasTypeVariables = hasTypeVariables || ts.containsTypeVariables;
@@ -1224,7 +1251,29 @@ nameTemp + "\n" +
             
             return new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, next_index, variance, hasTypeVariables, isObject);
         } else if (isVarType) {
-            TypeStructure x = new TypeStructure(fullname, rttiStem, parameters, storeAtIndex, storeAtIndex+1, variance, hasTypeVariables, isObject);
+            TypeStructure x = null;
+            /* If fullname is UP_INDEX, then this is "self", and we need to examine the
+             * declared method to see if it has any static parameters.  The inference
+             * will trivially succeed, but we need to extract the parameters, so for now,
+             * just do the inference.
+             */
+            if (fullname.equals(Naming.UP_INDEX)) {
+                // has to be a declared method
+                DeclaredMethod dm = (DeclaredMethod) eff;
+                if (dm.traitStaticParameters().size() > 0) {
+                    TraitType tt = NodeFactory.makeTraitTypeFromParams(dm.declaringTrait(), dm.traitStaticParameters());
+                    x = makeTypeStructure(tt, spmap,
+                                          variance, storeAtIndex,
+                                          staticParams,
+                                          eff);
+                }
+            }
+            if (x == null)
+                x = new TypeStructure(fullname, rttiStem, parameters,
+                        storeAtIndex, storeAtIndex+1, variance, hasTypeVariables, isObject);
+            else
+                x = new SelfTypeStructure(fullname, rttiStem, parameters,
+                        storeAtIndex, x.successorIndex, variance, hasTypeVariables, isObject, x);
             if (spmap != null)
                 spmap.putItem(rttiStem, x);
             return x;
@@ -1274,7 +1323,7 @@ nameTemp + "\n" +
             List<StaticParam> staticParams = staticParametersOf(f.getF());
 
             Type rt = oa.getRangeType(eff);
-            return_type_structures[i] = makeTypeStructure(rt,null, 1, 0, staticParams);
+            return_type_structures[i] = makeTypeStructure(rt,null, 1, 0, staticParams, eff);
 
             // skip parameters -- no 'this' for ordinary functions
  
@@ -1290,7 +1339,7 @@ nameTemp + "\n" +
                 
                 for (int j = 0; j < tl.size(); j++) {
                     Type t = STypesUtil.insertStaticParams(tl.get(j), tt.getInfo().getStaticParams());
-                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams);
+                    TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams, eff);
                     f_type_structures[j] = type_structure;
                     storeAtIndex = type_structure.successorIndex;
                 }
@@ -1304,7 +1353,7 @@ nameTemp + "\n" +
                 for (int j = 0; j < parameters.size(); j++) {
                     if (j != selfIndex()) {
                         Type t = oa.getParamType(eff,j);
-                        TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams);
+                        TypeStructure type_structure = makeTypeStructure(t, spmap, 1, storeAtIndex, staticParams, eff);
                         f_type_structures[j] = type_structure;
                         storeAtIndex = type_structure.successorIndex;
                     }
@@ -1498,7 +1547,7 @@ nameTemp + "\n" +
                         //generate more bounds for generic upper bounds
                         Set<Type> genericUB = genericUpperBounds.get(sp);
                         if (genericUB != null) for( Type gub : genericUB) {
-                            TypeStructure newTS = makeTypeStructure(gub,staticTss,TypeStructure.COVARIANT,localCount,staticParams);
+                            TypeStructure newTS = makeTypeStructure(gub,staticTss,TypeStructure.COVARIANT,localCount,staticParams, null);
                             localCount = newTS.successorIndex;
                             mv.visitVarInsn(Opcodes.ALOAD, RTTItoUse);
                             newTS.emitInstanceOf(mv, lookahead, false); //fail if RTTItoUse doesn't have this structure
@@ -1563,7 +1612,7 @@ nameTemp + "\n" +
                             //generate more bounds for generic upper bounds
                             Set<Type> genericUB = genericUpperBounds.get(sp);
                             if (genericUB != null) for( Type gub : genericUB) {
-                                TypeStructure newTS = makeTypeStructure(gub,staticTss,TypeStructure.COVARIANT,localCount,staticParams);
+                                TypeStructure newTS = makeTypeStructure(gub,staticTss,TypeStructure.COVARIANT,localCount,staticParams, null);
                                 localCount = newTS.successorIndex;
                                 mv.visitVarInsn(Opcodes.ALOAD, index);
                                 newTS.emitInstanceOf(mv, lookahead, false); //fail if candidate doesn't have this structure
