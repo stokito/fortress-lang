@@ -984,8 +984,17 @@ public class NodeFactory {
     }
 
     public static TraitType makeTraitType(Id name,
-                                          List<StaticArg> sargs) {
+            List<StaticArg> sargs) {
         return makeTraitType(NodeUtil.getSpan(name), false, name, sargs);
+    }
+
+    public static TraitType makeTraitTypeFromParams(Id name,
+            List<StaticParam> sparams) {
+        ArrayList<StaticArg> sargs = new ArrayList<StaticArg>(sparams.size());
+        for (StaticParam sp : sparams) {
+            sargs.add(makeTypeArg(sp.getInfo().getSpan(), sp.getName().getText()));
+        }
+        return makeTraitType(name, sargs);
     }
 
     public static TraitType makeTraitTypeForScala(Id name,

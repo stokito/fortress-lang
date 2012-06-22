@@ -4771,15 +4771,17 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
         return className;
     }
 
-    public void constructTaskWithFreeVars(String cname, List<VarCodeGen> freeVars, String sig) {
-            mv.visitTypeInsn(NEW, cname);
-            mv.visitInsn(DUP);
-
-            for (VarCodeGen v : freeVars) {
-                v.pushHandle(mv);
-            }
-            mv.visitMethodInsn(INVOKESPECIAL, cname, "<init>", sig);
-    }
+//    public void constructTaskWithFreeVars(String cname, List<VarCodeGen> freeVars, String sig) {
+//            mv.visitTypeInsn(NEW, cname);
+//            mv.visitInsn(DUP);
+//
+//            for (VarCodeGen v : freeVars) {
+//                if (!(v.isAMutableLocalVar()  || v.isAMutableTaskVar()))
+//                    conditionallyCastParameter((Expr)null, v.fortressType);
+//                v.pushHandle(mv);
+//            }
+//            mv.visitMethodInsn(INVOKESPECIAL, cname, "<init>", sig);
+//    }
 
     public void constructWithFreeVars(String cname, List<VarCodeGen> freeVars, String sig) {
             mv.visitTypeInsn(NEW, cname);
@@ -4787,6 +4789,8 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             // Push the free variables in order.
             for (VarCodeGen v : freeVars) {
                 v.pushHandle(mv);
+                if (!(v.isAMutableLocalVar()  || v.isAMutableTaskVar()))
+                    conditionallyCastParameter((Expr)null, v.fortressType);
             }
             mv.visitMethodInsn(INVOKESPECIAL, cname, "<init>", sig);
     }
@@ -6327,9 +6331,14 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
             String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
             InstantiatingClassloader.generalizedCastTo(mv, cast_to);
         } else if ((domain_type instanceof TupleType) && ((TupleType)domain_type).getElements().size() > 0) {
-                // insert cast
-                String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
-                InstantiatingClassloader.generalizedCastTo(mv, cast_to);
+            // insert cast
+            String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
+            InstantiatingClassloader.generalizedCastTo(mv, cast_to);
+        } else if ((domain_type instanceof VarType) &&
+                ((VarType)domain_type).getName().getText().equals(Naming.UP_INDEX)) {
+            // insert cast
+            String cast_to = NamingCzar.jvmTypeDesc(domain_type, thisApi(), false, true);
+            InstantiatingClassloader.generalizedCastTo(mv, cast_to);
         } else if (apparent_type.isNone() ||
                 /* This will insert unnecessary casts, but the JIT should remove them
                  * It might be worthwhile to do a simple walk of supertraits of the
