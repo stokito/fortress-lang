@@ -1,0 +1,101 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component realArith
+import Constants.{...}
+export Executable
+
+run():()=do
+  x : RR64 = 14.0
+  y : RR64 = 14.0
+  z : RR64 = x y
+  NaN: RR64 = infinity - infinity
+
+  assert(x = y)
+  assert(x =/= z)
+  assert(x < z)
+  assert(x <= z)
+  assert(z > x)
+  assert(z >= x)
+  assert(x CMP z, LessThan)
+  assert(x MIN z, x)
+  assert(x MAX z, z)
+  assert((x MIN NaN).isNaN, true)
+  assert((x MAX NaN).isNaN, true)
+  assert(-x, -14)
+  assert(x + y, 28)
+  assert(x - y, 0)
+  assert(x DOT y, 196)
+  assert(x TIMES y, 196)
+  assert(z, 196)
+  assert(z / 14, 14)
+  assert(SQRT z, 14)
+  assert(x PLUS_UP y, 28)
+  assert(x MINUS_UP y, 0)
+  assert(x DOT_UP y, 196)
+  assert(x SLASH_UP y, 1)
+  assert(SQRT_UP z, 14)
+  assert(x PLUS_DOWN y, 28)
+  assert(x MINUS_DOWN y, 0)
+  assert(x DOT_DOWN y, 196)
+  assert(x SLASH_DOWN y, 1)
+  assert(SQRT_DOWN z, 14)
+  assert(|x|, 14)
+  assert(|-x|, 14)
+  assert(x^2, 196)
+  assert(sin pi, 1.2246467991473532 TIMES 10^(-16))
+  assert(sin pi =/= 0)
+  assert(cos pi, -1)
+  assert(tan pi, -1.2246467991473532 TIMES 10^(-16))
+  assert(tan (pi / 4), 0.9999999999999999)
+  assert(asin 0.5, 0.5235987755982989)
+  assert(acos 0.5, 1.0471975511965979)
+  assert(atan 1, pi / 4)
+  assert(atan2(x, -x), 3 pi / 4)
+(* We may want to use ln here... *)
+  assert(log e, 1.0)
+  assert(exp 1.0, e)
+  assert(floor 4.5, 4)
+  assert(|\ 4.5 /|, 4)
+  assert(ceiling 4.5, 5)
+  assert(|/ 4.5 \|, 5)
+  assert(truncate 4.5, 4)
+  assert(floor (-4.5), -5)
+  assert(|\ -4.5 /|, -5)
+  assert(ceiling (-4.5), -4)
+  assert(|/ -4.5 \|, -4)
+  assert(truncate (-4.5), -4)
+  assert(x.isNaN, false)
+  assert(x.isInfinite, false)
+  assert(infinity.isInfinite, true)
+  assert(x.isNumber, true)
+  assert(x.isFinite, true)
+  assert(infinity.isFinite, false)
+  assert(Just(7.0), Just(7.0))
+  assert(Just(z), Just(z))
+  (* If we do not give explicit type instantiation below, it fails... *)
+  assert(x.check, Just[\RR64\](x))
+  assert(infinity.check, Nothing[\RR64\])
+  assert(NaN.check, Nothing[\RR64\])
+
+  assert(x.check_star, Just[\RR64\](x))
+  assert(infinity.check_star, Just[\RR64\](infinity))
+  assert(NaN.check_star, Nothing[\RR64\])
+
+  (* We want to implement hexadecimal literals. *)
+  assert((x / x).rawBits, 4607182418800017408)
+  assert(x MINNUM z, x)
+  assert(x MAXNUM z, z)
+  assert(x MINNUM NaN, x)
+  assert(x MAXNUM NaN, x)
+end
+
+end

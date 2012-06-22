@@ -1,0 +1,24 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InferTest
+export Executable
+
+f[\T\](init:T, succ:T->T, check:T->Boolean):T =
+   if check init then init else f(succ init, succ, check) end
+
+c(x:Number):Boolean = (x x = 25)
+s(x:ZZ32):ZZ32 = x + 1
+
+run():() = do
+  println("Result is " f(s(0), s, c))
+end
+end

@@ -1,0 +1,55 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************)
+
+export Executable
+
+trait A[\ T \]
+    f ( self, y : T):String
+end
+
+trait A1 extends A[\ Specific->General\]
+    f ( self, y : Specific -> General) = "A1sg^"
+end
+
+trait A2 extends A1
+    f ( self, y : General -> Specific) = "A2gs"
+end
+
+(*)f (x : A1, y : General -> Specific) = "A1gs-"
+
+object A1o extends A1 end
+object A2o extends A2 end
+
+trait General end
+trait Specific extends General end
+
+object G extends General end
+object S extends Specific end
+
+sg(s : Specific) : G = G
+gs(g : General) : S = S
+
+run() : () = do
+    x : General -> Specific = gs
+    y : Specific -> General = sg
+    a1 : A[\Specific -> General\] = A1o
+    a2 : A[\Specific -> General\] = A2o
+    println(f(a1,x))
+    println(f(a1,y))
+    println(f(a2,x))
+    println(f(a2,y))
+   if NOT(f(a1,x) = "A1gs-") then println("fail")
+        elif NOT(f(a1,y) = "A1sg^") then println("fail")
+        elif NOT(f(a2,x) = "A2gs") then println("fail")
+        elif NOT(f(a2,y) = "A1sg^") then println("fail")
+        else println("ok")
+    end
+end

@@ -1,0 +1,256 @@
+(*******************************************************************************
+Copyright 2010 Michael Zody and Sun Microsystems, Inc. 
+All rights reserved.
+
+Sun Microsystems, Inc. is the Copyright owner of the Fortress programming language software,
+and Michael Zody is the developer of the algorithm which this software implements and the
+Copyright owner of the software implementation of the algorithm, to which Sun Microsystems, Inc.
+has a perpetual, irrevocable, royalty free right and license to use and distribute. 
+
+Use is subject to license terms accompanying the software.
+ ******************************************************************************)
+
+component GenomeUtil2d
+
+import File.{...}
+import FileSupport.{...}
+import FlatString.{...}
+import List.{...}
+import Pairs.{...}
+
+export GenomeUtil2d
+
+(* We will find it convenient to encode the four DNA base letters ##A##, ##C##, ##G##, ##T##
+   as //integers// ##0##, ##1##, ##2##, and ##3##, respectively.                              *)
+
+encodeACGT(c: Char): ZZ32 = case c of 'A' => 0; 'C' => 1; 'G' => 2; 'T' => 3; end
+
+(* A pair of adjacent bases is read off as a single "color" (radiated when one of
+   four fluorescent dyes is stimulated) by the SOLiD process.  Each of these colors
+   is conventionally encoded as one of four //characters// `'0'`, `'1'`, `'2'`, `'3'`
+   according to the following table:
+   |        |       ||          second base       ||||
+   |        |       || ##A## | ##C## | ##G## | ##T## |
+   |        |-----------------------------------||||||
+   |        | ##A## || ##0## | ##1## | ##2## | ##3## |
+   |  first | ##C## || ##1## | ##0## | ##3## | ##2## |
+   |   base | ##G## || ##2## | ##3## | ##0## | ##1## |
+   |        | ##T## || ##3## | ##2## | ##1## | ##0## |
+   This pattern precisely mirrors the behavior of the `BITXOR` operator on the
+   integer encoding of the DNA bases.                                                    *)
+
+color(c1:Char, c2:Char): Char =
+  if (c1 = 'N') OR (c2 = 'N') then '4' else char('0'.codePoint + (encodeACGT(c1) BITXOR encodeACGT(c2))) end
+
+(* A sequence of bases of length `n` results in a string of color encodings of length `n-1`.
+   The `pairs` generator produces all the adjacent pairs of elements from its argument.        *)
+
+colorsFromACGT(strACGT: String): String = BIG || <| color(p,q) | (p,q)<-pairs(strACGT) |>
+
+(* Because the sequence of colors read from a sequence of ACGT bases is shorter by one element,
+   it should not be surprising that it does not contain quite as much information.  Indeed,
+   for every sequence of colors of length `n-1`, there are four distinct ACGT sequences of
+   length `n` that can give rise to it.  For example, the color sequence `"3121"` is produced
+   by `"ATGAC"` and by `"CGTCA"` and by `"GCAGT"` and also by `"TACTG"`.  Knowing any single
+   ACGT base of the original ACGT sequence is sufficient to reconstruct the entire ACGT sequence
+   from the color sequence.  The function `colorsToACGT` requires the //leftmost// base of
+   the original sequence for this purpose.  (It also assumes that the given sequence of colors does
+   not contain the pseudo-color `'4'`.)
+
+   The algorithm as shown here requires work quadratic in the length of the given color sequence.
+   It can be done with work only linear in that length by using a "parallel prefix" operator,
+   which we intend to do after that part of the Fortress library has been designed and implemented.      *)
+
+colorsToACGT(start: Char, colorstr: String): String =
+  start || (BIG || [i <- 0 # |colorstr|] "ACGT"[encodeACGT(start) BITXOR (BIG BITXOR[k <- 0#(i+1)] (colorstr[k].codePoint BITAND 3))])
+
+(* The "obvious" representation for a reference genome is as a single string.
+   However, we know that some such sequences are quite long, and we may wish to
+   process them a chunk at a time in order to conserve main memory.  Therefore
+   we represent a reference genome as a //generator// of chunks, each of which
+   indeed contains a string of ACGT bases but also indexing information describing
+   what part of the overall string it represents.
+
+   In addition, a genome chunk retains some extra bases on either side of it,
+   enough to completely match against a read that may happen to straddle one end
+   or the other of the chunk.  The `padLength` indicates how many bases should
+   be retained at each end for this purpose.                                          *)
+
+trait ReferenceGenome extends { SequentialGenerator[\ReferenceGenomeChunk\] } end
+
+object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
+  getter range(): CompactFullRange[\ZZ32\] = start # length
+  getACGT(r: CompactFullRange[\ZZ32\]): String = do
+    buffer[padLength + (r.lower - start) # |r|]
+  end
+  getColors(r: CompactFullRange[\ZZ32\]): String = do
+    colorsFromACGT buffer[padLength + (r.lower - start) # |r| + 1]
+  end
+end ReferenceGenomeChunk
+
+(* Here is a specific concrete implementation of the `ReferenceGenome` abstraction.
+   It takes a `ReadStream` that supplies a stream of characters in FASTA file format,
+   a minimum chunk size, and the length of the largest read that will be matched
+   against each chunk.  The `padLength` for each chunk is one larger than this
+   maximum read size in order to accommodate the fact that `n+1` ACGT bases are
+   needed in order to compute `n` colors.  This many copies of the letter `'N'`
+   are automatically supplied as padding at each end of the entire reference genome.    *)
+
+object FileBasedReferenceGenome(rs: ReadStream, chunkSize: ZZ32, maxReadSize: ZZ32)
+    extends ReferenceGenome
+  private padLength = maxReadSize + 1
+  private fg = seq(FileGenerator[\ReferenceGenomeChunk\](rs, 0, nextChunk))
+  private buffer: String := ("N")^padLength
+  private currentChunkStart: ZZ32 := 0
+  private currentChunkLength: ZZ32 := 0
+
+  nextChunk(rs': ReadStream): Maybe[\ReferenceGenomeChunk\] = do
+    buffer := buffer[currentChunkLength:]
+    currentChunkStart += currentChunkLength
+    currentChunkLength := 0
+    while currentChunkLength < (chunkSize + padLength) AND: NOT rs'.eof() do
+      line = rs'.uncheckedReadLine()
+      if |line| > 0 AND: line[0] =/= '>' then
+        buffer ||= line
+        currentChunkLength += |line|
+      end
+    end
+    if rs'.eof() then
+      buffer ||= ("N")^padLength
+    else
+      currentChunkLength -= padLength
+    end
+    buffer := buffer.asFlatString
+    Just ReferenceGenomeChunk(currentChunkStart, currentChunkLength, buffer.asFlatString, padLength)
+  end
+
+  (* The `generate` and `loop` methods implement the protocol that allows a
+     `FileBasedReferenceGenome` instance to be used as a Fortress generator.
+     These implementations simply delegate this protocol to the sequential
+     file generator kept in `fg`.                                             *)
+  generate[\T\](red: Reduction[\T\], body: ReferenceGenomeChunk->T): T = fg.generate(red, body)
+  loop[\T\](body: ReferenceGenomeChunk->()): () = fg.loop(body)
+end FileBasedReferenceGenome
+
+getReferenceGenomeFromFile(fileName: String, chunkSize: ZZ32, maxReadSize: ZZ32): ReferenceGenome =
+  FileBasedReferenceGenome(FileReadStream(fileName), chunkSize, maxReadSize)
+
+(* A `ReadList` is designed to behave like a list of reads that is broken
+   into chunks that are synchronized with the chunks read from a `ReferenceGenome`.
+   The reads are organized in sorted order according to their position relative
+   to the reference genome.  The method `getReads` takes a `ReferenceGenomeChunk`
+   and delivers an actual Fortress list of `Read` objects whose starting positions
+   lie within the range of the `ReferenceGenomeChunk`.  Successive calls
+   to `getReads` should receive successive chunks of the reference genome.
+   More than one `ReadList` can be synchronized to the same reference genome
+   at the same time.                                                                      *)
+
+trait ReadList
+  getReads(refChunk: ReferenceGenomeChunk): List[\Read\]
+end ReadList
+
+private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends ReadList
+  private currentSet: List[\Read\] := <|[\Read\] |>
+  private peekAhead: Maybe[\Read\] := Nothing[\Read\]
+  private currentRange: CompactFullRange[\ZZ32\] := 0#0
+
+  private getNextRange(refChunk: ReferenceGenomeChunk): () = do
+    refRange = refChunk.range
+    if refRange.lower =/= currentRange.upper + 1 then
+      fail("ReadList not properly synchronized with ReferenceGenome (" currentRange " then " refRange ")")
+    end
+    currentRange := refRange
+    currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- currentSet, rd.range.lower <= refRange.upper AND refRange.lower <= rd.range.upper |>
+    if rd <- peekAhead then
+      if rd.range.upper < refRange.lower then
+        peekAhead := Nothing[\Read\]
+      elif rd.range.lower <= refRange.upper then
+        currentSet ||= <| rd.withNewChunk(refChunk) |>
+        peekAhead := Nothing[\Read\]
+        inputMoreReads(refChunk)
+      end
+    else
+      inputMoreReads(refChunk)
+    end
+  end
+
+  private inputMoreReads(refChunk: ReferenceGenomeChunk) = do
+    refRange = refChunk.range
+    label gobble
+      while NOT rs.eof() do
+        if rd <- parseOneRead(rs, refChunk) then
+          if refRange.upper < rd.range.lower then
+            peekAhead := Just rd
+            exit gobble
+          elif refRange.lower <= rd.range.upper then
+            currentSet ||= <| rd |>
+          end
+        end
+      end
+    end gobble
+  end
+
+  getReads(refChunk: ReferenceGenomeChunk): List[\Read\] = do
+    if currentRange =/= refChunk.range then getNextRange(refChunk) end
+    currentSet
+  end
+end FileBasedReadList
+
+getReadListFromFile(fileName: String, maxReadSize: ZZ32): ReadList =
+  FileBasedReadList(FileReadStream(fileName), maxReadSize)
+
+object Read(header: String, sequence: String, name: String, pos: ZZ32, length: ZZ32, seqend: ZZ32,
+            negativeOrientation: Boolean, refChunk: ReferenceGenomeChunk)
+  range: CompactFullRange[\ZZ32\] = pos#length
+  getter asString(): String = pos "  " name "  " sequence
+
+  (*) It's important that the following not be cached early; they cannot
+  (*) be computed until the correct reference genome chunk is available.
+  getter refACGT(): String = refChunk.getACGT(pos : seqend + 1).asFlatString
+  getter refColors(): String = refChunk.getColors(pos : seqend + 1).asFlatString
+  getter sampleColors(): FlatString = do
+    temp = sequence[1:]
+    result = (if (negativeOrientation) then
+                (reverse(temp))[0 : |temp| - 2] || self.refColors[|temp| - 1]
+              else
+                self.refColors[0] || temp[1:]
+              end)
+    result.asFlatString
+  end
+
+  (*) This method allows a new `ReferenceGenomeChunk` object to be installed.
+  private withNewChunk(newRefChunk: ReferenceGenomeChunk): Read =
+    Read(header, sequence, name, pos, length, seqend, negativeOrientation, newRefChunk)
+end Read
+
+(* The format of a "read" is a pair of lines in FASTA file format.
+
+   The first line must be in the form "##>##//name//##,##//cn//##_##//location//##.##//z//", where
+   * //name// is a string that identifies the read,
+   * //cn// is (?),
+   * //location// is a signed integer identifying the position of
+     the read with respect to the reference genome, and
+   * //z// is (?).
+
+   For our purposes here, we need only the name and the location.  The second line
+   should consist of the letter "##T##" followed by a number of digit characters representing colors.
+   The number of color characters should be no larger than `readSize`.                                         *)
+
+private parseOneRead(r: ReadStream, refChunk: ReferenceGenomeChunk): Maybe[\Read\] = do
+  header: String = r.uncheckedReadLine()
+  sequence: String = r.uncheckedReadLine()
+  if header = "" OR: sequence = "" then Nothing[\Read\] else
+    if header[0] =/= '>' OR sequence[0] = '>' then
+      fail("File of 'reads' not in expected alternating-line format")
+    end
+    name: String = header.upto(',')
+    loc: String = header.beyond(',').beyond('_').upto('.')
+    length: ZZ32 = |sequence| - 1
+    negativeOrientation: Boolean = (loc[0] = '-')
+    pos: ZZ32 = if (negativeOrientation) then strToInt(loc[1:]) - length + 1 else strToInt(loc) - 1 end
+    seqend: ZZ32 = pos + length - 1
+    Just Read(header, sequence, name, pos, length, seqend, negativeOrientation, refChunk)
+  end
+end
+
+end

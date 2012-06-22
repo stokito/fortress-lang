@@ -1,0 +1,88 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component MapTest
+(*) import String.{...}
+export Executable
+import Map.{...}
+
+database:Map[\String,ZZ32\] := {[\String,ZZ32\]}
+
+init(name:String, ranking: ZZ32) = database := database.add(name, ranking)
+
+check(db: Map[\String,ZZ32\]): () = do
+    expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
+    seen : Boolean[5] := array1[\Boolean,5\](false)
+    n : ZZ32 := 0
+    for (k,v) <- db do
+        atomic if NOT seen[v] then seen[v] := true
+               else fail("Duplicated " k "|->" v) end
+        atomic n += 1
+        assert(k,expect[v],"Unexpectedly " k "|->" v)
+    end
+    assert(n,5,"Found the wrong number of keys in ", db)
+  end
+
+
+run():() = do
+    db00 : Map[\String,ZZ32\] = { "Nathi" asif String |-> 3 asif ZZ32 }
+    perm : ZZ32[5] = [ 3 4 1 0 2 ]
+    expect : String[5] = [("" "Nathi") "Peter" "Emily" "David" "Elias"]
+    for (v,k) <- seq(expect.indexValuePairs) do
+        init(k,v)
+    end
+    check(database)
+    database := {[\String,ZZ32\]}
+    for i <- seq(perm) do
+        init(expect[i],i)
+    end
+    check(database)
+    db''={("" "David") asif String|->3 asif ZZ32, "Elias"|->4, "Peter"|->1, "Nathi"|->0, "Emily"|->2}
+    check(db'')
+    db' = {[\String,ZZ32\] k|->v | (v,k) <- expect.indexValuePairs }
+    check(db')
+    db : Map[\String,ZZ32\] = {[\String,ZZ32\] expect[i]|->i  |  i <- perm }
+    check(db)
+    db0 = db UNION db' (*'*)
+    check(db0)
+    db1 = BIG UNION [(v,k) <- expect.indexValuePairs] { k asif String|-> v asif ZZ32 }
+    check(db1)
+    db2 = BIG UPLUS [(v,k) <- expect.indexValuePairs] { k asif String |-> v asif ZZ32 }
+    check(db2)
+    db3 = BIG UNION [i <- expect.indices] { expect[v] asif String |-> v asif ZZ32 | v <- 0:i }
+    check(db3)
+    assert(db.member("Empty"),Nothing[\ZZ32\],"absent member")
+    assert(db.member("Empty",77),77,"absent member with default 77")
+    for (v,k) <- expect.indexValuePairs do
+        assert(db.member(k),Just[\ZZ32\](v),"present member")
+        assert(db[k],v,"present member")
+    end
+    try
+        r = db["Mary"]
+        fail("Found Mary |-> " r)
+    catch x
+        NotFound => ()
+    end
+    try
+        dbf = db UPLUS db0
+        fail("Overlapped UPLUS => " dbf)
+    catch x
+        KeyOverlap[\String,ZZ32\] => ()
+    end
+    try
+        dbf = { ("" "Mary") asif String |-> 5 asif ZZ32, "Mary" |-> 5 }
+        fail("Overlapped aggregate => " dbf)
+    catch x
+        KeyOverlap[\String,ZZ32\] => ()
+    end
+end
+
+end

@@ -1,0 +1,18 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newapp{Lexical Preprocessing}{lexical-preprocessing}
+
+Preprocessing consists of three steps:
+````pasting'' words across line terminators; 
+replacing chunks of ASCII characters with single Unicode characters; 
+and replacing apostrophes with the ````digit-group separator'' 
+(see \secref{numerals}).

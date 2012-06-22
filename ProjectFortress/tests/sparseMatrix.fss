@@ -1,0 +1,78 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component sparseMatrix
+import Sparse.{...}
+export Executable
+
+mkMatrix[\nat n\]() : RR64[n,n] = do
+  (* We generate a symmetric positive-definite matrix by generating
+     a lower-triangular positive matrix and multiplying by its
+     transpose. *)
+  lambda_inv = - 4 n / log n
+  rt2 = SQRT 2
+  row(i:ZZ32):SparseVector[\RR64,n\] = do
+    mem0 = array[\(ZZ32,RR64)\](n-i)
+    j : ZZ32 := i
+    o : ZZ32 := 0
+    while (j < n) do
+      mem0[o] := (j,random(rt2))
+      (* Approximate Bernoulli interarrival with Poisson *)
+      ii = 1 + narrow |\lambda_inv log random(1.0)/|
+      j += ii
+      o += 1
+    end
+    SparseVector[\RR64,n\](trim(mem0,o))
+  end
+  l = Csr[\RR64,n,n\](array1[\SparseVector[\RR64,n\],n\](row))
+  (* We multiply by the transpose and hope the result is positive-definite.
+     It will be with high probability. *)
+  l l.t()
+end
+
+mkVector[\nat n\]() : RR64[n] = do
+  f(_:Any):RR64 = random(4.0)-2.0
+  array1[\RR64,n\](f)
+end
+
+testSparse[\nat n\](A: Csr[\RR64,n,n\]) = do
+  D = matrix[\RR64,n,n\]().assign(A)
+  if D=/=A then
+    println("FAIL: dense =/= sparse" // "D" D // "A" A)
+  else
+    println("dense OK")
+  end
+  A2 = identity[\Csr[\RR64,n,n\]\](A A.t())
+  D2 = D D.t()
+  if D2=/=A2 then
+    println("FAIL: dense^2 =/= sparse^2" // "D^2" D2 // "A^2" A2)
+  else
+    println("dense^2 OK")
+  end
+  v = mkVector[\n\]()
+  Av = A v
+  Dv = D v
+  (* Small variations may occur based on summation order for dot
+     product. *)
+  if ||Dv - Av|| > 0.000000000001 then
+    println("Fail: Dv =/= Av" // "Dv = " Dv // "Av = " Av)
+  else
+    println("Dv OK")
+  end
+end
+
+(************************************************************)
+
+run():() = do
+  testSparse(mkMatrix[\6\]())
+end
+
+end

@@ -1,0 +1,27 @@
+/*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************/
+
+/*
+ * Definition of Fortress top-level declarations.
+ */
+module com.sun.fortress.parser.templateparser.Declaration(TraitObject, Function, Variable,
+                                                          Other, NoNewlineExpr, Spacing, Syntax);
+
+import TraitObject;
+import Function;
+import Variable;
+import Other;
+import NoNewlineExpr;
+import Spacing;
+import Syntax;
+
+modify com.sun.fortress.parser.Declaration(TraitObject, Function,
+Variable, Other, NoNewlineExpr, Spacing, Syntax);

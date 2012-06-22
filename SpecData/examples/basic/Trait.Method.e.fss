@@ -1,0 +1,35 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Trait.Method.e
+
+export Executable
+
+trait OrganicMolecule end
+trait Catalyst
+  catalyze(reaction: Reaction):()
+end
+trait Reaction
+  accelerate(Speed):()
+end
+object Speed end
+(** EXAMPLE **)
+trait Enzyme extends { OrganicMolecule, Catalyst }
+  reactionSpeed(): Speed
+  catalyze(reaction) = reaction.accelerate(reactionSpeed())
+end
+(** END EXAMPLE **)
+
+run() = ()
+
+end

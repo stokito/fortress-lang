@@ -1,0 +1,19 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled7.PatternMatching.c.fss
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled7.PatternMatching.c.fss:30:10-37:9:\n\
+\ The typecase clause, Pattern at ${STATIC_TESTS_DIR}/Compiled7.PatternMatching.c.fss:30.10, is unreachable.\n\
+${STATIC_TESTS_DIR}/Compiled7.PatternMatching.c.fss:30:14-20:\n\
+\ This typecase clause is unreachable: ZZ32 excludes the type of a field of the selector.\n\
+File Compiled7.PatternMatching.c.fss has 2 errors.\n
+compile_out_equals=

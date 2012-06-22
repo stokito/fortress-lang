@@ -1,0 +1,71 @@
+(******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(******************************************************************************
+
+ Some traits to help implement objects that have a notion of containment:
+    meaning methods SUBSET, SUBSETEQ, SUPSET, SUPSETEQ, and SETCMP.
+
+    We give various frameworks, which differ in the way that their methods
+    refer to one another:
+    - ContainmentBySubset[\T\], for which a minimal implementation is SUBSET
+      or SUBSETEQ
+    - ContainmentByComparison[\T\], for which a minimal implementation is
+      SETCMP
+    - ContainmentGenerator[\E,T\], providing a standard implementation for
+      objects of type Generator[\E\]
+
+  *****************************************************************************)
+
+
+component Containment
+export Containment
+
+
+trait Containment[\T extends Containment[\T\]\] extends Equality[\T\]
+  opr SUBSET(self, other:T):Boolean
+  opr SUBSETEQ(self, other:T):Boolean
+  opr SUPSET(self, other:T):Boolean = other SUBSET self
+  opr SUPSETEQ(self, other:T):Boolean = other SUBSETEQ self
+  opr SETCMP(self, other:T):Comparison
+end
+
+
+trait ContainmentBySubset[\T extends Containment[\T\]\] extends Containment[\T\]
+  opr SUBSET(self, other:T):Boolean = (self =/= other) AND (self SUBSETEQ other)
+  opr SUBSETEQ(self, other:T):Boolean = (self = other) OR (self SUBSET other)
+  opr SETCMP(self, other:T):Comparison = if (self = other) then
+    EqualTo
+  elif (self SUBSET other) then
+    LessThan
+  elif (self SUPSET other) then
+    GreaterThan
+  else
+    Unordered
+  end
+end
+
+
+trait ContainmentByComparison[\T extends Containment[\T\]\] extends Containment[\T\]
+  opr SUBSET(self, other:T):Boolean = ((self SETCMP other) = LessThan)
+  opr SUBSETEQ(self, other:T):Boolean = do
+    a = (self SETCMP other)
+    (a = LessThan) OR (a = EqualTo)
+  end
+end
+
+
+trait ContainmentGenerator[\E,T extends ContainmentGenerator[\E,T\]\] extends { ContainmentByComparison[\T\], Generator[\E\] }
+  opr SUBSETEQ(self, other:T):Boolean = BIG AND[x <- self] (x IN other)
+end
+
+
+end

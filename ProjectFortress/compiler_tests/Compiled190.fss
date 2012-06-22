@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Compiled190
+export Executable
+
+(* Make sure type Any works. *)
+
+ignore(_:Any):() = ()
+
+run():() = ignore("hello")
+
+end

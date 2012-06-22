@@ -1,0 +1,21 @@
+trait Num 
+  inc ():Num = Succ(self)
+  dec():Num = self
+  plus(o:Num):Num = self
+  isZero():Boolean = False()
+  equals(o:Num):Boolean = False()
+end
+
+object Zero () extends {Num}
+  dec ():Num = self
+  plus (o:Num):Num = o
+  isZero():Boolean = True()
+  equals(o:Num):Boolean = self.isZero()
+end
+
+object Succ (n:Num) extends {Num} 
+  dec ():Num = n
+  plus (o:Num):Num = Succ(n.plus(o))
+  isZero():Boolean = False()
+  equals(o:Num):Boolean = self.dec().equals(o.dec())
+end

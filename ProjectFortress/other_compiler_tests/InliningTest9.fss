@@ -1,0 +1,25 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component InliningTest9
+export Executable
+
+
+run(): () = do
+       a = 1.0
+       b = 2.0
+       if a < b OR: b < a then                 
+         println("true")
+      else
+        println("false")
+      end
+end
+end

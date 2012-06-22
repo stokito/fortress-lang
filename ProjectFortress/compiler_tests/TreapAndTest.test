@@ -1,0 +1,165 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests= TreapAndTest
+compile
+link
+run
+run_out_equals={0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero}\n\
+{4|->Afour}\n\
+{1|->Bone 3|->Bthree 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Bone 2|->Atwo 3|->Bthree 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{1|->Aone 3|->Athree}\n\
+{1|->Bone 3|->Bthree}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour}\n\
+{5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 2|->Atwo 4|->Afour 5|->Bfive 7|->Bseven}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n\
+{0|->Azero 1|->Aone 2|->Atwo 3|->Athree 4|->Afour}\n

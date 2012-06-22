@@ -1,0 +1,153 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+native component FlatString
+
+import String.{maxLeafSize, concatAndBalanceIfNecessary, CatString, spaces}
+import Stream.{...}
+
+export FlatString
+
+
+private language="java"
+private package="com.sun.fortress.interpreter.glue.prim"
+
+lineSeparator: String = LineSeparator()
+
+private natLineSeparator(): String = builtinPrimitive(
+            "com.sun.fortress.interpreter.glue.prim.Writer$LineSeparator")
+
+private LineSeparator(): String =do
+    FlatString; (* This initializes the constructor for FlatString
+                   before its type is used (in the next line). *)
+    natLineSeparator()
+  end
+
+object FlatString extends { String, DelegatedIndexed⟦Char, ZZ32⟧ }
+    getter size() : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Size")
+    getter asExprString() : String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$ToString")
+    getter asFlatString(): String = self
+    getter asString(): String = self
+    getter asDebugString(): String = asDebugStringIndented(0)
+    getter depth():ZZ32 = 0
+
+    (* With the help of trait DelegatedIndex, this defines our generate method *)
+    getter generator() : Generator⟦Char⟧ =
+        self.indices.map⟦Char⟧(fn (i:ZZ32):Char ⇒ self.get(i))
+
+    getter isBalanced():Boolean = true
+    getter isAlmostBalanced():Boolean = true
+    getter isExtremelyUnbalanced():Boolean = false
+
+    opr |self| : ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Size")
+
+    uncheckedSubstring(r1: Range⟦ZZ32⟧) : String = do
+    (* We could build a subString node here, but not until everything is working,
+        because that will introduce
+       SubString objects into code that may still expect FlatStrings.
+       As written, this method always answers a FlatString.
+       In any case, the FlatString object supports substring without copying*)
+        assert((r1 ∩ self.bounds).isEmpty, r1.isEmpty,
+                    "Empty substring of non-empty string")
+        if r1.isEmpty then ""
+        else self.javaSubstr(r1.lower, r1.upper + 1)    (* Java substr's endIndex is one past the last character *)
+        end
+    end
+
+    opr =(self, other: FlatString): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Eq")
+    opr <(self, other: FlatString): Boolean = self.cmp(other) < 0
+    opr <=(self, other: FlatString): Boolean = self.cmp(other) ≤ 0
+    opr >(self, other: FlatString): Boolean = self.cmp(other) > 0
+    opr >=(self, other: FlatString): Boolean = self.cmp(other) ≥ 0
+    opr CMP(self, other: FlatString): TotalComparison =  self.cmp(other) CMP 0
+    opr CMP(self, other:String):TotalComparison = INVERSE (other CMP self)
+    opr CASE_INSENSITIVE_CMP(self, other:FlatString): TotalComparison =
+      self.cicmp(other) CMP 0
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison = INVERSE (other CASE_INSENSITIVE_CMP self)
+
+    (** get skips bounds checking. **)
+    get(i:ZZ32): Char =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Index")
+    cmp(other:FlatString): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Cmp")
+    cicmp(other:FlatString): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$CICmp")
+    javaSubstr(lo:ZZ32,hi:ZZ32): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Substr")
+    javaSubstr(lo:ZZ32): String = javaSubstr(lo, self.size())
+    javaIndexOf(c:Char): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$IndexOf")
+    flatConcat(self, b:FlatString):String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Concat")
+    flatConcat(self, b:Char):String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$Concat")
+    javaRegExpMatches(m:FlatString): Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$javaRegExpMatches")
+    javaRegExpSplit(m:FlatString, i:ZZ32): String =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.FlatString$javaRegExpSplit")
+
+    indexOf(c:Char): Maybe⟦ZZ32⟧ = do
+        i = javaIndexOf(c)
+        if i = -1 then Nothing⟦ZZ32⟧ else Just⟦ZZ32⟧(i) end
+      end
+
+    verify():() = do
+        assert(self.depth, 0, self)
+    end
+
+    asDebugStringIndented(indent: ZZ32): String =
+        spaces(indent) || "J" |self| "/" self.depth ":" self
+
+    opr ∈(c:Char, self): Boolean = self.javaIndexOf(c) ≠ -1
+
+    rangeContains(r: Range⟦ZZ32⟧, c: Char):Boolean = self.javaIndexOf(c) ∈ self.bounds[r]
+
+    (** The operator %||% with at least one String argument converts to string and
+        concatenates **)
+    opr ||(self, b:FlatString): String = do
+        if b.isEmpty then self
+        elif self.size + b.size > maxLeafSize then
+             (* Since both self and b have depth 0, balancing can't be necessary *)
+            CatString(self, b)
+        else
+            flatConcat(self, b)
+        end
+      end
+
+    opr ||(self, b:String):String = do
+        if self.isEmpty then b
+        elif b.isEmpty then self
+        elif self.size + b.size > maxLeafSize then
+            concatAndBalanceIfNecessary(self, b)
+        else
+            flatConcat(self, b.asFlatString)
+        end
+    end
+
+    opr ||(self, b:Char): String =
+        if |self| ≥ maxLeafSize then
+            concatAndBalanceIfNecessary(self, b.asString)
+        else
+            flatConcat(self, b)
+        end
+
+    splitWithOffsets():Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+    split():Maybe⟦Generator⟦(ZZ32, String)⟧⟧ = Nothing⟦Generator⟦(ZZ32, String)⟧⟧
+
+    writeOn(stream: WriteStream): () = stream.write(self)
+
+end FlatString
+
+end

@@ -1,0 +1,37 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+trait T end
+
+trait U extends T end
+
+object O extends U end
+
+object P extends T end
+
+(*
+   
+
+*)
+
+f(x:T, y:T):String = "T"
+f(x: U, y: U):String = "extendsU"
+
+one:RR64 = 1.0
+
+run() = do
+  a = f(O,O)
+  b = f(P,P)
+  println a
+  println b
+end

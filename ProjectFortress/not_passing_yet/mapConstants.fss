@@ -1,0 +1,40 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component mapConstants
+export Executable
+import Map.{...}
+
+(** The third call to construct a 1-element map gets caught in the
+    call mechanism.  We flatten the single 2-element tuple before the
+    call, then discover that neither argument matches the tuple type
+    (String,ZZ32).  As a result we can't use this notation to create a
+    1-element map!  That's a big bug that doesn't have an obvious
+    workaround; indeed the overloading may be inherently ambiguous,
+    and we may have been accepting the definition incorrectly the
+    whole time (for example, we could instantiate both type parameters
+    with the same 2-tuple, and all hell will break loose).  We
+    probably need to restrict map keys to extend Object in order to
+    work around that problem.
+**)
+
+run():() = do
+    a = {[\String,ZZ32\] }
+    b = {[\String,ZZ32\] "Hi" |-> 3, "Lois" |-> 23}
+    c = {[\String,ZZ32\] "Snoopy" |-> 17}
+    d = {[\(String,ZZ32),(String,ZZ32)\] ("Hi",3) |-> ("Lois",23)}
+    (* Note that without explicit type parameterization we get the wrong answer. *)
+    e = {("Hi",3) |-> ("Lois",23)}
+    println("" a // b // c // d // e)
+    assert(d,e,"\n ie ",d," =/= ",e)
+end
+
+end

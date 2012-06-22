@@ -1,0 +1,29 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+  run():() = do
+    var b:Boolean
+
+    b:= do
+      ()
+      true
+    also atomic do
+      ()
+      false
+    also do
+      ()
+      false
+    end typed Boolean
+    ()
+
+  end

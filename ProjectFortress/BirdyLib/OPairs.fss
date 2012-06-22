@@ -1,0 +1,48 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component OPairs
+
+import List.{...}
+import Map.{...}
+import Util.{...}
+import Maybe.{...}
+import Bazaar.{...}
+import CompilerAlgebra.{...}
+import GeneratorLibrary.{DefaultGeneratorImplementation}
+export OPairs
+
+opairs[\T\](g: Generator[\T\]): Generator[\PairPair[\T\]\] = Pairs(g)
+
+object Pairs[\T\](g: Generator[\T\]) extends DefaultGeneratorImplementation[\PairPair[\T\]\] 
+    generate[\R extends Any\](red: Reduction[\R\], m:PairPair[\T\]->R): R =
+    if z <- g.generate[\Maybe[\PairTriple[\T,R\]\]\](PairReduction[\T,R\](red,m),
+                             fn (t:T) => Just[\PairTriple[\T,R\]\](PairTriple(t, red.id, t)))
+        then z.v else red.id en
+    seq() = throw IntegerDomainError  (*) Yeah, right!
+end
+
+object PairPair[\T\](l: T, r: T) end
+
+object PairTriple[\T,R extends Any\](l: T, v: R, r: T) end
+
+object PairReduction[\T,R extends Any\](red: Reduction[\R\], m:PairPair[\T\]->R)
+        extends { Reduction[\Maybe[\PairTriple[\T,R\]\]\] }
+    getter id():Maybe[\PairTriple[\T,R\]\] = Nothing[\PairTriple[\T,R\]\]
+    join(left:Maybe[\PairTriple[\T,R\]\], right:Maybe[\PairTriple[\T,R\]\]) : Maybe[\PairTriple[\T,R\]\] =
+    if y <- left then
+        if z <- right then
+            Just[\PairTriple[\T,R\]\](PairTriple((y.l, red.join(red.join(y.v, m(PairPair[\T\](y.r, z.l))), z.v), z.r)))
+        else left end
+    else right end
+end
+
+end

@@ -1,0 +1,63 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+(* Modified MaybeTest14 to use the  Equality trait from CompilerAlgebra, and added more tests.
+ *)
+component MaybeTest15a
+import CompilerAlgebra.{ ... }
+export Executable
+
+(*) trait Equality[\Self\] comprises Self
+(*)     opr =(self, other:Self): Boolean = self SEQV other
+(*) end
+
+object Baz extends Equality[\Baz\]
+  getter asString() = "Baz"
+end
+
+object Quux extends Equality[\Quux\]
+  getter asString() = "Quux"
+end
+
+value trait TestMaybe[\T extends Equality[\T\]\] extends { Equality[\TestMaybe[\T\]\] }
+        comprises { TestNothingObject[\T\], TestJust[\T\] }
+    getter asString(): String
+(*)    opr SQCAP(self, other: TestMaybe[\T\]): TestMaybe[\T\] = other
+end
+
+value object TestJust[\U extends Equality[\U\]\](x: U) extends TestMaybe[\U\]
+    getter asString(): String = "TestJust(" || x.asString || ")"
+    opr =(self,other:TestJust[\U\]): Boolean = (x = other.x)
+(*)    opr SQCAP(self, other:TestJust[\U\]): TestMaybe[\U\] = if other.x = x then self else TestNothingObject[\U\] end
+end
+
+value object TestNothingObject[\T extends Equality[\T\]\] extends TestMaybe[\T\]
+    getter asString():String = "Nothing"
+(*)    opr SQCAP(self, other: TestMaybe[\T\]): TestNothingObject[\T\] = self
+end
+
+run(): () = do
+(*    assert((TestJust(Baz) SQCAP TestNothingObject[\Baz\]).asString = "Nothing")
+    assert((TestJust(true) SQCAP TestNothingObject[\Boolean\]).asString = "Nothing")
+    assert((TestJust(false) SQCAP TestNothingObject[\Boolean\]).asString = "Nothing")
+*)
+    assert(TestJust(Baz) = TestJust(Baz))
+    assert(TestNothingObject[\Baz\] = TestNothingObject[\Baz\])
+    assert(TestNothingObject[\Quux\] = TestNothingObject[\Quux\])
+    assert(TestNothingObject[\Boolean\] = TestNothingObject[\Boolean\])
+    assert(TestNothingObject[\ZZ32\] = TestNothingObject[\ZZ32\])
+    deny(TestJust(Baz) = TestNothingObject[\Baz\])
+    deny(TestNothingObject[\Baz\] = TestJust(Baz))
+
+    println "PASS"
+end
+
+end
