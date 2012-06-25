@@ -1,0 +1,39 @@
+%%%%%%%%%%%%%%% BEGIN APPLICABLE FIGURE %%%%%%%%%%%%%%%
+\begin{figure}
+\begin{minipage}{.5\textwidth}
+\centering
+
+\fbox{
+\begin{tabular}{lc}
+
+\textbf{Applicability:}& \japp{\delta}{T}\\
+&$f \ni T$
+\end{tabular}
+}
+
+\infrule
+  {\jle{\exists\ob{}T}{\delta}}
+  {\japp{\delta}{T}}
+
+\begin{tabularx}{\textwidth}{RcX}
+  $\delta \ni T$ & \syndef & $\japp[\emptyset]{\delta}{T}$ \\
+  $f \ni T$ & \syndef & $\japp[\emptyset]{\textit{dom}(f)}{T}$\\
+\end{tabularx}
+
+\vspace*{2ex}
+\newjudge{Specificity}{\jms{f}{f}}
+
+\infrule
+  {\jle{\textit{dom}(f_1)}{\textit{dom}(f_2)}}
+  {\jms{f_1}{f_2}}
+
+%%% SYNTAX DEF
+\begin{tabularx}{\textwidth}{RcX}
+  $f_1 \ms f_2$ & \syndef & $\jms[\emptyset]{f_1}{f_2}$
+\end{tabularx}
+
+\end{minipage}
+  \caption{Applicability and specificity on generic function declarations}
+  \label{fig:application}
+\end{figure}
+%%%%%%%%%%%%%%% END APPLICABLE FIGURE %%%%%%%%%%%%%%%%%

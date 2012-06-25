@@ -1,0 +1,213 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\Trait{Fortress.Standard.TotalComparison}
+
+The comparison operator \OPR{CMP}, when applied to values belonging
+to a total order, typically returns a value of type \TYP{TotalComparison}.
+The three values of type \TYP{TotalComparison} are
+called \TYP{LessThan}, \TYP{EqualTo}, and \TYP{GreaterThan}.
+
+This trait supports an associative operator \OPR{LEXICO} that
+is useful for supporting lexicographic comparison of ordered sequences;
+the trick is to compare the sequences elementwise and then to use the
+\OPR{LEXICO} operator to reduce the sequence of comparison results.
+Note that \TYP{EqualTo} is the identity for \OPR{LEXICO},
+and all other comparison values are left zeroes for \OPR{LEXICO}.
+
+
+%% value trait TotalComparison
+%%     extends { Comparison,
+%%               Associative[\TotalComparison,LEXICO\],
+%%               HasIdentity[\TotalComparison,LEXICO\],
+%%               HasLeftZeroes[\TotalComparison,LEXICO\] }
+%%     comprises { LessThan, EqualTo, GreaterThan }
+%%   opr LEXICO(self, other: TotalComparison): TotalComparison
+%%   isLeftZero(_: Operator[\LEXICO\]): Boolean
+%%   opr ===(self, other: TotalComparison): Boolean
+%%   getter hashCode(): ZZ64
+%%   toString(): String
+%% end
+%%
+%% LessThan: TotalComparison
+%% EqualTo: TotalComparison
+%% GreaterThan: TotalComparison
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{trait}\:\TYP{TotalComparison}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{Comparison},\)\\
+\(              \TYP{Associative}\llbracket\TYP{TotalComparison},\OPR{LEXICO}\rrbracket,\)\\
+\(              \TYP{HasIdentity}\llbracket\TYP{TotalComparison},\OPR{LEXICO}\rrbracket,\)\\
+\(              \TYP{HasLeftZeroes}\llbracket\TYP{TotalComparison},\OPR{LEXICO}\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{comprises} \{\,\TYP{LessThan}, \TYP{EqualTo}, \TYP{GreaterThan}\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} \mathord{\OPR{LEXICO}}(\KWD{self}, \VAR{other}\COLON \TYP{TotalComparison})\COLON \TYP{TotalComparison}\)\\
+\(  \VAR{isLeftZero}(\_\COLON \TYP{Operator}\llbracket\OPR{LEXICO}\rrbracket)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{TotalComparison})\COLON \TYP{Boolean}\)\\
+\(  \KWD{getter}\:\VAR{hashCode}()\COLON \mathbb{Z}64\)\\
+\(  \VAR{toString}()\COLON \TYP{String}\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\TYP{LessThan}\COLON \TYP{TotalComparison}\)\\
+\(\TYP{EqualTo}\COLON \TYP{TotalComparison}\)\\
+\(\TYP{GreaterThan}\COLON \TYP{TotalComparison}\)
+\end{Fortress}
+
+
+%% opr LEXICO(self, other: TotalComparison): TotalComparison
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{LEXICO}}(\KWD{self}, \VAR{other}\COLON \TYP{TotalComparison})\COLON \TYP{TotalComparison}}}
+
+The operator \OPR{LEXICO} returns its right argument if the left argument
+is \TYP{EqualTo}; otherwise it returns its left argument.
+The \OPR{LEXICO} operator as applied to total comparison values may be described by this table:
+\begin{center}
+\begin{tabular}{r|ccc}
+\OPR{LEXICO} & \TYP{LessThan} & \TYP{EqualTo} & \TYP{GreaterThan} \\ \hline
+\TYP{LessThan} & \TYP{LessThan} & \TYP{LessThan} & \TYP{LessThan} \\
+\TYP{EqualTo} & \TYP{LessThan} & \TYP{EqualTo} & \TYP{GreaterThan} \\
+\TYP{GreaterThan} & \TYP{GreaterThan} & \TYP{GreaterThan} & \TYP{GreaterThan}
+\end{tabular}
+\end{center}
+
+
+%% isLeftZero(_: Operator[\LEXICO\]): Boolean
+\Method{\EXP{\VAR{isLeftZero}(\_\COLON \TYP{Operator}\llbracket\OPR{LEXICO}\rrbracket)\COLON \TYP{Boolean}}}
+
+This method returns \VAR{false} for \TYP{EqualTo} and \VAR{true} for all other total comparison values.
+
+
+%% opr ===(self, other: TotalComparison): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{TotalComparison})\COLON \TYP{Boolean}}}
+
+Two total comparison values are strictly equivalent if and only if they are the same.
+
+
+%% getter hashCode(): ZZ64
+\Method{\EXP{\KWD{getter} \VAR{hashCode}()\COLON \mathbb{Z}64}}
+
+
+%% toString(): String
+\Method{\EXP{\VAR{toString}()\COLON \TYP{String}}}
+
+The \VAR{toString} method returns either \EXP{\hbox{\rm``{\tt LessThan}''}} or \EXP{\hbox{\rm``{\tt EqualTo}''}}
+or \EXP{\hbox{\rm``{\tt GreaterThan}''}} as appropriate.
+
+
+\section{Top-level Total Comparison Values}
+
+%% LessThan: TotalComparison
+%% EqualTo: TotalComparison
+%% GreaterThan: TotalComparison
+\Variable{\EXP{\TYP{LessThan}\COLON \TYP{TotalComparison}}}
+\Variable*{\EXP{\TYP{EqualTo}\COLON \TYP{TotalComparison}}}
+\Variable*{\EXP{\TYP{GreaterThan}\COLON \TYP{TotalComparison}}}
+
+The immutable variables \TYP{LessThan}, \TYP{EqualTo}, and \TYP{GreaterThan}
+have as their values the three total comparison values
+that respectively signify whether a left-hand comparand is less than,
+equal to, or greater than a right-hand comparand.
+They are top-level variables declared in \library.
+
+
+
+\Trait{Fortress.Standard.Comparison}
+
+When the comparison operator \OPR{CMP} is applied to values belonging
+to a partial order, rather than a total order, it typically returns a value
+of type \TYP{Comparison}, which includes the three values
+\TYP{LessThan}, \TYP{EqualTo}, and \TYP{GreaterThan} of type
+\TYP{TotalComparison} and also a fourth value, \TYP{Unordered}.
+
+This trait, like trait \TYP{TotalComparison}, supports an associative operator \OPR{LEXICO} that
+is useful for supporting lexicographic comparison of ordered sequences;
+the trick is to compare the sequences elementwise and then to use the
+\OPR{LEXICO} operator to reduce the sequence of comparison results.
+Note that \TYP{EqualTo} is the identity for \OPR{LEXICO},
+and all other comparison values are left zeroes for \OPR{LEXICO}.
+
+
+%% value trait Comparison
+%%     extends { IdentityEquality[\Comparison\],
+%%               Associative[\Comparison,LEXICO\],
+%%               HasIdentity[\Comparison,LEXICO\],
+%%               HasLeftZeroes[\Comparison,LEXICO\] }
+%%     comprises { TotalComparison, Unordered }
+%%   opr LEXICO(self, other: Comparison): Comparison
+%%   isLeftZero(_: Operator[\LEXICO\]): Boolean
+%%   opr ===(self, other: Comparison): Boolean
+%%   getter hashCode(): ZZ64
+%%   toString(): String
+%% end
+%%
+%% Unordered: Comparison
+\begin{Fortress}
+\(\KWD{value}\;\;\KWD{trait}\:\TYP{Comparison}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{IdentityEquality}\llbracket\TYP{Comparison}\rrbracket,\)\\
+\(              \TYP{Associative}\llbracket\TYP{Comparison},\OPR{LEXICO}\rrbracket,\)\\
+\(              \TYP{HasIdentity}\llbracket\TYP{Comparison},\OPR{LEXICO}\rrbracket,\)\\
+\(              \TYP{HasLeftZeroes}\llbracket\TYP{Comparison},\OPR{LEXICO}\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{comprises} \{\,\TYP{TotalComparison}, \TYP{Unordered}\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{opr} \mathord{\OPR{LEXICO}}(\KWD{self}, \VAR{other}\COLON \TYP{Comparison})\COLON \TYP{Comparison}\)\\
+\(  \VAR{isLeftZero}(\_\COLON \TYP{Operator}\llbracket\OPR{LEXICO}\rrbracket)\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{Comparison})\COLON \TYP{Boolean}\)\\
+\(  \KWD{getter}\:\VAR{hashCode}()\COLON \mathbb{Z}64\)\\
+\(  \VAR{toString}()\COLON \TYP{String}\)\-\\\poptabs
+\(\KWD{end}\)\\[4pt]
+\(\TYP{Unordered}\COLON \TYP{Comparison}\)
+\end{Fortress}
+
+
+%% opr LEXICO(self, other: Comparison): Comparison
+\Method{\EXP{\KWD{opr} \mathord{\OPR{LEXICO}}(\KWD{self}, \VAR{other}\COLON \TYP{Comparison})\COLON \TYP{Comparison}}}
+
+The operator \OPR{LEXICO} returns its right argument if the left argument
+is \TYP{EqualTo}; otherwise it returns its left argument.
+The \OPR{LEXICO} operator as applied to comparison values may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\OPR{LEXICO} & \TYP{LessThan} & \TYP{EqualTo} & \TYP{GreaterThan} & \TYP{Unordered} \\ \hline
+\TYP{LessThan} & \TYP{LessThan} & \TYP{LessThan} & \TYP{LessThan} & \TYP{LessThan} \\
+\TYP{EqualTo} & \TYP{LessThan} & \TYP{EqualTo} & \TYP{GreaterThan} & \TYP{Unordered} \\
+\TYP{GreaterThan} & \TYP{GreaterThan} & \TYP{GreaterThan} & \TYP{GreaterThan} & \TYP{GreaterThan} \\
+\TYP{Unordered} & \TYP{Unordered} & \TYP{Unordered} & \TYP{Unordered} & \TYP{Unordered}
+\end{tabular}
+\end{center}
+
+
+%% isLeftZero(_: Operator[\LEXICO\]): Boolean
+\Method{\EXP{\VAR{isLeftZero}(\_\COLON \TYP{Operator}\llbracket\OPR{LEXICO}\rrbracket)\COLON \TYP{Boolean}}}
+
+This method returns \VAR{false} for \TYP{EqualTo} and \VAR{true} for all other comparison values.
+
+
+%% opr ===(self, other: Comparison): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{Comparison})\COLON \TYP{Boolean}}}
+
+Two comparison values are strictly equivalent if and only if they are the same.
+
+
+%% getter hashCode(): ZZ64
+\Method{\EXP{\KWD{getter} \VAR{hashCode}()\COLON \mathbb{Z}64}}
+
+
+%% toString(): String
+\Method{\EXP{\VAR{toString}()\COLON \TYP{String}}}
+
+The \VAR{toString} method returns either \EXP{\hbox{\rm``{\tt LessThan}''}} or \EXP{\hbox{\rm``{\tt EqualTo}''}}
+or \EXP{\hbox{\rm``{\tt GreaterThan}''}} or \EXP{\hbox{\rm``{\tt Unordered}''}} as appropriate.
+
+
+\section{Top-level Comparison Value}
+
+%% Unordered: Comparison
+\Variable{\EXP{\TYP{Unordered}\COLON \TYP{Comparison}}}
+
+The immutable variable
+\TYP{Unordered} has as its value the comparison value that signifies
+that two comparands are unordered.
+It is a top-level variable declared in \library.

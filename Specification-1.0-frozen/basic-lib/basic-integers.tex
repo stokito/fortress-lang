@@ -1,0 +1,923 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newpage
+\section{Integers}
+\seclabel{basic-integers}
+
+The trait \EXP{\mathbb{Z}} (\STR{ZZ}) encompasses all finite integers,
+the results of starting from \EXP{0} and repeatedly adding or subtracting \EXP{1} a finite number of times.
+The trait \EXP{\mathbb{Z}^*} (\STR{ZZ{\char'137}star}) is \EXP{\mathbb{Z}} with
+two extra elements, \EXP{+\infty} and \EXP{-\infty}.
+
+Often it is desirable to indicate that a variable ranges over only a subset of
+the integers, such as only positive values or only nonnegative values or only
+nonzero values.
+Fortress uses a system similar to that for rational numbers, but also
+accommodates the traditional use of \EXP{\mathbb{N}} to denote the natural numbers:
+
+\begin{tabbing}
+\EXP{\mathbb{Z}} (\STR{ZZ}) is the set of integers
+(it is a subtype of \EXP{\mathbb{Q}} and \EXP{\mathbb{Z}^*}).
+\\
+\EXP{\mathbb{Z}_{<}} (\STR{ZZ{\char'137}LT}) is the set of strictly negative integers
+(it is a subtype of \EXP{\mathbb{Q}_{<}}, \EXP{\mathbb{Z}^*_{<}}, \EXP{\mathbb{Z}}, \EXP{\mathbb{Z}_{\leq}}, and \EXP{\mathbb{Z}_{\neq}}).
+\\
+\EXP{\mathbb{Z}_{\leq}} (\STR{ZZ{\char'137}LE}) is the set of nonpositive integers, that is, \EXP{\mathbb{Z}_{<} \cup \{0\}}
+(it is a subtype of \EXP{\mathbb{Q}_{\leq}}, \EXP{\mathbb{Z}^*_{\leq}}, and \EXP{\mathbb{Z}}).
+\\
+\EXP{\mathbb{Z}_{\geq}} (\STR{ZZ{\char'137}GE}) is the set of nonnegative integers, that is, \EXP{\mathbb{Z}_{>} \cup \{0\}}
+(it is a subtype of \EXP{\mathbb{Q}_{\geq}}, \EXP{\mathbb{Z}^*_{\geq}}, and \EXP{\mathbb{Z}}).
+\\
+\EXP{\mathbb{Z}_{>}} (\STR{ZZ{\char'137}GT}) is the set of strictly positive integers
+(it is a subtype of \EXP{\mathbb{Q}_{>}}, \EXP{\mathbb{Z}^*_{>}}, \EXP{\mathbb{Z}}, \EXP{\mathbb{Z}_{\geq}}, and \EXP{\mathbb{Z}_{\neq}}).
+\\
+\EXP{\mathbb{Z}_{\neq}} (\STR{ZZ{\char'137}NE}) is the set of strictly nonzero integers (that is, \EXP{\mathbb{Z}_{<} \cup \mathbb{Z}_{>}})
+(it is a subtype of \EXP{\mathbb{Q}_{\neq}}, \EXP{\mathbb{Z}^*_{\neq}}, and \EXP{\mathbb{Z}}).
+\\
+\EXP{\mathbb{Z}^*} (\STR{ZZ{\char'137}star}) is \EXP{\mathbb{Z}} with extra elements \EXP{+\infty} and \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{Q}^*}).
+\\
+\EXP{\mathbb{Z}^*_{<}} (\STR{ZZ{\char'137}star{\char'137}LT}) is \EXP{\mathbb{Z}_{<}} with extra element \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{Q}^*_{<}}, \EXP{\mathbb{Z}^*}, \EXP{\mathbb{Z}^*_{\leq}}, and \EXP{\mathbb{Z}^*_{\neq}}).
+\\
+\EXP{\mathbb{Z}^*_{\leq}} (\STR{ZZ{\char'137}star{\char'137}LE}) is \EXP{\mathbb{Z}_{\leq}} with extra element \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{Q}^*_{\leq}} and \EXP{\mathbb{Z}^*}).
+\\
+\EXP{\mathbb{Z}^*_{\geq}} (\STR{ZZ{\char'137}star{\char'137}GE}) is \EXP{\mathbb{Z}_{\geq}} with extra element \EXP{+\infty}
+(it is a subtype of \EXP{\mathbb{Q}^*_{\geq}} and \EXP{\mathbb{Z}^*}).
+\\
+\EXP{\mathbb{Z}^*_{>}} (\STR{ZZ{\char'137}star{\char'137}GT}) is \EXP{\mathbb{Z}_{>}} with extra element \EXP{+\infty}
+(it is a subtype of \EXP{\mathbb{Q}^*_{>}}, \EXP{\mathbb{Z}^*}, \EXP{\mathbb{Z}^*_{\geq}}, and \EXP{\mathbb{Z}^*_{\neq}}).
+\\
+\EXP{\mathbb{Z}^*_{\neq}} (\STR{ZZ{\char'137}star{\char'137}NE}) is
+\EXP{\mathbb{Z}_{\neq}} with extra elements \EXP{+\infty} and \EXP{-\infty}
+(it is a subtype of \EXP{\mathbb{Q}^*_{\neq}} and \EXP{\mathbb{Z}^*}).
+\\
+\EXP{\mathbb{N}} (\STR{NN}) is a synonym for \EXP{\mathbb{Z}_{\geq}}.
+\\
+\EXP{\mathbb{N}^*} (\STR{NN{\char'137}star}) is a synonym for \EXP{\mathbb{Z}^*_{\geq}}.
+\end{tabbing}
+
+The Fortress type system tracks these types closely through various arithmetic
+operations; for example, adding two values of type \EXP{\mathbb{Z}_{>}} produces a result of type \EXP{\mathbb{Z}_{>}},
+and adding a value of type \EXP{\mathbb{Z}^*_{>}} and a value of type \EXP{\mathbb{Z}_{\geq}} produces a value
+of type \EXP{\mathbb{Z}^*_{>}}.
+
+Here we present only the trait \EXP{\mathbb{Z}} and its methods.
+The other integer types have exactly the same methods and differ
+only in the details of the types of method arguments and results
+and exactly what traits are extended by each integer type.
+For example, \EXP{\mathbb{Z}} is a commutative ring and is totally ordered,
+and \EXP{\mathbb{Z}^*} is totally ordered but is not a ring.
+%% For the exact details of how all this is implemented,
+%% \see{advanced-integers}.
+\emph{Future versions of this specification will include
+the exact details of how all this is implemented.}
+
+%% trait ZZ
+%%     extends { QQ, ZZ_star, IntegerLike[\ZZ\],
+%%               CommutativeRing[\ZZ,+,-,juxtaposition\],
+%%               CommutativeRing[\ZZ,+,-,DOT\],
+%%               CommutativeRing[\ZZ,+,-,TIMES\],
+%%               CommutativeRing[\ZZ,BOXPLUS,BOXMINUS,BOXDOT\],
+%%               CommutativeRing[\ZZ,BOXPLUS,BOXMINUS,BOXTIMES\],
+%%               CommutativeRing[\ZZ,DOTPLUS,DOTMINUS,DOTTIMES\],
+%%               TotalOrderOperators[\ZZ,<,<=,>=,>,CMP\],
+%%               PartialOrderAndLattice[\ZZ,<=,MIN,MAX\],
+%%               BooleanAlgebra[\ZZ,BITAND,BITOR,BITNOT,BITXOR\] }
+%%   coerce(x: Identity[\+\])
+%%   coerce(x: Identity[\BOXPLUS\])
+%%   coerce(x: Identity[\DOTPLUS\])
+%%   coerce(x: Identity[\juxtaposition\])
+%%   coerce(x: Identity[\DOT\])
+%%   coerce(x: Identity[\TIMES\])
+%%   coerce(x: Identity[\BOXDOT\])
+%%   coerce(x: Identity[\BOXTIMES\])
+%%   coerce(x: Identity[\DOTTIMES\])
+%%   coerce(x: Zero[\juxtaposition\])
+%%   coerce(x: Zero[\DOT\])
+%%   coerce(x: Zero[\TIMES\])
+%%   coerce(x: Zero[\BOXDOT\])
+%%   coerce(x: Zero[\BOXTIMES\])
+%%   coerce(x: Zero[\DOTTIMES\])
+%%   opr juxtaposition(self, other: ZZ): ZZ
+%%   opr +(self): ZZ
+%%   opr BOXPLUS(self): ZZ
+%%   opr DOTPLUS(self): ZZ
+%%   opr +(self, other: ZZ): ZZ
+%%   opr BOXPLUS(self, other: ZZ): ZZ
+%%   opr DOTPLUS(self, other: ZZ): ZZ
+%%   opr -(self): ZZ
+%%   opr BOXMINUS(self): ZZ
+%%   opr DOTMINUS(self): ZZ
+%%   opr -(self, other: ZZ): ZZ
+%%   opr BOXMINUS(self, other: ZZ): ZZ
+%%   opr DOTMINUS(self, other: ZZ): ZZ
+%%   opr DOT(self, other: ZZ): ZZ
+%%   opr TIMES(self, other: ZZ): ZZ
+%%   opr BOXDOT(self, other: ZZ): ZZ
+%%   opr BOXTIMES(self, other: ZZ): ZZ
+%%   opr DOTTIMES(self, other: ZZ): ZZ
+%%   opr /(self, other: ZZ): QQ_splat
+%%   opr DIV(self, other: ZZ): ZZ throws IntegerDivisionByZero
+%%   opr REM(self, other: ZZ): ZZ throws IntegerDivisionByZero
+%%   opr MOD(self, other: ZZ): ZZ throws IntegerDivisionByZero
+%%   opr DIVREM(self, other: ZZ): (ZZ,ZZ) throws IntegerDivisionByZero
+%%   opr DIVMOD(self, other: ZZ): (ZZ,ZZ) throws IntegerDivisionByZero
+%%   opr | (self, other: ZZ): Boolean
+%%   opr ^(self, power: NN): ZZ
+%%   opr GCD(self, other: ZZ): ZZ
+%%   opr LCM(self, other: ZZ): ZZ
+%%   opr (self)! : NN
+%%   opr CHOOSE(self, other: ZZ): NN
+%%   opr <(self, other: ZZ): Boolean
+%%   opr <=(self, other: ZZ): Boolean
+%%   opr =(self, other: ZZ): Boolean
+%%   opr >=(self, other: ZZ): Boolean
+%%   opr >(self, other: ZZ): Boolean
+%%   opr CMP(self, other: ZZ_star): TotalComparison
+%%   opr MAX(self, other: ZZ): ZZ
+%%   opr MIN(self, other: ZZ): ZZ
+%%   opr MAXNUM(self, other: ZZ): ZZ
+%%   opr MINNUM(self, other: ZZ): ZZ
+%%   opr |self| : ZZ_GE
+%%   signum(self): ZZ
+%%   numerator(self): ZZ
+%%   denominator(self): ZZ
+%%   floor(self): ZZ
+%%   opr |\ self /|: ZZ
+%%   ceiling(self): ZZ
+%%   opr |/ self \|: ZZ
+%%   round(self): ZZ
+%%   truncate(self): ZZ
+%%   opr ||\ self /||: NN
+%%   opr ||/ self \||: NN
+%%   opr |||\ self /|||: NN
+%%   opr |||/ self \|||: NN
+%%   shift(self, k: IndexInt): ZZ
+%%   bit(self, k: IndexInt): Bit
+%%   opr BITNOT(self): ZZ
+%%   opr BITAND(self, other: ZZ): ZZ
+%%   opr BITOR(self, other: ZZ): ZZ
+%%   opr BITXOR(self, other: ZZ): ZZ
+%%   countBits(self): IndexInt
+%%   countFactorsOfTwo(self): IndexInt
+%%   integerLength(self): IndexInt
+%%   lowBits(self, k: IndexInt): ZZ
+%%   even(self): Boolean
+%%   odd(self): Boolean
+%%   prime(self): Boolean
+%%   realpart(self): ZZ
+%%   imagpart(self): ZZ
+%%   check(self): ZZ throws CastError
+%%   check_star(self): ZZ_star throws CastError
+%%   check_LT(self): ZZ_LT throws CastError
+%%   check_LE(self): ZZ_LE throws CastError
+%%   check_GE(self): ZZ_GE throws CastError
+%%   check_GT(self): ZZ_GT throws CastError
+%%   check_NE(self): ZZ_NE throws CastError
+%%   check_star_LT(self): ZZ_star_LT throws CastError
+%%   check_star_LE(self): ZZ_star_LE throws CastError
+%%   check_star_GE(self): ZZ_star_GE throws CastError
+%%   check_star_GT(self): ZZ_star_GT throws CastError
+%%   check_star_NE(self): ZZ_star_NE throws CastError
+%% end
+\begin{Fortress}
+\(\KWD{trait}\mskip 4mu plus 4mu\mathbb{Z}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\mathbb{Q}, \mathbb{Z}^*, \TYP{IntegerLike}\llbracket\mathbb{Z}\rrbracket,\)\\
+\(              \TYP{CommutativeRing}\llbracket\mathbb{Z},+,-,\KWD{juxtaposition}\rrbracket,\)\\
+\(              \TYP{CommutativeRing}\llbracket\mathbb{Z},+,-,\cdot\rrbracket,\)\\
+\(              \TYP{CommutativeRing}\llbracket\mathbb{Z},+,-,\times\rrbracket,\)\\
+\(              \TYP{CommutativeRing}\llbracket\mathbb{Z},\boxplus,\boxminus,\boxdot\rrbracket,\)\\
+\(              \TYP{CommutativeRing}\llbracket\mathbb{Z},\boxplus,\boxminus,\boxtimes\rrbracket,\)\\
+\(              \TYP{CommutativeRing}\llbracket\mathbb{Z},\dotplus,\dotminus,\dottimes\rrbracket,\)\\
+\(              \TYP{TotalOrderOperators}\llbracket\mathbb{Z},<,\leq,\geq,>,\OPR{CMP}\rrbracket,\)\\
+\(              \TYP{PartialOrderAndLattice}\llbracket\mathbb{Z},\leq,\OPR{MIN},\OPR{MAX}\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\mathbb{Z},\twointersectand,\twointersector,\twointersectnot,\twointersectxor\rrbracket\,\}\)\-\-\\\poptabs\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket+\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\boxplus\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\dotplus\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\KWD{juxtaposition}\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\cdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\times\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\boxdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\boxtimes\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\dottimes\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\KWD{juxtaposition}\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\cdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\times\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\boxdot\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\boxtimes\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\dottimes\rrbracket)\)\\
+\(  \KWD{opr}\;\;\KWD{juxtaposition}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} +(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\boxplus}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\dotplus}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} +(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\boxplus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\dotplus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} -(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\boxminus}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\dotminus}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} -(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\boxminus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\dotminus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\cdot}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\times}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\boxdot}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\boxtimes}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\dottimes}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} /(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Q}^{\#}\)\\
+\(  \KWD{opr} \mathord{\div}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z} \KWD{throws}\mskip 4mu plus 4mu\TYP{IntegerDivisionByZero}\)\\
+\(  \KWD{opr} \mathord{\OPR{REM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z} \KWD{throws}\mskip 4mu plus 4mu\TYP{IntegerDivisionByZero}\)\\
+\(  \KWD{opr} \mathord{\OPR{MOD}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z} \KWD{throws}\mskip 4mu plus 4mu\TYP{IntegerDivisionByZero}\)\\
+\(  \KWD{opr} \mathord{\OPR{DIVREM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON (\mathbb{Z},\mathbb{Z}) \KWD{throws}\mskip 4mu plus 4mu\TYP{IntegerDivisionByZero}\)\\
+\(  \KWD{opr} \mathord{\OPR{DIVMOD}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON (\mathbb{Z},\mathbb{Z}) \KWD{throws}\mskip 4mu plus 4mu\TYP{IntegerDivisionByZero}\)\\
+\(  \KWD{opr} \mathord{\mid} (\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\hbox{\tt\char'137}}(\KWD{self}, \VAR{power}\COLON \mathbb{N})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\OPR{GCD}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\OPR{LCM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} (\KWD{self})! \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\mathbb{N}\)\\
+\(  \KWD{opr} \mathord{\OPR{CHOOSE}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \mathord{<}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\leq}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\geq}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{>}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z}^*)\COLON \TYP{TotalComparison}\)\\
+\(  \KWD{opr} \mathord{\OPR{MAX}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\OPR{MIN}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\OPR{MAXNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\OPR{MINNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \left|\mathord{\KWD{self}}\right| \mathrel{\mathtt{:}}\mskip 4mu plus 4mu\mathbb{Z}_{\geq}\)\\
+\(  \VAR{signum}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{numerator}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{denominator}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{floor}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \lfloor \mathord{\KWD{self}} \rfloor\COLON \mathbb{Z}\)\\
+\(  \VAR{ceiling}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \lceil \mathord{\KWD{self}} \rceil\COLON \mathbb{Z}\)\\
+\(  \VAR{round}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{truncate}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \lhfloor \mathord{\KWD{self}} \rhfloor\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhceil \mathord{\KWD{self}} \rhceil\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhhfloor \mathord{\KWD{self}} \rhhfloor\COLON \mathbb{N}\)\\
+\(  \KWD{opr} \lhhceil \mathord{\KWD{self}} \rhhceil\COLON \mathbb{N}\)\\
+\(  \VAR{shift}(\KWD{self}, k\COLON \TYP{IndexInt})\COLON \mathbb{Z}\)\\
+\(  \VAR{bit}(\KWD{self}, k\COLON \TYP{IndexInt})\COLON \TYP{Bit}\)\\
+\(  \KWD{opr} \mathord{\twointersectnot}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\twointersectand}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\twointersector}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \KWD{opr} \mathord{\twointersectxor}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}\)\\
+\(  \VAR{countBits}(\KWD{self})\COLON \TYP{IndexInt}\)\\
+\(  \VAR{countFactorsOfTwo}(\KWD{self})\COLON \TYP{IndexInt}\)\\
+\(  \VAR{integerLength}(\KWD{self})\COLON \TYP{IndexInt}\)\\
+\(  \VAR{lowBits}(\KWD{self}, k\COLON \TYP{IndexInt})\COLON \mathbb{Z}\)\\
+\(  \VAR{even}(\KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \VAR{odd}(\KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \VAR{prime}(\KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \VAR{realpart}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{imagpart}(\KWD{self})\COLON \mathbb{Z}\)\\
+\(  \VAR{check}(\KWD{self})\COLON \mathbb{Z} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}^*(\KWD{self})\COLON \mathbb{Z}^* \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}_{<}(\KWD{self})\COLON \mathbb{Z}_{<} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}_{\leq}(\KWD{self})\COLON \mathbb{Z}_{\leq} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}_{\geq}(\KWD{self})\COLON \mathbb{Z}_{\geq} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}_{>}(\KWD{self})\COLON \mathbb{Z}_{>} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}_{\neq}(\KWD{self})\COLON \mathbb{Z}_{\neq} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}^*_{<}(\KWD{self})\COLON \mathbb{Z}^*_{<} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\leq}(\KWD{self})\COLON \mathbb{Z}^*_{\leq} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\geq}(\KWD{self})\COLON \mathbb{Z}^*_{\geq} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}^*_{>}(\KWD{self})\COLON \mathbb{Z}^*_{>} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\\
+\(  \VAR{check}^*_{\neq}(\KWD{self})\COLON \mathbb{Z}^*_{\neq} \KWD{throws}\mskip 4mu plus 4mu\TYP{CastError}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+
+
+%%   coerce(x: Identity[\+\])
+%%   coerce(x: Identity[\BOXPLUS\])
+%%   coerce(x: Identity[\DOTPLUS\])
+%%   coerce(x: Identity[\juxtaposition\])
+%%   coerce(x: Identity[\DOT\])
+%%   coerce(x: Identity[\TIMES\])
+%%   coerce(x: Identity[\BOXDOT\])
+%%   coerce(x: Identity[\BOXTIMES\])
+%%   coerce(x: Identity[\DOTTIMES\])
+%%   coerce(x: Zero[\juxtaposition\])
+%%   coerce(x: Zero[\DOT\])
+%%   coerce(x: Zero[\TIMES\])
+%%   coerce(x: Zero[\BOXDOT\])
+%%   coerce(x: Zero[\BOXTIMES\])
+%%   coerce(x: Zero[\DOTTIMES\])
+\Method{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket+\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\boxplus\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\dotplus\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\KWD{juxtaposition}\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\cdot\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\times\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\boxdot\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\boxtimes\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\dottimes\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\KWD{juxtaposition}\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\cdot\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\times\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\boxdot\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\boxtimes\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\dottimes\rrbracket)}}
+
+The identity for \EXP{+} or \EXP{\boxplus} or \EXP{\dotplus} is 0.
+
+The identity for \KWD{juxtaposition} or \EXP{\cdot} or \EXP{\times} or \EXP{\boxdot} or \EXP{\boxtimes} or \EXP{\dottimes} is 1.
+
+The zero for \KWD{juxtaposition} or \EXP{\cdot} or \EXP{\times} or \EXP{\boxdot} or \EXP{\boxtimes} or \EXP{\dottimes} is 0.
+
+
+
+%  opr juxtaposition(self, other: ZZ): ZZ
+\Method{\EXP{\KWD{opr}\;\;\KWD{juxtaposition}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+Juxtaposition of integer expressions is equivalent to using the multiplication operator \EXP{\cdot}.
+
+
+%%   opr +(self): ZZ
+%%   opr BOXPLUS(self): ZZ
+%%   opr DOTPLUS(self): ZZ
+\Method{\EXP{\KWD{opr} +(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\boxplus}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\dotplus}(\KWD{self})\COLON \mathbb{Z}}}
+
+The unary addition operator \EXP{+} simply returns its argument.
+The operators \EXP{\boxplus} and \EXP{\dotplus} do exactly the same thing.
+
+%%   opr +(self, other: ZZ): ZZ
+%%   opr BOXPLUS(self, other: ZZ): ZZ
+%%   opr DOTPLUS(self, other: ZZ): ZZ
+\Method{\EXP{\KWD{opr} +(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\boxplus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\dotplus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+The binary addition operator \EXP{+} returns the sum of its arguments.
+The wrapping and saturating addition operators \EXP{\boxplus} and \EXP{\dotplus} do exactly the same thing,
+because operations on type \EXP{\mathbb{Z}} never need to wrap or saturate.
+
+For type \EXP{\mathbb{Z}^*}, the sum of an infinity
+and either a finite integer or another infinity of the same sign is equal to the given infinity,
+but attempting to sum infinities of differing sign throws an \TYP{IndeterminateInteger}.
+
+
+%%   opr -(self): QQ
+%%   opr BOXMINUS(self): QQ
+%%   opr DOTMINUS(self): QQ
+\Method{\EXP{\KWD{opr} -(\KWD{self})\COLON \mathbb{Q}}}
+\Method*{\EXP{\KWD{opr} \mathord{\boxminus}(\KWD{self})\COLON \mathbb{Q}}}
+\Method*{\EXP{\KWD{opr} \mathord{\dotminus}(\KWD{self})\COLON \mathbb{Q}}}
+
+The unary negation operator \EXP{-} returns the negative of its argument.
+The operators \EXP{\boxminus} and \EXP{\dotminus} do exactly the same thing.
+
+For types \EXP{\mathbb{Z}^*} and \EXP{\mathbb{Z}^{\#}}, the negative of
+\EXP{+\infty} is \EXP{-\infty}, and the negative of \EXP{-\infty} is \EXP{+\infty}.
+
+
+%%   opr -(self, other: ZZ): ZZ
+%%   opr BOXMINUS(self, other: ZZ): ZZ
+%%   opr DOTMINUS(self, other: ZZ): ZZ
+\Method{\EXP{\KWD{opr} -(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\boxminus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\dotminus}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+The binary subtraction operator \EXP{-} returns the difference of its arguments,
+which is equal to the sum of (a) the first argument and (b) the negation of the second argument.
+The wrapping and saturating subtraction operators \EXP{\boxminus} and \EXP{\dotminus} do exactly the same thing,
+because operations on type ZZ never need to wrap or saturate.
+
+
+%%   opr DOT(self, other: ZZ): ZZ
+%%   opr TIMES(self, other: ZZ): ZZ
+%%   opr BOXDOT(self, other: ZZ): ZZ
+%%   opr BOXTIMES(self, other: ZZ): ZZ
+%%   opr DOTTIMES(self, other: ZZ): ZZ
+\Method{\EXP{\KWD{opr} \mathord{\cdot}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\times}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\boxdot}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\boxtimes}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\dottimes}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+The multiplication operator \EXP{\cdot} returns the product of its arguments.
+The multiplication operators \EXP{\times}, \EXP{\boxdot}, \EXP{\boxtimes}, and \EXP{\dottimes} do exactly the same thing.
+
+For types \EXP{\mathbb{Z}^*} and \EXP{\mathbb{Z}^{\#}}, attempting to multiply
+zero and an infinity (regardless of sign) throws an \TYP{IndeterminateInteger}.
+The product of an infinity and any nonzero integer (including an infinity)
+is an infinity whose sign is positive if and only if the two arguments have the same sign.
+
+
+%  opr /(self, other: ZZ): QQ_splat
+\Method{\EXP{\KWD{opr} /(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Q}^{\#}}}
+
+The binary division operator \EXP{/} returns the quotient of its arguments
+as a rational number.  Unlike in other programming languages such as Fortran,
+the operator \EXP{/} does not perform truncating integer division;
+the operator \EXP{\div} may be used for that purpose.
+
+
+%%   opr DIV(self, other: ZZ): ZZ throws IntegerDivisionByZero
+%%   opr REM(self, other: ZZ): ZZ throws IntegerDivisionByZero
+%%   opr MOD(self, other: ZZ): ZZ throws IntegerDivisionByZero
+%%   opr DIVREM(self, other: ZZ): (ZZ,ZZ) throws IntegerDivisionByZero
+%%   opr DIVMOD(self, other: ZZ): (ZZ,ZZ) throws IntegerDivisionByZero
+\Method{\EXP{\KWD{opr} \mathord{\div}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z} \KWD{throws} \TYP{IntegerDivisionByZero}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{REM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z} \KWD{throws} \TYP{IntegerDivisionByZero}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{MOD}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z} \KWD{throws} \TYP{IntegerDivisionByZero}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{DIVREM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON (\mathbb{Z},\mathbb{Z}) \KWD{throws} \TYP{IntegerDivisionByZero}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{DIVMOD}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON (\mathbb{Z},\mathbb{Z}) \KWD{throws} \TYP{IntegerDivisionByZero}}}
+
+The operator \EXP{\div} performs truncating integer division; if the quotient is
+not an exact integer, the result is rounded toward zero.
+
+The operator \OPR{REM} returns the remainder that would be left over from a division
+using the operator \EXP{\div}.
+
+The operator \OPR{MOD} returns the remainder that would be left over from an integer division
+that rounds inexact results towards negative infinity (``floor division'').
+
+The operator \OPR{DIVREM} returns a tuple of two results, the quotient and remainder
+from a truncating integer division.
+
+The operator \OPR{DIVMOD} returns a tuple of two results, the quotient and remainder
+from an integer floor division.
+
+For all these operators, if \VAR{other} is zero then an \TYP{IntegerDivisionByZero} is thrown.
+
+Examples:
+
+{\tabcolsep=0.06em
+\begin{tabular}{rcrcr@{\quad}rcrcr@{\quad}rcrcr@{\quad}rcrcr@{\quad}rcrcr}
+$+8$&$\div$&$+3$&$=$&$+2$& $+8$&\OPR{REM}&$+3$&$=$&$+2$& $+8$&\OPR{MOD}&$+3$&$=$&$+2$& $+8$&\OPR{DIVREM}&$+3$&$=$&$(+2,+2)$& $+8$&\OPR{DIVMOD}&$+3$&$=$&$(+2,+2)$\\
+$-8$&$\div$&$+3$&$=$&$-2$& $-8$&\OPR{REM}&$+3$&$=$&$-2$& $-8$&\OPR{MOD}&$+3$&$=$&$+1$& $-8$&\OPR{DIVREM}&$+3$&$=$&$(-2,-2)$& $-8$&\OPR{DIVMOD}&$+3$&$=$&$(-3,+1)$\\
+$+8$&$\div$&$-3$&$=$&$-2$& $+8$&\OPR{REM}&$-3$&$=$&$+2$& $+8$&\OPR{MOD}&$-3$&$=$&$-1$& $+8$&\OPR{DIVREM}&$-3$&$=$&$(-2,+2)$& $+8$&\OPR{DIVMOD}&$-3$&$=$&$(-3,-1)$\\
+$-8$&$\div$&$-3$&$=$&$+2$& $-8$&\OPR{REM}&$-3$&$=$&$-2$& $-8$&\OPR{MOD}&$-3$&$=$&$-2$& $-8$&\OPR{DIVREM}&$-3$&$=$&$(+2,-2)$& $-8$&\OPR{DIVMOD}&$-3$&$=$&$(+2,-2)$
+\end{tabular}
+}
+
+These examples illustrate the fact that truncating division and floor division behave differently
+when the two operands are of opposite sign and their quotient is not an exact integer.
+
+%%   property FORALL (m, n) m DIV n = signum(m/n) |\ m/n /|
+%%   property FORALL (m, n) m REM n = m - n(m DIV n)
+%%   property FORALL (m, n) m MOD n = m - n |\ m/n /|
+%%   property FORALL (m, n) m DIVREM n = (m DIV n, m REM n)
+%%   property FORALL (m, n) m DIVMOD n = ( |\ m/n /|, m MOD n)
+%%   property FORALL (m, n, k) (m + k n) MOD n = m MOD n
+%%   property FORALL (m, n) m REM n = m REM (-n)
+%%   property FORALL (m, n) (-m) REM n = -(m REM n)
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (m, n)\; m \OPR{REM} n = m - n(m \div n)\)\\
+\(  \KWD{property} \forall (m, n)\; m \OPR{MOD} n = m - n \lfloor m/n \rfloor\)\\
+\(  \KWD{property} \forall (m, n)\; m \OPR{DIVREM} n = (m \div n, m \OPR{REM} n)\)\\
+\(  \KWD{property} \forall (m, n)\; m \OPR{DIVMOD} n = ( \lfloor m/n \rfloor, m \OPR{MOD} n)\)\\
+\(  \KWD{property} \forall (m, n, k)\; (m + k n) \OPR{MOD} n = m \OPR{MOD} n\)\\
+\(  \KWD{property} \forall (m, n)\; m \OPR{REM} n = m \OPR{REM} (-n)\)\\
+\(  \KWD{property} \forall (m, n)\; (-m) \OPR{REM} n = -(m \OPR{REM} n)\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   opr | (self, other: ZZ): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\mid} (\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}}}
+
+The operator \EXP{ \mid } returns \VAR{true} if the left-hand operand evenly divides the
+right-hand operand, and otherwise returns \VAR{false}.
+
+%%   property FORALL (m, n)  m | n :=: (|\ m/n /| = m/n)
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (m, n)\;  m \mid n \CONDEQ (\lfloor m/n \rfloor = m/n)\)\-\\\poptabs
+\end{Fortress}
+
+
+%  opr ^(self, power: NN): ZZ
+\Method{\EXP{\KWD{opr} \mathord{\hbox{\tt\char'136}}(\KWD{self}, \VAR{power}\COLON \mathbb{N})\COLON \mathbb{Z}}}
+
+Exponentiation of an integer to a nonnegative integer power produces an integer result.
+If the \VAR{power} is \EXP{0}, then the result is always \EXP{1}, even if the base is \EXP{0}
+(this definition is somewhat arbitrary but is computationally useful).
+
+%%  property FORALL(x, y:NN) x^y = x^(|\ y/2 /|) x^(|/ y/2 \|)
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{property} \forall(x, y\COLONOP\mathbb{N})\; x^{y} = x^{(\lfloor y/2 \rfloor)} x^{(\lceil y/2 \rceil)}\)\-\\\poptabs
+\end{Fortress}
+
+%%   opr GCD(self, other: ZZ): NN
+%%   opr LCM(self, other: ZZ): NN
+\Method{\EXP{\KWD{opr} \mathord{\OPR{GCD}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{LCM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+The operator \OPR{GCD} computes the greatest common divisor of its two arguments.
+The result is always nonnegative.  If either argment is \EXP{0}, the result
+equals the other argument.
+
+The operator \OPR{LCM} computes the least common multiple of its two arguments.
+The result is always nonnegative.  If either argment is \EXP{1}, the result
+equals the other argument.  If either argument is \EXP{0}, the result is \EXP{0}.
+
+The type \EXP{\mathbb{Z}_{>}} extends the trait
+\EXP{\TYP{PartialOrderAndMeetBoundedLattice}\llbracket\mathbb{Z}_{>},\mid,\OPR{GCD},\OPR{LCM}\rrbracket},
+which is to say that the strictly positive integers form a partial order and lattice with
+the ``evenly divides'' operator \EXP{\mid} as the partial order operator and
+with \OPR{GCD} and \OPR{LCM} as the lattice operators.
+
+
+%%   property FORALL (m, n) ((m GCD n) | m) AND ((m GCD n) | n)
+%%   property FORALL (m, n) (m | (m LCM n)) AND (n | (m LCM n))
+%%   property FORALL (m, n) (m GCD n) DOT (m LCM n) = m DOT n
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (m, n)\; ((m \OPR{GCD} n) \mid m) \wedge ((m \OPR{GCD} n) \mid n)\)\\
+\(  \KWD{property} \forall (m, n)\; (m \mid (m \OPR{LCM} n)) \wedge (n \mid (m \OPR{LCM} n))\)\\
+\(  \KWD{property} \forall (m, n)\; (m \OPR{GCD} n) \cdot (m \OPR{LCM} n) = m \cdot n\)\-\\\poptabs
+\end{Fortress}
+
+
+
+
+%%   opr (self)! : NN
+\Method{\EXP{\KWD{opr} (\KWD{self})! \mathrel{\mathtt{:}} \mathbb{N}}}
+
+The factorial operator is defined only for natural number types;
+it returns the product of all positive integers that are not less than the integer.
+If the argument is \EXP{0}, the result is \EXP{1}.  For type \EXP{\mathbb{N}^*},
+if the argument is \EXP{+\infty}, the result is \EXP{+\infty}.
+
+%%   property FORALL (m) m! = PROD[k<-1:m] k
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (m)\; m! = \prod\limits_{k\leftarrow{}1\COLONOP{}m} k\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   opr CHOOSE(self, other: ZZ): ZZ
+\Method{\EXP{\KWD{opr} \mathord{\OPR{CHOOSE}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+The \OPR{CHOOSE} operator is defined only for natural number types;
+it computes the binomial coefficient \EXP{m \OPR{CHOOSE} n = m!/(n! (m-n)!)}.
+If \EXP{n<0} or \EXP{n>m}, the result is \EXP{0}.
+
+%%   property FORALL (m,n: ZZ) (m CHOOSE n) + (m CHOOSE (n+1)) = ((m+1) CHOOSE (n+1))
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (m,n\COLON \mathbb{Z})\; (m \OPR{CHOOSE} n) + (m \OPR{CHOOSE} (n+1)) = ((m+1) \OPR{CHOOSE} (n+1))\)\-\\\poptabs
+\end{Fortress}
+
+
+
+
+%  opr <(self, other: ZZ): Boolean
+%  opr <=(self, other: ZZ): Boolean
+%  opr =(self, other: ZZ): Boolean
+%  opr >=(self, other: ZZ): Boolean
+%  opr >(self, other: ZZ): Boolean
+\Method{\EXP{\KWD{opr} \mathord{<}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\leq}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\geq}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{>}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \TYP{Boolean}}}
+
+The comparison operators \EXP{<}, \EXP{\leq}, \EXP{=}, \EXP{\geq}, and \EXP{>}
+allow any integer value to be compared numerically to any other integer value.
+Integer values, including \EXP{+\infty} and \EXP{-\infty}, are totally ordered.
+The value \EXP{-\infty} is less than any finite integer value,
+and \EXP{+\infty} is greater than any finite integer value.
+
+For \EXP{\neq} \see{operator-NE}.
+
+
+%  opr CMP(self, other: ZZ_star): TotalComparison
+\Method{\EXP{\KWD{opr} \mathord{\OPR{CMP}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z}^*)\COLON \TYP{TotalComparison}}}
+
+The \OPR{CMP} operator compares the arguments and returns one of the three values
+\TYP{LessThan}, \TYP{EqualTo}, and \TYP{GreaterThan}.
+
+
+%  opr MAX(self, other: ZZ): ZZ
+%  opr MIN(self, other: ZZ): ZZ
+%  opr MAXNUM(self, other: ZZ): ZZ
+%  opr MINNUM(self, other: ZZ): ZZ
+\Method{\EXP{\KWD{opr} \mathord{\OPR{MAX}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{MIN}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{MAXNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\OPR{MINNUM}}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+The operators \OPR{MAX} and \OPR{MAXNUM} return whichever argument is larger
+in the total order defined by \EXP{<}, \EXP{\leq}, \EXP{=}, \EXP{\geq}, \EXP{>}, and \OPR{CMP},
+and the operators \OPR{MIN} and \OPR{MINNUM} return whichever argument is smaller.
+(For all four, if the arguments are equal, then the result equals that same value.)
+
+
+%  opr |self| : NN
+\Method{\EXP{\KWD{opr} \left|\mathord{\KWD{self}}\right| \mathrel{\mathtt{:}} \mathbb{N}}}
+
+The absolute value operator \EXP{\left|\ldots\right|} returns the negative of this integer
+if the argument is less than zero, and otherwise returns the argument.
+
+
+%  signum(self): ZZ
+\Method{\EXP{\VAR{signum}(\KWD{self})\COLON \mathbb{Z}}}
+
+The method \VAR{signum} returns \EXP{-1} if this integer is less than zero,
+\EXP{0} if this integer is zero, and \EXP{1} if this integer is greater than zero.
+
+
+%  numerator(self): ZZ
+%  denominator(self): ZZ
+\Method{\EXP{\VAR{numerator}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{denominator}(\KWD{self})\COLON \mathbb{Z}}}
+
+For finite integers, the method \VAR{numerator} returns the argument
+and the method \VAR{denominator} returns \EXP{1}.
+
+For type \EXP{\mathbb{Z}^*},
+the numerator of \EXP{+\infty} is \EXP{1},
+and the numerator of \EXP{-\infty} is \EXP{-1};
+the denominator of either \EXP{+\infty} or \EXP{-\infty} is \EXP{0}.
+
+
+%  floor(self): ZZ
+%  opr LF self RF: ZZ
+%  ceiling(self): ZZ
+%  opr LC self RC: ZZ
+%  truncate(self): ZZ
+%  round(self): ZZ
+\Method{\EXP{\VAR{floor}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \lfloor \mathord{\KWD{self}} \rfloor\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{ceiling}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \lceil \mathord{\KWD{self}} \rceil\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{round}(\KWD{self})\COLON \mathbb{Z}}}
+\Method*{\EXP{\VAR{truncate}(\KWD{self})\COLON \mathbb{Z}}}
+
+These methods and operators simply return the argument when applied to an integer.
+
+
+%%   opr ||\ self /||: NN
+%%   opr ||/ self \||: NN
+%%   opr |||\ self /|||: NN
+%%   opr |||/ self \|||: NN
+\Method{\EXP{\KWD{opr} \lhfloor \mathord{\KWD{self}} \rhfloor\COLON \mathbb{N}}}
+\Method*{\EXP{\KWD{opr} \lhceil \mathord{\KWD{self}} \rhceil\COLON \mathbb{N}}}
+\Method*{\EXP{\KWD{opr} \lhhfloor \mathord{\KWD{self}} \rhhfloor\COLON \mathbb{N}}}
+\Method*{\EXP{\KWD{opr} \lhhceil \mathord{\KWD{self}} \rhhceil\COLON \mathbb{N}}}
+
+The hyperfloor operation \EXP{\lhfloor{}x\rhfloor} computes \EXP{2^{(\lfloor {log}_{2} x \rfloor)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0}, the result is \EXP{0}.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+The hyperceiling operation \EXP{\lhceil{}x\rhceil} computes \EXP{2^{(\lceil {log}_{2} x \rceil)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0}, the result is \EXP{0}.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+The hyperhyperfloor operation \EXP{\lhhfloor{}x\rhhfloor} computes \EXP{2^{(\lhfloor {log}_{2} x \rhfloor)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0} or \EXP{1}, the result is the same as the argument.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+The hyperhyperceiling operation \EXP{\lhhceil{}x\rhhceil} computes \EXP{2^{(\lhceil {log}_{2} x \rhceil)}}
+and returns the result as a natural number.
+If the argument is equal to \EXP{0} or \EXP{1}, the result is the same as the argument.
+If the argument is negative, an \TYP{InvalidArgument} is thrown.
+
+
+%%   shift(self, k: IndexInt): ZZ
+\Method{\EXP{\VAR{shift}(\KWD{self}, k\COLON \TYP{IndexInt})\COLON \mathbb{Z}}}
+
+The result of \EXP{\VAR{shift}(x,k)} is \EXP{\lfloor x \cdot 2^k \rfloor}.
+This corresponds to what is sometimes called an ``arithmetic shift''
+on the two's-complement representation of the integer;
+positive values of \VAR{k} shifts the bits to the left,
+and negative values of \VAR{k} shifts the bits to the right.
+
+
+%%   bit(self, k: IndexInt): Bit
+\Method{\EXP{\VAR{bit}(\KWD{self}, k\COLON \TYP{IndexInt})\COLON \TYP{Bit}}}
+
+The result of \EXP{\VAR{bit}(x,k)} is \EXP{\lfloor x \cdot 2^{-k} \rfloor \OPR{MOD} 2}, as a \TYP{Bit} (\EXP{0} or \EXP{1}).
+If this integer is regarded as represented in binary two's-complement form,
+with bits numbered in ``little-endian order'' (least significant bit is bit number 0,
+least significant bit but one is bit number 1, and so on), then this functional
+method returns bit \VAR{k} of this representation.
+
+
+%%   opr BITNOT(self): ZZ
+\Method{\EXP{\KWD{opr} \mathord{\twointersectnot}(\KWD{self})\COLON \mathbb{Z}}}
+
+If this integer is regarded as represented in binary two's-complement form,
+then this functional method returns an integer that is the bitwise complement
+of this integer---every bit is inverted.
+
+%%   property FORALL(x, k: IndexInt) bit(BITNOT x, k) = NOT bit(x, k)
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall(x, k\COLON \TYP{IndexInt})\; \VAR{bit}(\twointersectnot x, k) = \neg \VAR{bit}(x, k)\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   opr BITAND(self, other: ZZ): ZZ
+%%   opr BITOR(self, other: ZZ): ZZ
+%%   opr BITXOR(self, other: ZZ): ZZ
+\Method{\EXP{\KWD{opr} \mathord{\twointersectand}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\twointersector}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+\Method*{\EXP{\KWD{opr} \mathord{\twointersectxor}(\KWD{self}, \VAR{other}\COLON \mathbb{Z})\COLON \mathbb{Z}}}
+
+If the arguments are regarded as represented in binary two's-complement form,
+then these functional methods each return an integer that is the result
+of bitwise operations (\emph{and}, \emph{or}, or \emph{exclusive or}, respectively)
+on the argument integers.
+
+%%   property FORALL(x, y, k: IndexInt) bit(x BITAND y, k) = bit(x, k) AND bit(y, k)
+%%   property FORALL(x, y, k: IndexInt) bit(x BITOR y, k) = bit(x, k) OR bit(y, k)
+%%   property FORALL(x, y, k: IndexInt) bit(x BITXOR y, k) = bit(x, k) XOR bit(y, k)
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall(x, y, k\COLON \TYP{IndexInt})\; \VAR{bit}(x \twointersectand y, k) = \VAR{bit}(x, k) \wedge \VAR{bit}(y, k)\)\\
+\(  \KWD{property} \forall(x, y, k\COLON \TYP{IndexInt})\; \VAR{bit}(x \twointersector y, k) = \VAR{bit}(x, k) \vee \VAR{bit}(y, k)\)\\
+\(  \KWD{property} \forall(x, y, k\COLON \TYP{IndexInt})\; \VAR{bit}(x \twointersectxor y, k) = \VAR{bit}(x, k) \xor \VAR{bit}(y, k)\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   countBits(self): IndexInt
+\Method{\EXP{\VAR{countBits}(\KWD{self})\COLON \TYP{IndexInt}}}
+
+If this integer is regarded as represented in binary two's-complement form,
+then this functional method returns the number of 1-bits in the representation
+if this integer is nonnegative, but returns the number of 0-bits in the representation
+if this integer is negative.
+
+%%   property FORALL(x) countBits(0) = 0
+%%   property FORALL(x) countBits(x) = countBits(BITNOT x)
+%%   property FORALL(x) countBits(shift(x,1)) = countBits(x)
+%%   property FORALL(x) countBits(shift(x,1)) + 1 = countBits(x) + 1
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall(x)\; \VAR{countBits}(0) = 0\)\\
+\(  \KWD{property} \forall(x)\; \VAR{countBits}(x) = \VAR{countBits}(\twointersectnot x)\)\\
+\(  \KWD{property} \forall(x)\; \VAR{countBits}(\VAR{shift}(x,1)) = \VAR{countBits}(x)\)\\
+\(  \KWD{property} \forall(x)\; \VAR{countBits}(\VAR{shift}(x,1)) + 1 = \VAR{countBits}(x) + 1\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   countFactorsOfTwo(self): IndexInt
+\Method{\EXP{\VAR{countFactorsOfTwo}(\KWD{self})\COLON \TYP{IndexInt}}}
+
+This method returns the number of factors of 2 in this integer, that is,
+the logarithm of the largest power of 2 that even divides this integer.
+If this integer is regarded as represented in binary two's-complement form,
+then this method returns the number of trailing 0-bits.
+If this integer is zero, this mehtod throws an \TYP{IntegerOverflow}.
+
+%%   property FORALL(x) countFactorsOfTwo(1) = 0
+%%   property FORALL(x) x =/= 0 IMPLIES: countFactorsOfTwo(x) = countfactorsOfTwo(-x)
+%%   property FORALL(x) x =/= 0 IMPLIES: countFactorsOfTwo(shift(x,1)) = countfactorsOfTwo(x) + 1
+%%   property FORALL(x) countFactorsOfTwo(shift(x,1)) + 1 = 0
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall(x)\; \VAR{countFactorsOfTwo}(1) = 0\)\\
+\(  \KWD{property} \forall(x)\; x \neq 0 \rightarrow\COLON \VAR{countFactorsOfTwo}(x) = \VAR{countfactorsOfTwo}(-x)\)\\
+\(  \KWD{property} \forall(x)\; x \neq 0 \rightarrow\COLON \VAR{countFactorsOfTwo}(\VAR{shift}(x,1)) = \VAR{countfactorsOfTwo}(x) + 1\)\\
+\(  \KWD{property} \forall(x)\; \VAR{countFactorsOfTwo}(\VAR{shift}(x,1)) + 1 = 0\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   integerLength(self): IndexInt
+\Method{\EXP{\VAR{integerLength}(\KWD{self})\COLON \TYP{IndexInt}}}
+
+This method returns \EXP{\lceil \log_2 (-\mathord{\KWD{self}}) \rceil} if \EXP{\mathord{\KWD{self}}}
+is negative, but returns \EXP{\lceil \log_2 (\mathord{\KWD{self}}+1) \rceil} if \EXP{\mathord{\KWD{self}}}
+is nonnegative.
+Suppose that this integer is regarded as represented in binary two's-complement form,
+and this method returns the value \VAR{k};
+then \VAR{k} is the smallest integer such that
+\VAR{k+1} bits suffice to represent this integer in  binary two's-complement form.
+Moreover, if this integer is nonnegative, then \VAR{k} is the smallest integer such that
+\VAR{k} bits suffice to represent this integer in unsigned binary form.
+
+%%   property FORALL(x) integerLength(0) = 0
+%%   property FORALL(x) x >= 0 IMPLIES integerLength(shift(x,1)) = integerLength(x)+1
+%%   property FORALL(x) x >= 0 IMPLIES integerLength(shift(x,1)+1) = integerLength(x)+1
+%%   property FORALL(x) integerLength(x) = integerLength(BITNOT x)
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall(x)\; \VAR{integerLength}(0) = 0\)\\
+\(  \KWD{property} \forall(x)\; x \geq 0 \rightarrow \VAR{integerLength}(\VAR{shift}(x,1)) = \VAR{integerLength}(\VAR{shift}(x,1)+1) = \VAR{integerLength}(x)+1\)\\
+\(  \KWD{property} \forall(x)\; \VAR{integerLength}(x) = \VAR{integerLength}(\twointersectnot x)\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   lowBits(self, k: IndexInt): NN
+\Method{\EXP{\VAR{lowBits}(\KWD{self}, k\COLON \TYP{IndexInt})\COLON \mathbb{N}}}
+
+This method returns the value of this integer modulo \EXP{2^{k}}.
+If this integer is regarded as represented in binary two's-complement form,
+then this method returns  an integer whose \VAR{k} least significant bits are equal
+to the correpsonding bits of this integer, and whose other bits are all 0.
+
+%%   property FORALL (x, k:IndexInt) lowBits(x,k) = x MOD 2^k
+\begin{Fortress}
+{\tt~~}\pushtabs\=\+\(  \KWD{property} \forall (x, k\COLONOP\TYP{IndexInt})\; \VAR{lowBits}(x,k) = x \OPR{MOD} 2^{k}\)\-\\\poptabs
+\end{Fortress}
+
+
+%%   even(self): Boolean
+%%   odd(self): Boolean
+\Method{\EXP{\VAR{even}(\KWD{self})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\VAR{odd}(\KWD{self})\COLON \TYP{Boolean}}}
+
+The method \VAR{even} returns \VAR{true}, and the method \VAR{odd} returns \VAR{false},
+if this integer is evenly divisible by two.
+The method \VAR{even} returns \VAR{false}, and the method \VAR{odd} returns \VAR{true},
+if this integer is not evenly divisible by two.
+For type \EXP{\mathbb{Z}^*}, if this integer is \EXP{+\infty} or \EXP{-\infty},
+an \TYP{InvalidArgument} is thrown.
+
+
+%%  property FORALL (a) even a IFF 2 | a
+%%  property FORALL (a) odd a IFF NOT even a
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \KWD{property} \forall (a)\; \VAR{even}\:a \leftrightarrow 2 \mid a\)\\
+\( \KWD{property} \forall (a)\; \VAR{odd}\:a \leftrightarrow \neg \VAR{even}\:a\)\-\\\poptabs
+\end{Fortress}
+
+
+
+%%   prime(self): Boolean
+\Method{\EXP{\VAR{prime}(\KWD{self})\COLON \TYP{Boolean}}}
+
+The method \VAR{prime} is defined only for natural number types;
+it returns \VAR{true} if this integer is a prime number, and
+otherwise returns \VAR{false}.  It returns \VAR{false} if this
+integer is \EXP{0} or \EXP{1}.
+
+%%  FORALL (a, b) (a > 1) AND (a | b) IMPLIES: NOT prime b
+\begin{Fortress}
+{\tt~}\pushtabs\=\+\( \forall (a, b)\; (a > 1) \wedge (a \mid b) \rightarrow\COLON \neg \VAR{prime}\:b\)\-\\\poptabs
+\end{Fortress}
+
+
+%  realpart(self): ZZ
+\Method{\EXP{\VAR{realpart}(\KWD{self})\COLON \mathbb{Z}}}
+
+The method \VAR{realpart} for an integer simply returns its argument.
+
+
+%  imagpart(self): ZZ
+\Method{\EXP{\VAR{imagpart}(\KWD{self})\COLON \mathbb{Z}}}
+
+The method \VAR{imagpart} for an integer simply returns zero.
+
+%  check(self): ZZ throws CastError
+%  check_star(self): ZZ_star throws CastError
+%  check_LT(self): ZZ_LT throws CastError
+%  check_LE(self): ZZ_LE throws CastError
+%  check_GE(self): ZZ_GE throws CastError
+%  check_GT(self): ZZ_GT throws CastError
+%  check_NE(self): ZZ_NE throws CastError
+%  check_star_LT(self): ZZ_star_LT throws CastError
+%  check_star_LE(self): ZZ_star_LE throws CastError
+%  check_star_GE(self): ZZ_star_GE throws CastError
+%  check_star_GT(self): ZZ_star_GT throws CastError
+%  check_star_NE(self): ZZ_star_NE throws CastError
+\Method{\EXP{\VAR{check}(\KWD{self})\COLON \mathbb{Z} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*(\KWD{self})\COLON \mathbb{Z}^* \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{<}(\KWD{self})\COLON \mathbb{Z}_{<} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{\leq}(\KWD{self})\COLON \mathbb{Z}_{\leq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{\geq}(\KWD{self})\COLON \mathbb{Z}_{\geq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{>}(\KWD{self})\COLON \mathbb{Z}_{>} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}_{\neq}(\KWD{self})\COLON \mathbb{Z}_{\neq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{<}(\KWD{self})\COLON \mathbb{Z}^*_{<} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{\leq}(\KWD{self})\COLON \mathbb{Z}^*_{\leq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{\geq}(\KWD{self})\COLON \mathbb{Z}^*_{\geq} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{>}(\KWD{self})\COLON \mathbb{Z}^*_{>} \KWD{throws} \TYP{CastError}}}
+\Method*{\EXP{\VAR{check}^*_{\neq}(\KWD{self})\COLON \mathbb{Z}^*_{\neq} \KWD{throws} \TYP{CastError}}}
+
+Each of these methods checks this integer to see whether it belongs
+to the result type of the method.  If, the number is returned; if not,
+a \TYP{CastError} is thrown.
+
+
+
+
+
+
+
+
+
+
+
+
+
+\emph{Future versions of this specification will include trait declarations
+  definitions for the other numeric quantities.}
+
+%\section{``Real'' Numbers}
+
+
+%\section{Complex Numbers}

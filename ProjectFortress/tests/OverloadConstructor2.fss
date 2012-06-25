@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component OverloadConstructor2
+export Executable
+
+object Thing[\T\](x:T)
+  check(y:T):() = do assert((x = y)); println("Thing " x " check " y); end
+end
+
+Thing():Thing[\ZZ32\] = Thing[\ZZ32\](0)
+
+run():()=do
+  Thing[\ZZ32\](1).check(1)
+  Thing().check(0)
+end
+
+end

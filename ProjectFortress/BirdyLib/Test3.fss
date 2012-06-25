@@ -1,0 +1,32 @@
+component Test3
+
+  import List.{...}
+  import Maybe.{...}
+  import Util.{...}
+  export Executable
+    
+  isNotTwo(x: ZZ32): Boolean = x =/= 2  
+    
+  run() = 
+  do l: List[\ZZ32\] = <| |>
+     l1 = l.addLeft(2).addLeft(3)
+     println(l1)
+     l2 = l.addRight(5).addLeft(5)
+     println(l2)
+     l3 = <|[\ZZ32\] |> || l2
+     println(l3)
+     l4 = l1 || l2
+     println(l4)
+     l5 = <|[\ZZ32\] x + x | x <- l4 |>
+     println(l5)
+     l6 = <|[\ZZ32\] y + y | y <- l4, isNot Two(y) |>
+     println(l6)
+     if (beg,last) <- l2.extractRight() then println(last) end
+     if foo <- l1.left() then println(foo) end
+     if (hd,tl) <- l2.extractLeft() then println(hd) end
+     
+     println("PASS")
+  end
+  
+
+end

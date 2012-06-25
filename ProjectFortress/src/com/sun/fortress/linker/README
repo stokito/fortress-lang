@@ -1,0 +1,61 @@
+/*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+******************************************************************************/
+
+The linker package provides the ability to configure the compiler to detail what
+API is implemented by what component, and link them accordingly. 
+
+The linker package contains the following files:
+	ClassRewriter.java: a utility class that provides a function to substitute names in a class file;
+	FortressLinkerError.java: declaration of the error thrown by the linker in case of an error;
+	Linker.java: a singleton object that serves as the interface between the linker package and the rest of the compiler;
+	LinkShell.java: provides a shell for use by a fortress user;
+	RepoState.java: a singleton object that synchronize the state of the linker with the persistent storage.
+
+The linker package depends on the following important types: 	
+	com.sun.fortress.nodes.APIName -- The identity of components and apis in the GraphRepository;
+	com.sun.fortress.nodes_util.NodeFactory -- to forge APInames;
+	com.sun.fortress.repository.ProjectProperties -- to get information about the repository location;
+	com.sun.fortress.runtimeSystem.ByteCodeWriter -- to write jar files (this dependency can be easily removed);	
+
+The linker is only being imported and used by GraphRepository.java, the compilation manager. The GraphRepository 
+code is complex and it is critical that help from the linker be requested at the appropriate. Follows a description
+of where and why the GraphRepository makes use of the linker:
+
+Function nodeDependsOnApi(ComponentGraphNode node, APIName api) calls Linker.whoIsImplementingMyAPI(node.getName(), api)
+
+	This function is being used early in the compilation management to build the graph of 
+	dependencies amongst components. Each component that is part of the complete build has 
+	a node in the graph with edges pointing to other components that implement the component's
+	apis. It is the job of the linker to tell the compilation manager which component is in
+	fact implementing the api for this component node. This information is obtained by calling
+	Linker.whoIsImplementingMyAPI(node.getName(), api). 
+	
+Function getComponent(APIName name)	calls Linker.linkall()
+
+	This function is the entry point of the compilation manager. By attempting to get a node,
+	the entire compilation process can be triggered. This function builds the dependency graph
+	and then calls function refreshGraph. This refreshing can trigger the compilation for some 
+	of the nodes. Once the graph has been refreshed, every component has been built and the linking 
+	can happen. Function Linker.linkall() is called after the graph has been refreshed. 
+	
+Function findFile(APIName name, String suffix) calls Linker.whatToSearchFor(name)
+
+	This function is being used to find the source corresponding to a node. Digression: the compilation
+	manager assumes that each component node in the graph correspond to a source file. However, with
+	the possibility of aliasing components, some component nodes in the graph may actually not correspond 
+	to a source file. To access the source for this node, the compilation manager uses function findFile. 
+	This function is therefore modified so that when trying to find a the source for an alias, it returns
+	the source of the original component, the one whose name correspond to the name of the file. This is done 
+	by calling function Linker.whatToSearchFor(name).
+	
+TODO: generation of aliases.	
+	
+	

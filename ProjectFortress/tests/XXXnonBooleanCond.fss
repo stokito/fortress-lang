@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component XXXnonBooleanCond
+import File.{...}
+export Executable
+
+krs1() = do
+    println "bar"
+end
+
+run() = do
+    while krs1() do
+        println "baz"
+    end
+end
+
+end XXXnonBooleanCond

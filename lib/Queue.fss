@@ -1,0 +1,39 @@
+component Queue
+
+  import List.{...}
+  export Queue
+
+  object Empty extends UncheckedException
+    getter asString() = "Empty queue"
+  end  
+
+  trait Queue[\T\]
+    isEmpty(self): Boolean 
+    snoc(self, x: T): Queue[\T\] 
+    head(self): T
+    tail(self): Queue[\T\]
+    print(self, p: T -> ()): () = 
+      if isEmpty(self) then () else do p(head(self)) ; print(tail(self)) end end 
+  end
+
+  object NaiveQueue[\T\](front: List[\T\], rear: List[\T\]) extends Queue[\T\] 
+
+    isEmpty(self): Boolean = isEmpty(front) AND isEmpty(rear)
+
+    private queue(f: List[\T\], r: List[\T\]): NaiveQueue[\T\] = 
+      if isEmpty(f) then NaiveQueue[\T\](reverse(r),emptyList[\T\]())
+                        else NaiveQueue[\T\](f,r) end
+    
+    snoc(self, x: T): NaiveQueue[\T\] = queue(front,cons(x,rear))
+
+    head(self): T = if isEmpty(front) then throw Empty else head(front) end
+
+    tail(self): NaiveQueue[\T\] = if isEmpty(front) then throw Empty else queue(tail(front),rear) end  
+
+  end
+ 
+  emptyNaiveQueue[\T\](): Queue[\T\] = NaiveQueue[\T\](emptyList[\T\](),emptyList[\T\]())
+
+  
+
+end

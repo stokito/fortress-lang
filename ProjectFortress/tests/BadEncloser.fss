@@ -1,0 +1,28 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component BadEncloser
+export Executable
+
+(* Actually, I am assured that nofix use of vertical bars is totally
+   legit.  There's currently no envisioned use case, and they're
+   *darned hard* to write down. *)
+
+opr ~():ZZ32 = 45
+opr ⫴():ZZ32 = 17
+
+run() = do
+  a = ⫴
+  b = ~
+  c = (~) + (⫴)
+end
+
+end

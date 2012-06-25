@@ -1,0 +1,4518 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component FortressLibrary
+import NativeArray.{...}
+import NatReflect.{...}
+import FlatString.{...}
+import RangeInternals.{...}
+import List.{AnyList}
+import TypeProxy.{...}
+import Writer.{...}
+import Stream.{...}
+import String.{...}
+import List.{opr <| |>}
+
+
+export FortressLibrary
+
+(************************************************************
+* Simple Combinators
+************************************************************)
+
+(** Casting *)
+
+cast[\T extends Any\](x:Any):T =
+  typecase x of
+    x':T => x'
+    else => throw CastError
+  end
+
+instanceOf[\T extends Any\](x:Any):Boolean =
+  typecase x of
+    T => true
+    else => false
+  end
+
+(** Useful functions *)
+
+ignore(_:Any):() = ()
+
+identity[\T extends Any\](x:T):T = x
+
+(* Function composition *)
+opr COMPOSE[\A,B,C\](f: B->C, g: A->B): A->C = fn (a:A): C => f(g(a))
+
+fail[\T\](s:String):T = do
+    errorPrintln("FAIL: " s)
+    throw FailCalled(s)
+  end
+
+(************************************************************
+* Control over locality and location
+************************************************************)
+
+(* At the moment all Fortress objects are immediately shared by default. *)
+
+shared[\T extends Any\](x:T): T = x
+
+isShared(x:Any): Boolean = true
+
+localize[\T extends Any\](x:T): T = x
+
+(* copy is presently unimplemented.
+copy[\T extends Any\](x:T): T =
+*)
+
+trait Region extends Equality[\Region\]
+    isLocalTo(r: Region): Boolean = false
+    opr =(self, other:Region): Boolean = self SEQV other
+end
+
+object Global extends Region
+    getter asString(): String = "Global"
+    isLocalTo(_: Region): Boolean = true
+end
+
+region(a:Any): Region = Global
+
+(* kludge for defining Indexed.region(i) *)
+topRegion(a:Any): Region = region(a)
+
+here(): Region = Global
+
+(************************************************************
+* Equality and ordering
+************************************************************)
+
+opr =(a:Any, b:Any):Boolean = a SEQV b
+
+opr =/=(a:Any, b:Any):Boolean = NOT (a=b)
+
+trait Equality[\T extends Equality[\T\]\]
+    opr =(self, other:T): Boolean = self SEQV other
+end
+
+(** Total ordering *)
+
+object LexicographicPartialReduction
+        extends { MonoidReduction[\Comparison\],
+                  ReductionWithZeroes[\Comparison, Comparison\] }
+    getter asString():String = "Lexicographic reduction on partial order"
+    empty(): Comparison = EqualTo
+    join(a:Comparison, b:Comparison):Comparison = a LEXICO b
+    isZero(_:Unordered): Boolean = true
+    isZero(_:Comparison): Boolean = false
+end
+
+object LexicographicReduction
+        extends { MonoidReduction[\TotalComparison\],
+                  ReductionWithZeroes[\TotalComparison, TotalComparison\] }
+    getter asString():String = "Lexicographic reduction on total order"
+    empty(): TotalComparison = EqualTo
+    join(a:TotalComparison, b:TotalComparison):TotalComparison = a LEXICO b
+    isLeftZero(_:EqualTo): Boolean = false
+    isLeftZero(_:Comparison): Boolean = true
+end
+
+opr BIG LEXICO(): BigReduction[\TotalComparison, TotalComparison\] =
+    BigReduction[\TotalComparison,TotalComparison\](LexicographicReduction)
+
+opr BIG LEXICO(g: Generator[\TotalComparison\]) =
+    __bigOperatorSugar[\TotalComparison,TotalComparison,TotalComparison,TotalComparison\](BIG LEXICO(), g)
+
+trait Comparison
+        extends { StandardPartialOrder[\Comparison\] }
+        comprises { Unordered, TotalComparison }
+    getter asString(): String
+    opr =(self, other:Comparison): Boolean = false
+    (** Lexicographic ordering.  First non-equal comparison dictates result. *)
+    opr LEXICO(self, other:Comparison): Comparison = Unordered
+    (** Symmetric comparison (total orders only).  All comparisons
+        must be compatible, or Unordered results.  Compatible means
+        "all the same sense or EqualTo" in which case the sense is the
+        result (EqualTo if everything's EqualTo). *)
+    opr SYMMETRIC_PARTIAL(self, other:Comparison): Comparison = Unordered
+    opr SYMMETRIC_PARTIAL(self, other:()->Comparison): Comparison = self SYMMETRIC_PARTIAL other()
+    opr INVERSE(self): Comparison
+end
+
+(** Unordered is the outcome of a CMP b when a and b are partially
+    ordered and no ordering relationship exists between them. **)
+object Unordered extends Comparison
+    getter asString(): String = "Unordered"
+    opr =(self, other:Unordered): Boolean = true
+    opr <(self, other:Comparison): Boolean = false
+    opr SYMMETRIC_PARTIAL(self, other:()->Comparison): Comparison = Unordered
+    opr INVERSE(self): Comparison = Unordered
+end
+
+trait TotalComparison
+        extends { Comparison, StandardTotalOrder[\TotalComparison\] }
+        comprises { LessThan, EqualTo, GreaterThan }
+    (* We're both a partial order (including Unordered) and a total
+       order (TotalComparison alone).  Avoid ambiguity between the
+       default definitions of CMP and >=. *)
+    opr =(self, other:TotalComparison): Boolean = false
+    opr =(self, other:Unordered): Boolean = false
+    opr CMP(self, other:Unordered): Comparison = Unordered
+    opr <(self, other:Unordered): Boolean = false
+    opr >=(self, other:Unordered): Boolean = false
+    opr >=(self, other:Comparison): Boolean = NOT (other < self)
+    opr LEXICO(self, other:TotalComparison): TotalComparison = self
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison = self
+    opr INVERSE(self): TotalComparison
+end
+
+object LessThan extends TotalComparison
+    getter asString(): String = "LessThan"
+    opr =(self, other:LessThan): Boolean = true
+    opr CMP(self, other:LessThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = GreaterThan
+    opr <(self, other:LessThan): Boolean = false
+    opr <(self, other:TotalComparison): Boolean = true
+    opr SYMMETRIC_PARTIAL(self, other:LessThan): LessThan = LessThan
+    opr SYMMETRIC_PARTIAL(self, other:EqualTo): LessThan = LessThan
+    opr INVERSE(self): TotalComparison = GreaterThan
+end
+
+object GreaterThan extends TotalComparison
+    getter asString(): String = "GreaterThan"
+    opr =(self, other:GreaterThan): Boolean = true
+    opr CMP(self, other:GreaterThan): TotalComparison = EqualTo
+    opr CMP(self, other:TotalComparison): TotalComparison = LessThan
+    opr <(self, other:TotalComparison): Boolean = false
+    opr SYMMETRIC_PARTIAL(self, other:GreaterThan): GreaterThan = GreaterThan
+    opr SYMMETRIC_PARTIAL(self, other:EqualTo): GreaterThan = GreaterThan
+    opr INVERSE(self): TotalComparison = LessThan
+end
+
+object EqualTo extends TotalComparison
+    getter asString(): String = "EqualTo"
+    opr =(self, other:EqualTo): Boolean = true
+    opr CMP(self, other:TotalComparison): TotalComparison = INVERSE other
+    opr <(self, other:GreaterThan): Boolean = true
+    opr <(self, other:TotalComparison): Boolean = false
+    opr LEXICO(self, other:TotalComparison): TotalComparison = other
+    opr LEXICO(self, other:()->TotalComparison): TotalComparison = other()
+    opr SYMMETRIC_PARTIAL(self, other: Comparison): Comparison = other
+    opr INVERSE(self): TotalComparison = EqualTo
+end
+
+(** StandardPartialOrder is partial ordering using <,>,<=,>=,=, and CMP.
+    This is primarily for floating-point values.  Minimal complete
+    definition: CMP or { <, = }. **)
+trait StandardPartialOrder[\T extends StandardPartialOrder[\T\]\]
+        extends { Equality[\T\] }
+    opr CMP(self, other:T): Comparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        elif self = other then EqualTo
+        else Unordered
+        end
+    opr <(self, other:T): Boolean = LessThan = (self CMP other)
+    opr >(self, other:T): Boolean = other < self
+    opr =(self, other:T): Boolean = EqualTo = (self CMP other)
+    opr <=(self, other:T): Boolean = other >= self
+    opr >=(self, other:T): Boolean = (self = other OR: self > other)
+end
+
+(** %StandardMin% is a MIN operator; most types that implement %MIN%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MIN b = a% when %a <= b% and that
+    %a MIN b = b MIN a%. **)
+trait StandardMin[\T extends StandardMin[\T\]\]
+    opr MIN(self, other:T): T
+end
+
+(** %StandardMax% is a MAX operator; most types that implement %MAX%
+    will implement a corresponding total order.  It's a separate type
+    to account for the existence of floating point numbers, for which
+    NaN counts as a bottom that is less than anything else but doesn't
+    actually participate in the standard total ordering.  It is
+    otherwise the case that %a MAX b = a% when %a <= b% and that
+    %a MAX b = b MAX a%. **)
+trait StandardMax[\T extends StandardMax[\T\]\]
+    opr MAX(self, other:T): T
+end
+
+(** %StandardMinMax% combines MIN and MAX operators, and provides a
+    combined MINMAX operator.  This operator returns both its
+    arguments; if equality is possible, self should be the leftmost
+    result.  This effectively means that %(a MINMAX b)% stably sorts
+    %a% and %b%.  In addition, %a MINMAX b = (a MIN b, a MAX b)% must
+    always hold. **)
+
+trait StandardMinMax[\T extends StandardMinMax[\T\]\]
+        extends { StandardMin[\T\], StandardMax[\T\] }
+    opr MINMAX(self, other:T): (T,T)
+    opr MIN(self, other:T): (T,T) = do (r,_) = self MINMAX other; r end
+    opr MAX(self, other:T): (T,T) = do (_,r) = self MINMAX other; r end
+end
+
+(** StandardTotalOrder is the usual total order using <,>,<=,>=,=, and
+    CMP.  Most values that define a comparison should do so using
+    this.  Minimal complete definition: either CMP or < (it's
+    advisable to define = in the latter case).  As noted above, %MIN%
+    and %MAX% respect the total order and are defined in the obvious
+    way. **)
+trait StandardTotalOrder[\T extends StandardTotalOrder[\T\]\]
+        extends { StandardPartialOrder[\T\], StandardMinMax[\T\] }
+    opr CMP(self, other:T): TotalComparison =
+        if self < other then LessThan
+        elif other < self then GreaterThan
+        else EqualTo
+        end
+    opr >=(self, other:T): Boolean = NOT (self < other)
+    opr <=(self, other:T): Boolean = NOT (other < self)
+    opr MIN(self, other:T): T = if other < self then other else self end
+    opr MAX(self, other:T): T = if other < self then self else other end
+    opr MINMAX(self, other:T): (T,T) =
+        if other < self then (other, self) else (self, other) end
+end
+
+(** Assertion *)
+assert(flag:Boolean): () =
+    if NOT flag then
+        fail("Assertion failed!")
+    end
+
+assert(flag: Boolean, failMsg: String): () =
+    if NOT flag then
+        fail(failMsg)
+    end
+
+assert(x:Any, y:Any, failMsg: Any...): () =
+    if x =/= y then
+        msg = x.asDebugString " =/= " y.asDebugString "; " (BIG || failMsg)  (* use || here instead of loose juxt *)
+        fail(msg)
+    end
+
+deny(flag:Boolean): () = assert(NOT flag)
+
+deny(flag: Boolean, failMsg: String): () = assert(NOT flag, failMsg)
+
+deny(x:Any, y:Any, failMsg: Any...): () =
+    if x = y then
+        msg = x.asDebugString " = " y.asDebugString "; " (BIG || failMsg)
+        fail(msg)
+    end
+
+shouldRaise⟦Ex extends Exception⟧ (expr: ()→()): () = do
+    try
+        expr()
+        throw ForbiddenException
+    catch x
+        Ex => assert(true) (* This is what we hope for *)
+    forbid Exception
+    end
+end
+
+
+(************************************************************
+* Numeric hierarchy
+************************************************************)
+
+(** Additive group making use of +.  Must define + and either unary or binary -. **)
+trait AdditiveGroup[\T extends AdditiveGroup[\T\]\]
+    getter zero(): T = self - self
+    opr +(self, other: T): T
+    opr -(self, other: T): T = self + (-other)
+    opr -(self) : T = self.zero - self
+end
+
+(** Place holder for exclusions of MultiplicativeRing **)
+trait AnyMultiplicativeRing end
+
+(** Multiplicative ring using TIMES and juxtaposition.
+    Define opr TIMES; juxtaposition is defined in terms of TIMES. **)
+trait MultiplicativeRing[\T extends MultiplicativeRing[\T\]\]
+        extends { AdditiveGroup[\T\], AnyMultiplicativeRing }
+    getter one(): T
+    opr TIMES(self, other:T): T
+    opr juxtaposition(self, other:T): T = self TIMES other
+    (** Exponentiation need only deal with natural exponents. **)
+    opr ^(self, other:AnyIntegral): T
+end
+
+trait Number
+        extends { StandardPartialOrder[\Number\], StandardMinMax[\Number\],
+                  AdditiveGroup[\Number\], MultiplicativeRing[\Number\] }
+        comprises { RR64 }
+    getter zero(): Number = 0.0
+    getter one(): Number = 1.0
+    asFloat(self): RR64
+    opr |self| : Number = |asFloat(self)|
+    opr =(self, b:Number):Boolean = asFloat(self) = asFloat(b)
+    opr =/=(self, b:Number):Boolean = asFloat(self) =/= asFloat(b)
+    opr <(self, b:Number):Boolean = asFloat(self) < asFloat(b)
+    opr <=(self, b:Number):Boolean = asFloat(self) <= asFloat(b)
+    opr >(self, b:Number):Boolean = asFloat(self) > asFloat(b)
+    opr >=(self, b:Number):Boolean = asFloat(self) >= asFloat(b)
+    opr CMP(self, b:Number):Comparison =
+        if self<b then LessThan
+        elif self>b then GreaterThan
+        elif self=b then EqualTo
+        else Unordered
+        end
+    (** In case of NaN, %MIN% and %MAX% return a NaN, otherwise it respects the
+        total order. **)
+    opr MIN(self, b:Number):Number = asFloat(self) MIN asFloat(b)
+    opr MAX(self, b:Number):Number = asFloat(self) MAX asFloat(b)
+    opr MINMAX(self, b:Number):(Number,Number) = asFloat(self) MINMAX asFloat(b)
+
+    opr -(self):RR64 = -asFloat(self)
+    opr +(self,b:Number):RR64 = asFloat(self) + asFloat(b)
+    opr -(self,b:Number):RR64 = asFloat(self) - asFloat(b)
+    opr DOT(self,b:Number):RR64 = asFloat(self) DOT asFloat(b)
+    opr TIMES(self,b:Number):RR64 = asFloat(self) TIMES asFloat(b)
+    opr juxtaposition
+         (self,b:Number):RR64 = asFloat(self) asFloat(b)
+    opr /(self,b:Number):RR64 = asFloat(self) / asFloat(b)
+    opr SQRT(self):RR64 = SQRT asFloat(self)
+    opr PLUS_UP(self,b:Number):RR64 = asFloat(self) PLUS_UP asFloat(b)
+    opr MINUS_UP(self,b:Number):RR64 = asFloat(self) MINUS_UP asFloat(b)
+    opr DOT_UP(self,b:Number):RR64 = asFloat(self) DOT_UP asFloat(b)
+    opr SLASH_UP(self,b:Number):RR64 = asFloat(self) SLASH_UP asFloat(b)
+    opr SQRT_UP(self):RR64 = SQRT_UP asFloat(self)
+    opr PLUS_DOWN(self,b:Number):RR64 = asFloat(self) PLUS_DOWN asFloat(b)
+    opr MINUS_DOWN(self,b:Number):RR64 = asFloat(self) MINUS_DOWN asFloat(b)
+    opr DOT_DOWN(self,b:Number):RR64 = asFloat(self) DOT_DOWN asFloat(b)
+    opr SLASH_DOWN(self,b:Number):RR64 = asFloat(self) SLASH_DOWN asFloat(b)
+    opr SQRT_DOWN(self):RR64 = SQRT_DOWN asFloat(self)
+    opr IEEE_PLUS_UP(self,b:Number):RR64 = asFloat(self) IEEE_PLUS_UP asFloat(b)
+    opr IEEE_MINUS_UP(self,b:Number):RR64 = asFloat(self) IEEE_MINUS_UP asFloat(b)
+    opr IEEE_DOT_UP(self,b:Number):RR64 = asFloat(self) IEEE_DOT_UP asFloat(b)
+    opr IEEE_SLASH_UP(self,b:Number):RR64 = asFloat(self) IEEE_SLASH_UP asFloat(b)
+    opr IEEE_PLUS_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_PLUS_DOWN asFloat(b)
+    opr IEEE_MINUS_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_MINUS_DOWN asFloat(b)
+    opr IEEE_DOT_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_DOT_DOWN asFloat(b)
+    opr IEEE_SLASH_DOWN(self,b:Number):RR64 = asFloat(self) IEEE_SLASH_DOWN asFloat(b)
+    opr ^(self, b:Number):RR64 = (asFloat(self))^b
+    (** Shouldn't need this extra declaration. **)
+    opr ^(self, b:AnyIntegral):RR64 = (asFloat(self))^b
+    sin(self):RR64 = sin(asFloat(self))
+    cos(self):RR64 = cos(asFloat(self))
+    tan(self):RR64 = tan(asFloat(self))
+    asin(self):RR64 = asin(asFloat(self))
+    acos(self):RR64 = acos(asFloat(self))
+    atan(self):RR64 = atan(asFloat(self))
+    atan2(self,x:Number):RR64 = atan2(asFloat(self), asFloat(x))
+    log(self):RR64 = log(asFloat(self))
+    exp(self):RR64 = exp(asFloat(self))
+    floor(self):RR64 = floor(asFloat(self))
+    opr |\self/| : ZZ = |\asFloat(self)/|
+    ceiling(self):RR64 = ceiling(asFloat(self))
+    opr |/self\| : ZZ = |/asFloat(self)\|
+    truncate(self):RR64 = truncate(asFloat(self))
+    round(self): ZZ = round(asFloat(self))
+end
+
+trait RR64 extends Number comprises { Float, FloatLiteral, RR32, QQ }
+    (** returns true if the value is an IEEE NaN **)
+    getter isNaN(): Boolean = false
+    (** returns true if the value is an IEEE infinity **)
+    getter isInfinite(): Boolean = false
+    (** returns true if the value is a valid number (not NaN) **)
+    getter isNumber(): Boolean = NOT self.isNaN
+    (** returns true if the value is finite **)
+    getter isFinite(): Boolean = NOT (self.isInfinite OR self.isNaN)
+    (** check returns Just(its argument) if it is finite, otherwise Nothing. **)
+    getter check(): Maybe[\RR64\] =
+        if self.isFinite then Just[\RR64\](self) else Nothing[\RR64\] end
+    (** check_star returns Just(its argument) if it is non-NaN, otherwise Nothing. **)
+    getter check_star(): Maybe[\RR64\] =
+        if self.isNaN then Nothing[\RR64\] else Just[\RR64\](self) end
+    (** obtain the raw bits of the IEEE floating-point representation of this value. **)
+    getter rawBits():ZZ64 = asFloat(self).rawBits
+    getter signBit():ZZ32 = if self.rawBits < 0 then 1 else 0 end
+    (** next higher IEEE float **)
+    getter nextUp():RR64 = asFloat(self).nextUp
+    (** next lower IEEE float **)
+    getter nextDown():RR64 = asFloat(self).nextDown
+    (** %MINNUM% and %MAXNUM% return a numeric result where possible (avoiding NaN).
+        Note that %MINNUM% and %MAX% form a lattice with NaN at the top, and
+        that %MAXNUM% and %MIN% form a lattice with NaN at the bottom.  **)
+    opr MINNUM(self, b:RR64):RR64 = do
+        r = self MIN b
+        if r.isNaN then
+            if self.isNumber then self
+            elif b.isNumber then b
+            else r end
+        else
+            r
+        end
+      end
+    opr MAXNUM(self, b:RR64):RR64 = do
+        r = self MAX b
+        if r.isNaN then
+            if self.isNumber then self
+            elif b.isNumber then b
+            else r end
+        else
+            r
+        end
+      end
+    (** returns a value of type RR32 **)
+    narrow(self): RR32 = narrow(asFloat(self))
+end
+
+simplestRationalBetween(a:QQ, b:QQ): QQ = label done
+    n0 : ZZ := numerator(a)
+    d0 : ZZ := denominator(a)
+    n1 : ZZ := numerator(b)
+    d1 : ZZ := denominator(b)
+    neg : Boolean := false
+    typecase a CMP b of
+        Unordered => exit done with 0/0
+        EqualTo => a
+        GreaterThan =>
+            (n0,d0,n1,d1) := (n1,d1,n0,d0)
+        else => ()
+    end
+    (* Now n0/d0 < n1/d1 *)
+    if n1 < 0 then
+        (* Both negative, swap and negate. *)
+        neg := true
+        (n0,d0,n1,d1) := (-n1,d1,-n0,d0)
+    end
+    if n0 <= 0 then
+        (* Spans 0 *)
+        exit done with big(0)
+    end
+    if d1 = 0 then
+        (* infinite bound, round smaller up *)
+        r = ceiling(n0/d0)
+        if neg then
+            exit done with (-r)
+        else
+            exit done with r
+        end
+    end
+    simplest(nl:ZZ,dl:ZZ,ng:ZZ,dg:ZZ):(ZZ,ZZ) = do
+        q = nl DIV dl
+        r = nl MOD dl
+        if r=0 then (q,1)
+        else
+            qg = ng DIV dg
+            if qg =/= q then
+                (q+1,1)
+            else
+                (nr,dr) = simplest(dg,ng MOD dg,dl,r)
+                (q nr + dr, nr)
+            end
+        end
+      end
+    (nr,dr) = simplest(n0,d0,n1,d1)
+    if neg then (-nr) / dr else nr/dr end
+  end done
+
+trait QQ extends { RR64, StandardPartialOrder[\QQ\] } comprises { Ratio, AnyIntegral }
+    getter zero(): QQ = 0
+    getter one(): QQ = 1
+    getter isNaN(): Boolean
+    getter isInfinite(): Boolean
+    getter isFinite(): Boolean = (denominator(self) =/= 0)
+    numerator(self): ZZ
+    denominator(self): ZZ  (* Ideally would be NN *)
+    opr |self| : QQ = |numerator(self)| / denominator(self)
+    (* Note that 0/0 = 0/0 is supposed to be true (//unlike// the behavior of floating-point NaN) *)
+    opr =(self, other:QQ):Boolean =
+        numerator(self) = numerator(other) AND: denominator(self) = denominator(other)
+    opr =/=(self, other:QQ):Boolean = NOT (self = other)
+    opr <(self, other:QQ):Boolean = do
+        (a, b) = (numerator(self), denominator(self))
+        (c, d) = (numerator(other), denominator(other))
+        (b=0 AND d=0 AND a=-1 AND c=1) OR (a d < b c)
+    end
+    opr <=(self, other:QQ):Boolean = (self < other) OR (self = other)
+    opr >(self, other:QQ):Boolean = (other < self)
+    opr >=(self, other:QQ):Boolean = (other <= self)
+    (** In case of 0/0, %MIN% and %MAX% return 0/0, otherwise it respects the
+        total order. **)
+    opr MIN(self, other:QQ):QQ =
+        if self < other then self elif other < self then other elif other = 0/0 then other else self end
+    opr MAX(self, other:QQ):QQ =
+        if self > other then self elif other > self then other elif self = 0/0 then self else other end
+    opr MINMAX(self, other:QQ):(QQ,QQ) =
+        if self > other then (other,self)
+        elif other > self then (self,other)
+        elif other=0/0 then (other,other)
+        elif self=0/0 then (self,self)
+        else (self,other) end
+
+    opr -(self):QQ = (-numerator(self)) / denominator(self)
+    opr +(self,other:QQ):QQ =
+        if self = other AND denominator(self) = 0 then self else
+            (a, b) = (numerator(self), denominator(self))
+            (c, d) = (numerator(other), denominator(other))
+            (a d + b c) / b d
+        end
+    opr -(self,other:QQ):QQ = self + (-other)
+    opr DOT(self,other:QQ):QQ = do
+        (a, b) = (numerator(self), denominator(self))
+        (c, d) = (numerator(other), denominator(other))
+        a c / b d
+    end
+    opr TIMES(self,other:QQ):QQ = self DOT other
+    opr juxtaposition (self,other:QQ):QQ = self DOT other
+    opr /(self,other:QQ):QQ = do
+        (a, b) = (numerator(self), denominator(self))
+        (c, d) = (numerator(other), denominator(other))
+        a d / b c
+    end
+    opr ^(self, other:AnyIntegral):QQ =
+        if -other > 0 then   (* Way too clever by half (to avoid infinite recursion on 2^(-63)) *)
+            (denominator(self)/numerator(self))^(-other)
+        else
+            (numerator(self))^other / (denominator(self))^other
+        end
+    floor(self):ZZ = if self < 0 then -ceiling(-self) else truncate(self) end
+    opr |\self/| : ZZ = floor(self)
+    ceiling(self):ZZ = if denominator(self) = 0 then self else
+        (a, b) = (numerator(self), denominator(self))
+        if a < 0 then -floor(-self) else (a + b - 1) DIV b end
+    end
+    opr |/self\| : ZZ = ceiling(self)
+    truncate(self):ZZ = if denominator(self) = 0 then self else numerator(self) DIV denominator(self) end
+    round(self): ZZ = do x = self + 1/2; z = floor(x); if z = x AND odd z then z-1 else z end end
+    opr MINNUM(self, other:QQ):QQ =
+        if self < other then self elif other < self then other elif self = 0/0 then other else self end
+    opr MAXNUM(self, other:QQ):QQ =
+        if self > other then self elif other > self then other elif self = 0/0 then other else self end
+end
+
+object Ratio(num: ZZ, den: ZZ) extends { QQ }
+    getter asString(): String = num.asString || "/" || den.asString
+    getter isNaN(): Boolean = (numerator(self) = 0 AND denominator(self) = 0)
+    getter isInfinite(): Boolean = (numerator(self) =/= 0 AND denominator(self) = 0)
+    (* note: The following will be wrong if num is very large but
+    comparable in magnitude to den.  Good algorithms for this case
+    exist (we can find the simplest rational within epsilon of the
+    given rational) and we ought to support them. *)
+    asFloat(self): RR64 = (num+0.0) / den
+    numerator(self):ZZ = num
+    denominator(self):ZZ = den
+end
+
+trait AnyIntegral extends { QQ } end
+
+trait Integral[\I extends Integral[\I\]\] extends { StandardTotalOrder[\I\], AnyIntegral }
+    getter zero(): I
+    getter one(): I
+    getter isNaN(): Boolean = false
+    getter isInfinite(): Boolean = false  (* For now, no infinite integers. *)
+    denominator(self):ZZ = 1
+    opr -(self):I
+    opr +(self,b:I):I
+    opr -(self,b:I):I
+    opr DOT(self,b:I):I
+    opr TIMES(self,b:I):I
+    opr juxtaposition(self,b:I):I
+    opr DIV(self,b:I):I
+    opr REM(self,b:I):I
+    opr MOD(self,b:I):I
+    opr GCD(self,b:I):I
+    opr LCM(self,b:I):I
+    opr DIVIDES(self,b:I):Boolean = self =/= self.zero AND: (b MOD self) = self.zero
+    opr CHOOSE(self,b:I):I
+    opr BITAND(self,b:I):I
+    opr BITOR(self,b:I):I
+    opr BITXOR(self,b:I):I
+    opr LSHIFT(self,b:AnyIntegral):I
+    opr RSHIFT(self,b:AnyIntegral):I
+    opr BITNOT(self):I
+    opr ^(self, b:AnyIntegral):RR64
+    opr |\self/|: I = self
+    opr |/self\|: I = self
+    round(self): I = self
+end
+
+trait ZZ32 extends { ZZ64, Integral[\ZZ32\] } comprises { Int, IntLiteral }
+    getter zero(): ZZ32 = 0
+    getter one(): ZZ32 = 1
+    getter minimum(): ZZ32 = -2147483647 - 1
+    getter maximum(): ZZ32 = 2147483647
+
+    opr |self| : ZZ32 = if self>=0 then self else -self end
+    opr =(self, b:ZZ32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Eq")
+    opr <(self, b:ZZ32):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Less")
+
+    opr -(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Negate")
+    opr +(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Add")
+    opr -(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Sub")
+    opr DOT(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr TIMES(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr juxtaposition(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mul")
+    opr DIV(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Div")
+    opr REM(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Rem")
+    opr MOD(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Mod")
+    opr GCD(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Gcd")
+    opr LCM(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Lcm")
+    opr CHOOSE(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Choose")
+    opr BITAND(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitAnd")
+    opr BITOR(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitOr")
+    opr BITXOR(self,b:ZZ32):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitXor")
+    opr LSHIFT(self,b:ZZ64):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$LShift")
+    opr RSHIFT(self,b:ZZ64):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$RShift")
+    opr BITNOT(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$BitNot")
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Pow")
+    widen(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$ToLong")
+    partitionL(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Int$Partition")
+    unsigned(self):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.ZZ32$ToNN32")
+end
+
+trait ZZ64 extends { ZZ, Integral[\ZZ64\] } comprises { Long, ZZ32 }
+    getter zero(): ZZ64 = widen(0)
+    getter one(): ZZ64 = widen(1)
+    getter minimum(): ZZ64 = -9223372036854775807 - 1
+    getter maximum(): ZZ64 = 9223372036854775807
+
+    opr |self| : ZZ64 = if self>=0 then self else -self end
+
+    opr =(self, b:ZZ64):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Eq")
+    opr <(self, b:ZZ64):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Less")
+    (* Argh!  Due to method ambiguities with ZZ, these definitions must be given
+       explicitly here. *)
+    opr >(self, b:ZZ64):Boolean = b < self
+    opr >=(self, b:ZZ64):Boolean = NOT (self < b)
+    opr <=(self, b:ZZ64):Boolean = NOT (b < self)
+    opr CMP(self, b:ZZ64): TotalComparison =
+        if self < b then LessThan
+        elif b < self then GreaterThan
+        else EqualTo end
+
+    opr -(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Negate")
+    opr +(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Add")
+    opr -(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Sub")
+    opr DOT(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr TIMES(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr juxtaposition(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mul")
+    opr DIV(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Div")
+    opr REM(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Rem")
+    opr MOD(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Mod")
+    opr GCD(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Gcd")
+    opr LCM(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Lcm")
+    opr CHOOSE(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Choose")
+    opr BITAND(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitAnd")
+    opr BITOR(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitOr")
+    opr BITXOR(self,b:ZZ64):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitXor")
+    opr LSHIFT(self,b:AnyIntegral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$LShift")
+    opr RSHIFT(self,b:AnyIntegral):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$RShift")
+    opr BITNOT(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$BitNot")
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Pow")
+    partitionL(self):ZZ64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$Partition")
+    narrow(self):ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$FromLong")
+    unsigned(self):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToUnsignedLong")
+    big(self):ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$ToBigNum")
+end
+
+trait NN64 extends { ZZ, Integral[\NN64\] } comprises { UnsignedLong, NN32 }
+    opr |self| : NN64 = self
+    opr =(self, b:NN64):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Eq")
+    opr <(self, b:NN64):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Less")
+    opr -(self):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Negate")
+    opr +(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Add")
+    opr -(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Sub")
+    opr DOT(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Mul")
+    opr TIMES(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Mul")
+    opr juxtaposition(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Mul")
+    opr DIV(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Div")
+    opr REM(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Rem")
+    opr MOD(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Mod")
+    opr GCD(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Gcd")
+    opr LCM(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Lcm")
+    opr CHOOSE(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Choose")
+    opr BITAND(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$BitAnd")
+    opr BITOR(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$BitOr")
+    opr BITXOR(self,b:NN64):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$BitXor")
+    opr LSHIFT(self,b:AnyIntegral):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$LShift")
+    opr RSHIFT(self,b:AnyIntegral):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$RShift")
+    opr BITNOT(self):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$BitNot")
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Pow")
+    partitionL(self):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$Partition")
+    narrow(self):NN32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$FromLong")
+    signed(self):NN64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.UnsignedLong$ToLong")
+end
+
+trait ZZ extends Integral[\ZZ\]
+        comprises { BigNum, ZZ64, NN64 }
+    getter zero(): ZZ =
+        1934791870947204798109283471902037419 - 1934791870947204798109283471902037419
+    getter one(): ZZ = self.zero + 1
+    numerator(self):ZZ = self
+    opr |self| : ZZ = if self>=0 then self else -self end
+    opr =(self, b: ZZ):Boolean =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Eq")
+    opr <(self, other:ZZ): Boolean = self.cmp(other) < 0
+    opr <=(self, other:ZZ): Boolean = self.cmp(other) <= 0
+    opr >(self, other:ZZ): Boolean = self.cmp(other) > 0
+    opr >=(self, other:ZZ): Boolean = self.cmp(other) >= 0
+    opr CMP(self, other:ZZ): TotalComparison = self.cmp(other) CMP 0
+    cmp(b:ZZ): ZZ32 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Cmp")
+
+    opr -(self): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Negate")
+    opr +(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Add")
+    opr -(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Sub")
+    opr DOT(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mul")
+    opr juxtaposition(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mul")
+    opr TIMES(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mul")
+    opr /(self,other:ZZ):QQ = if other < 0 then (-self)/(-other) else
+        g = self GCD other
+        if g=0 then Ratio(0,0) else
+            a = self DIV g
+            b = other DIV g
+            if b = 1 then a else Ratio(a,b) end
+        end
+    end
+    opr DIV(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Div")
+    opr REM(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Rem")
+    opr MOD(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Mod")
+    opr GCD(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Gcd")
+    opr LCM(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Lcm")
+    opr CHOOSE(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Choose")
+    opr BITAND(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitAnd")
+    opr BITOR(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitOr")
+    opr BITXOR(self, b: ZZ): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitXor")
+    opr LSHIFT(self, b:AnyIntegral): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$LShift")
+    opr RSHIFT(self, b:AnyIntegral): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$RShift")
+    opr BITNOT(self): ZZ =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$BitNot")
+    opr ^(self, b:AnyIntegral):RR64 =
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$Pow")
+    narrow(self):ZZ32 = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$ToZZ32")
+    (* This routine, named for consistency, converts to a ZZ64 *)
+    widen(self):ZZ64 = 
+        builtinPrimitive("com.sun.fortress.interpreter.glue.prim.BigNum$ToZZ64")
+    odd(self): Boolean = NOT (even self)
+    even(self): Boolean = (self MOD 2) = 0
+end
+
+(************************************************************
+* Generator support
+************************************************************)
+
+(** Containment
+ *
+ * The type %Contains[\T\]% "contains" objects of type %T%, in the sense
+ * that we can check whether a %T% is a member of a %Contains[\T\]% using
+ * %opr IN% and its ken, or using a %case% expression. *)
+trait Contains[\T\]
+    (** %opr IN% indicates whether %self% contains %elt%.  **)
+    opr IN(elt:T, self): Boolean
+    (** The %MATCH% operator is used (as a temporary hack) by case when the
+        match clause is a %Contains[\T\]%.  We must choose either %=%, %SEQV%, or
+        %IN% as appropriate, depending on the type of the LHS. **)
+    opr MATCH(x:Any, self): Boolean =
+        typecase x of
+            x':T => (x' IN self)
+            x':Contains[\T\] => (x' = self)
+            else => fail("Type error in MATCH of Contains")
+        end
+end
+
+(** %x NOTIN g% is simply %NOT (x IN g).% **)
+opr NOTIN[\E\](x: E, this: Contains[\E\]): Boolean = NOT (x IN this)
+
+(** %g NI x% is equivalent to %x IN g% **)
+opr NI[\E\](this: Contains[\E\], x:E): Boolean = x IN this
+
+(** %g NOTNI x% is equivalent to %x NOTIN g% **)
+opr NOTNI[\E\](this: Contains[\E\], x:E): Boolean = x NOTIN this
+
+(** Generator
+ *
+ * We say an object which extends Generator[\T\] "generates objects of
+ * type T."
+ *
+ * Generators are used to express iteration in Fortress.  Every
+ * generated expression in Fortress (eg for loop, comprehension) is
+ * desugared into calls to methods of Generator, chiefly the generate
+ * method.
+ *
+ * Every generator has a notion of a "natural order" (which by default is
+ * unspecified), which describes the ordering of reduction operations,
+ * and also describes the order in which elements are produced by the
+ * sequential version of the same generator (given by the seq(self)
+ * method).  The default implementation of seq(self) guarantees that these
+ * orders will match.
+ *
+ * Note in particular that the natural order of a Generator must be
+ * consistent; that is, if a SEQV b then a and b must yield SEQV
+ * elements in the same natural order.  However, note that unless a type
+ * specifically documents otherwise, no particular element ordering is
+ * guaranteed, nor is it necessary to guarantee that a=b have the same
+ * natural order when equality is defined.
+ *
+ * Note that more complex derived generators are specified further
+ * down in the definition of Generator.  These have the same notions
+ * of natural order and by default are defined in terms of the
+ * generate() method.
+ *
+ * Minimal complete definition of a Generator is the generate(...) method.
+ *)
+trait Generator[\E\] extends { Contains[\E\] }
+        excludes { Number }
+
+    (** reverse returns a generator which generates the same objects
+        in reverse order **)
+    getter reverse(): Generator[\E\] = SimpleReversedGenerator[\E\](self)
+    getter asString(): String = (BIG ||[i <- self] "," i)[1:]
+
+    (** generate is the core of Generator.  It generates elements of
+        type E and passes them to the body function.  This generation
+        can occur using any mixture of serial and parallel execution
+        desired by the author of the generator; by default uses of a
+        generator must assume every call to the body occurs in
+        parallel.
+
+        The results of generation are combined using the reduction
+        object R, which specifies a monoidal operation (associative
+        and with an identity).  Body results must be combined together
+        following the natural order of the generator.  The author of
+        the generator is free to use the identity element anywhere
+        desired in this computation, and to group reductions in any
+        way desired; if no elements are generated the identity must be
+        returned. *)
+    generate[\R\](r: Reduction[\R\], body: E->R): R
+
+    (** Transforming generators into new generators *)
+    (** map applies a function f to each element generated and yields
+        the result.  The resulting generator must have the same
+        ordering and cross product properties as the generator from
+        which it is derived. *)
+    map[\G\](f: E->G): Generator[\G\] = SimpleMappedGenerator[\E,G\](self,f)
+    (** seq produces a sequential version of the same generator, in
+        which elements are produced in the generator's natural order. *)
+    seq(self): SequentialGenerator[\E\] = NaiveSeqGenerator[\E\](self)
+
+    (** Nesting of two generators; the innermost is data-dependent
+        upon the outer one.  This is specifically designed to be
+        overloaded so that the combined generators have properties
+        appropriate to the pairing.  Because of the data dependency
+        the natural order of the nesting is the natural order of the
+        inner generators, in the natural order the outer nesting
+        produces them.  So for example, if we write:
+          (0#3).nest[\ZZ32\](\(n:ZZ32):Generator[\ZZ32\] => (n*100#4))
+        then the natural order is 0,1,2,3,100,101,102,103,200,201,202,203
+     **)
+    nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
+        SimpleNestedGenerator[\E,G\](self,f)
+
+    (** Filtering data from a generator.  Only elements that satisfy
+        the predicate p are retained.  Natural order and cross product
+        properties are otherwise preserved. **)
+    filter(f: E -> Condition[\()\]): Generator[\E\] =
+        SimpleFilterGenerator[\E\](self,f)
+
+    (** Cross product of two generators.  This is specifically
+        designed to be overloaded, such that pairs of independent
+        generators can be combined to produce a generator which
+        possibly interleaves the iteration spaces of the two
+        generators.  For example, we might combine (0#16).cross(0#32)
+        such that it first splits the second range in half, then the
+        first range in half, then the second, and so forth.
+
+        Consider a grid for which the rows are labeled from top to
+        bottom with the elements of a in natural order, and the
+        columns are labeled from left to right with the elements of g
+        in natural order.  Each point in the grid corresponds to a
+        pair (a,b) that must be generated by self.cross(g).  In the
+        natural order of the cross product, an element must occur
+        after those that lie above and to the left of it in the grid.
+        By default the natural order of the cross product is
+        left-to-right, top to bottom.  Programmers must not rely on
+        the default order, except that cross products involving one or
+        more sequential generators are always performed in the default
+        order.  Note that this means that the following have the same
+        natural order:
+           seq(a).cross(b)
+           a.cross(seq(b))
+           seq(a).cross(seq(b))
+        But seq(a.cross(b)) may have a different natural order. *)
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        SimplePairGenerator[\E,G\](self, g)
+
+    (** Derived generation operations *)
+    (** mapReduce is equivalent to generate, but takes an explicit join
+        and zero which can have any type.  It still assumes join is
+        associative and that zero is the identity of join. **)
+    mapReduce[\R\](body: E->R, join:(R,R)->R, id:R): R =
+        generate[\R\](MapReduceReduction[\R\](join,id), body)
+    (** reduce works much like generate or mapReduce,
+        but has no body expression **)
+    reduce(j:(E,E)->E, z:E):E = mapReduce[\E\](fn (e:E)=>e, j, z)
+    reduce(r: Reduction[\E\]):E = generate[\E\](r, fn(e:E)=>e)
+    (** loop is a version of generate which discards the void results
+        of the body computation.  It is used to translated
+        reduction-variable-free for loops. **)
+    loop(f:E->()): () = generate[\()\](VoidReduction, f)
+    (** Is x generated by this generator?  By default this is a naive $O(n)$ operation. **)
+    opr IN(x:E, self): Boolean = BIG OR [y <- self] x=y
+end Generator
+
+(** The following top-level functions are used as glue in the
+    desugaring of generated expressions (comprehensions, BIG
+    operators, and loops).  They exist at the top level in part to
+    work around shortcomings in the ablity of the Fortress interpreter
+    to check types dynamically for anything except top-level
+    non-overloaded function calls. **)
+__generate[\E,R\](g:Generator[\E\], r: Reduction[\R\], b:E->R): R =
+    g.generate[\R\](r,b)
+
+__nest[\E1,E2\](g:Generator[\E1\], f:E1->Generator[\E2\]):Generator[\E2\] =
+    g.nest[\E2\](f)
+
+__singleton[\E\](body:E): Generator[\E\] = Just[\E\](body)
+
+__loop[\E,R\](g:Generator[\E\], body:E->R): () = g.loop(body)
+
+__cond[\E,R\](c:Condition[\E\], t:E->R, e:()->R): R = c.cond[\R\](t,e)
+__cond[\E\](c:Condition[\E\], t:E->()): () = c.cond[\()\](t, fn () => ())
+
+(** Used in desugaring binding %while% **)
+__whileCond[\E\](c:Condition[\E\], b:E->()): () =
+    c.cond[\Boolean\](fn (e): Boolean => do b(e); true end, fn ():Boolean => false)
+
+(** Unlike the user-visible dotted map method, this method is used for
+    the internals of comprehension desugaring [except that at present
+    it is not actually in use, but we're planning to use it].  As a
+    result we know that its result will immediately be consumed, and
+    we should *not* create an intermediate collection if we're passed
+    a collection. **)
+__map[\E,R\](g:Generator[\E\], f:E->R): Generator[\R\] =
+    typecase g of
+        g':SomeMappedGenerator[\E\] => g'.map[\R\](f)
+        g':SequentialGenerator[\E\] => SimpleMappedSeqGenerator[\E,R\](g',f)
+        else => SimpleMappedGenerator[\E,R\](g,f)
+    end
+
+(** Unlike the user-visible dotted filter method, but like the __map
+    method, this method is intended for use in the internals of
+    comprehension desugaring.  Again its result will immediately be
+    consumed, and we do not create an intermediate collection but
+    perform the filtering lazily on demand. **)
+__filter[\E\](g:Generator[\E\], p:E->Condition[\()\]): Generator[\E\] =
+do
+    typecase g of
+        g':SomeGenerator2 => g'.filter(p)
+        g':FilterGenerator[\E\] => g'.filter(p)
+        g':SequentialGenerator[\E\] => SimpleSeqFilterGenerator[\E\](g',p)
+        else => SimpleFilterGenerator[\E\](g,p)
+    end
+end
+
+
+
+(** Application of a BIG operator with a single generator
+    to support the following syntactic sugar:
+        BIG Op Expr === BIG Op [x <- Expr] x
+    **)
+__bigOperatorSugar[\I,O,R,L\](o:BigOperator[\I,O,R,L\],g:Generator[\I\]): O =
+    __bigOperator[\I,O,R,L\](o, fn (r,u) => __generate[\I,L\](g, r, u))
+
+(** Application of a BIG operator, the topmost level of comprehension desugaring. **)
+__bigOperator[\I,O,R,L\](o:BigOperator[\I,O,R,L\],desugaredClauses:(Reduction[\L\],I->L)->L): O = do
+    r = o.reduction
+    body(i): L = r.lift((o.body)(i))
+    (o.unwrap)(r.unlift(desugaredClauses(r,body)))
+  end
+
+(** Application of two nested BIG operators, possibly with fusion.  This only covers
+    a comprehension of the form:
+       BIG outer [ xs <- expr_o ] (BIG inner [x <- xs] expr_i)
+    The desugarer extracts comprehensions of this form from more complex nests of
+    comprehensions, using a combination of splitting:
+        BIG OP [ gs_1, gs_2 ] expr = BIG OP [ gs_1 ] (BIG OP [ gs_2 ] expr)
+    and filter squeezing:
+        BIG OP [ xs <- g, p(xs) ] expr = BIG OP [ xs <- g.filter(p) ] expr
+    There are some big caveats to this explanation in practice.  Most important is that
+    we don't unlift and lift or do input/output conversion except where neccessary, so
+    splitting skips these operations in between the inner and outer comprehension.
+    **)
+(*
+This is too strong when I0 is BOTTOM.
+__bigOperator2[\I0,O0,R0,L0,I1,O1 extends I0,R1,L1,E,F extends Generator[\E\]\]
+              (outer:BigOperator[\I0,O0,R0,L0\],
+               inner:BigOperator[\I1,O1,R1,L1\],
+               gg: Generator[\F\],
+               innerBody: E->I1):O0 = do
+*)
+__bigOperator2[\I0,O0,R0,L0,I1,O1,R1,L1,E,F extends Generator[\E\]\]
+              (outer:BigOperator[\I0,O0,R0,L0\],
+               inner:BigOperator[\I1,O1,R1,L1\],
+               gg: Generator[\F\],
+               innerBody: E->I1):O0 = do
+    o = outer.reduction
+    i = inner.reduction
+    resolvedouterBody=__resolveBottomArgumentType[\O1, I0, R0\](outer.body)
+    typecase (gg,outer,inner) of
+        (gg':Generator2[\E\],outer':BigOperator[\I0,I0,I0,L0\],inner':BigOperator[\I1,I0,I0,L1\]) =>
+        (* Assumes that outer.body COMPOSE inner.unwrap is id
+         * Often the assumption is satisfied,
+         * but some types are necesary to guarantee it.
+         *)
+        (outer'.unwrap)(gg'.generate2[\I0,L0,L1\](o, i, fn x => (inner'.body)(innerBody(x))))
+        else =>
+          ((outer.unwrap)(o.unlift(
+            gg.generate[\L0\](o,fn (xs) =>
+            o.lift((resolvedouterBody)(((inner.unwrap)(i.unlift(
+            xs.generate[\L1\](i,fn x=> i.lift((inner.body)(innerBody(x)))))))))))))
+    end
+  end
+
+(* This checks whether the given function f accepts an arguemnt of type O1.
+ *
+ *)
+__resolveBottomArgumentType[\O1, I0, R0\](f : I0 -> R0) : O1 -> R0 =
+typecase f of f':O1 -> R0 => fn (x:O1) : R0  => f'(x)
+else => throw CastError
+end
+
+
+trait SequentialGenerator[\E\] extends { Generator[\E\] }
+    getter asString(): String = "seq(" (self asif Generator[\E\]).asString ")"
+    seq(self): SequentialGenerator[\E\] = self
+    map[\G\](f: E->G): SequentialGenerator[\G\] =
+        SimpleMappedSeqGenerator[\E,G\](self,f)
+    (* TODO: make overloaded *)
+    nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
+        typecase f of
+            f':E -> SequentialGenerator[\G\] =>
+                SimpleNestedSeqGenerator[\E,G\](self,f')
+            else => SimpleNestedGenerator[\E,G\](self,f)
+        end
+    (* TODO: make overloaded *)
+    cross[\F\](g:Generator[\F\]): Generator[\(E,F)\] =
+        typecase g of
+            g':SequentialGenerator[\F\] =>
+                    SimplePairSeqGenerator[\E,F\](self,g')
+            else => SimplePairGenerator[\E,F\](self,g)
+        end
+end SequentialGenerator
+
+(** A Condition is a Generator that generates 0 or 1 element.
+    Conditions can be used as nullary comprehension generators or
+    as predicates in an if expression. **)
+trait Condition[\E\] extends { ZeroIndexed[\E\], SequentialGenerator[\E\] }
+    getter isEmpty(): Boolean = NOT self.holds
+    getter nonEmpty(): Boolean = NOT self.isEmpty
+    getter holds(): Boolean = cond[\Boolean\](fn (_:E):Boolean => true, fn () => false)
+    getter size(): ZZ32 = if self.holds then 1 else 0 end
+    getter get(): E throws NotFound = cond[\E\](identity[\E\], fn () => throw NotFound)
+    getter bounds(): CompactFullRange[\ZZ32\] = 0 # |self|
+    getter indices(): Generator[\ZZ32\] = self.bounds
+    getter indexValuePairs(): Condition[\(ZZ32,E)\] =
+        cond[\E\](fn (e:E) => Just[\(ZZ32,E)\](0,e), fn () => Nothing[\(ZZ32,E)\])
+    getter reverse() : Condition[\E\] = self
+    opr |self|: ZZ32 = if self.holds then 1 else 0 end
+    opr [i:ZZ32]:E throws NotFound = if i=0 then self.get else throw NotFound end
+    opr [r:Range[\ZZ32\]]: Condition[\E\] =
+        cond[\E\](fn (e:E): Condition[\E\] => do
+                    r1 = (0#1).narrowToRange(r)
+                    if r1.isEmpty then Nothing[\E\] else self end
+                  end,
+                fn (): Condition[\E\] => do r1 = (0#0).narrowToRange(r); self end)
+    getDefault(e:E): E = cond[\E\](identity[\E\], fn () => e)
+    cond[\G\](t: E -> G, e: () -> G): G
+    generate[\G\](r:Reduction[\G\], body: E -> G): G = cond[\G\](body,fn () => r.empty())
+
+    (** For a Condition, these methods run eagerly. **)
+    map[\G\](f: E->G): Condition[\G\] =
+        cond[\G\](fn (e:E) => Just[\G\](f(e)), fn () => Nothing[\G\])
+    ivmap[\G\](f: (ZZ32,E)->G): Condition[\G\] =
+        cond[\G\](fn (e:E) => Just[\G\](f(0,e)), fn () => Nothing[\G\])
+    nest[\G\](f: E -> Generator[\G\]): Generator[\G\] =
+        cond[\G\](f, fn () => Nothing[\G\])
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        cond[\G\](fn (e:E):Generator[\(E,G)\] => g.map[\(E,G)\](fn (g':G):(E,G) => (e,g')),
+               fn () => Nothing[\(E,G)\])
+    mapReduce[\R\](body: E->R, _:(R,R)->R, id:R): R =
+        cond[\R\](body, fn () => id)
+    reduce(_:(E,E)->E, z:E):E = cond[\E\](identity[\E\], fn ():E => z)
+    reduce(r: Reduction[\E\]):E = cond[\E\](identity[\E\], fn ():E => r.empty())
+    loop(f:E->()): () = cond[\()\](f,fn ():() => ())
+    opr IN(x:E, self):Boolean = cond[\Boolean\](fn (e:E):Boolean => x=e, fn () => false)
+end Condition
+
+(** %sequential% is the long name for %seq% **)
+sequential[\T\](g:Generator[\T\]):SequentialGenerator[\T\] = seq(g)
+
+(** Conjunction and disjunction of condition functions **)
+opr ANDCOND[\I\](p1:I->Condition[\()\], p2:I->Condition[\()\]): I->Condition[\()\] =
+    fn (i:I):Boolean => p1(i).holds AND: p2(i).holds
+
+(** Conjunction and disjunction of condition functions **)
+opr ORCOND[\I\](p1:I->Condition[\()\], p2:I->Condition[\()\]): I->Condition[\()\] =
+    fn (i:I):Boolean => p1(i).holds OR: p2(i).holds
+
+(************************************************************
+* Meta-generators: BIG GENERATOR
+************************************************************)
+
+(** The problem: Your code is sprinkled with the same generator code,
+    over and over again.  Maybe it looks something like this:
+    % for (i,v) <- a.indexValuePairs, v =/= 0, j <- 0:i do (code using i and j) %
+    You goal: abstract this into a single generator.  You can do this as follows:
+    % usefulGen = BIG GENERATOR[(i,v) <- a.indexValuePairs, v =/= 0, j <- 0:i] (i,j) %
+    Not much savings there, but the important part is that you can just
+    cut and paste the generators from the original code.  And all occurrences
+    can be cleaned up:
+    % for (i,j) <- usefulGen do (code using i and j) %
+    This is possible using %map%, %filter%, and %nest%, but you end up
+    effectively desugaring the code by hand.  Using BIG GENERATOR is much easier.
+ **)
+
+(** TODO
+
+The big problem here is that the new desugaring story actually gets in
+the way.  We can't simply package up a function passed in, because
+that's being done by the __bigOperator functionality directly.
+
+How do we deal with reduction properties?  It's all very sticky.  And
+we're already running into difficulties with co- and contra-variance
+of the type parameters floating around that force us to use Any in
+awkward places.
+
+In particular, we don't want to generate the data when creating the
+generator, as that misses the whole point.  We want to defer the
+object traversals until the moment the resulting generator is used.
+**)
+
+
+(************************************************************
+* The Maybe type, used instead of null
+************************************************************)
+
+(* This makes excludes work without where clauses, and allows opr =()
+   to remain non-parametric. *)
+value trait AnyMaybe extends { Equality[\AnyMaybe\], AnyUniqueItem } excludes Number
+        (** \vspace{-4ex} NOT YET: %comprises Maybe[\T\] where [\T\]% *)
+end
+
+just(t:Any):AnyMaybe = Just(t)
+
+(** %Maybe% represents either %Nothing% or a single element of type
+    %T% (%Just[\T\]%), which may be retrieved by calling %get%.  An
+    object of type %Maybe[\T\]% can be used as a generator; it is either
+    empty (%Nothing%) or generates the single element yielded by
+    %get%, so there is no issue of canonical order or parallelism.
+
+    Thus, %Just[\T\]% can be used as a single-element generator, and
+    %Nothing% can be used as an empty generator. *)
+value trait Maybe[\T\]
+        extends { AnyMaybe, Condition[\T\], UniqueItem[\T\] }
+        comprises { Nothing[\T\], Just[\T\] }
+    opr SQCAP(self, o: Maybe[\T\]): Maybe[\T\] = Nothing[\T\]    (*) semilattice "meet" operator
+end
+
+value object Just[\T\](x:T) extends Maybe[\T\]
+    getter size()=1
+    getter asString():String = "Just(" x ")"
+    getter holds() = true
+    getter get() = x
+    opr |self| : ZZ32 = 1
+    getDefault(_:T): T = x
+    cond[\R\](t:T->R, _:()->R): R = t(x)
+    generate[\R\](_:Reduction[\R\],m:T->R): R = m(x)
+    opr[i:ZZ32]:T = if i=0 then x else fail("Maybe[" i "] nonzero index") end
+
+    map[\G\](f: T->G): Just[\G\] = Just[\G\](f(x))
+    cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] =
+        g.map[\(T,G)\](fn (e:G):(T,G) => (x,e))
+
+    mapReduce[\R\](m: T->R, _:(R,R)->R, _:R): R = m(x)
+    reduce(_:(T,T)->T, _:T):T = x
+    reduce(_: Reduction[\T\]):T = x
+    loop(f:T->()): () = f(x)
+    opr IN(y:T, self): Boolean = x=y
+    opr =(self,o:Just[\T\]): Boolean = x=o.get
+    opr SQCAP(self, o:NotUnique[\T\]): Just[\T\] = self
+    opr SQCAP(self, o:Just[\T\]): Maybe[\T\] = if o.x = x then self else Nothing[\T\] end
+    opr SQCUP(self, o:Nothing[\T\]): Just[\T\] = self
+    opr SQCUP(self, o:Just[\T\]): UniqueItem[\T\] = if o.x = x then self else NotUnique[\T\] end
+    unique(self): Maybe[\T\] = self
+end
+
+(* Obviously ought to be a non-parametric singleton when we get where
+   clauses working. *)
+value object Nothing[\T\] extends Maybe[\T\]
+    getter size()=0
+    getter holds() = false
+    getter get() = throw NotFound
+    getter asString():String = "Nothing"
+    opr |self| : ZZ32 = 0
+    getDefault(t:T):T = t
+    cond[\R\](_:T->R, e:()->R): R = e()
+    generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
+    opr[_:ZZ32]: T = fail("Cannot index Nothing")
+
+    map[\G\](f: T->G): Nothing[\G\] = Nothing[\G\]
+    cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] = Nothing[\(T,G)\]
+
+    mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R = z
+    reduce(_:(T,T)->T, z:T):T = z
+    reduce(r: Reduction[\T\]):T = r.empty()
+    loop(f:T->()): () = ()
+    opr IN(x:T, self): Boolean = false
+    opr =(self,_:Nothing[\T\]) = true
+    opr SQCAP(self, o: Maybe[\T\]): Nothing[\T\] = self
+    opr SQCAP(self, o: UniqueItem[\T\]): Nothing[\T\] = self
+    opr SQCUP(self, o: UniqueItem[\T\]): UniqueItem[\T\] = o
+end
+
+(* This makes excludes work without where clauses, and allows opr =()
+   to remain non-parametric. *)
+value trait AnyUniqueItem extends Equality[\AnyUniqueItem\] excludes Number
+        (** \vspace{-4ex} NOT YET: %comprises UniqueItem[\T\] where [\T\]% *)
+    getter holds() : Boolean
+    opr =(self, other:AnyUniqueItem): Boolean = false
+end
+
+(** The type UniqueItem[\T\] extends Maybe[\T\] from a semilattice
+    to a lattice by adjoining a top element NotUnique[\T\].  An
+    object of type %UniqueItem[\T\]% can be used as a generator; it is either
+    empty (%Nothing% or %NotUnique%) or generates the single element yielded by
+    %get%, so there is no issue of canonical order or parallelism. *)
+value trait UniqueItem[\T\]
+        extends { AnyUniqueItem, Condition[\T\] }
+        comprises { NotUnique[\T\], Maybe[\T\] }
+    opr SQCAP(self, o: UniqueItem[\T\]): UniqueItem[\T\] = Nothing[\T\]    (*) lattice "meet" operator
+    opr SQCUP(self, o: UniqueItem[\T\]): UniqueItem[\T\] = NotUnique[\T\]  (*) lattice "join" operator
+    unique(self): Maybe[\T\] = Nothing[\T\]
+end
+
+value object NotUnique[\T\] extends UniqueItem[\T\]
+    getter size()=0
+    getter holds() = false
+    getter get() = throw NotFound
+    getter asString():String = "NotUnique"
+    opr |self| : ZZ32 = 0
+    getDefault(t:T):T = t
+    cond[\R\](_:T->R, e:()->R): R = e()
+    generate[\R\](r:Reduction[\R\],_:T->R): R = r.empty()
+    opr[_:ZZ32]: T = fail("Cannot index NotUnique")
+
+    map[\G\](f: T->G): NotUnique[\G\] = NotUnique[\G\]
+    cross[\G\](g: Generator[\G\]): Generator[\(T,G)\] =
+      if g === Nothing[\G\] then Nothing[\(T,G)\] else NotUnique[\(T,G)\] end
+
+    mapReduce[\R\](_: T->R, _:(R,R)->R, z:R): R = z
+    reduce(_:(T,T)->T, z:T):T = z
+    reduce(r: Reduction[\T\]):T = r.empty()
+    loop(f:T->()): () = ()
+    opr IN(x:T, self): Boolean = false
+    opr =(self,_:NotUnique[\T\]) = true
+    opr SQCAP(self, o:UniqueItem[\T\]): UniqueItem[\T\] = o
+    opr SQCUP(self, o:UniqueItem[\T\]): NotUnique[\T\] = self
+end
+
+object UniqueItemMeetReduction[\T\]
+        extends { CommutativeMonoidReduction[\UniqueItem[\T\]\],
+                  ReductionWithZeroes[\UniqueItem[\T\],UniqueItem[\T\]\] }
+    getter asString(): String = "UniqueItemMeetReduction"
+    empty(): UniqueItem[\T\] = NotUnique[\T\]
+    join(a: UniqueItem[\T\], b: UniqueItem[\T\]): UniqueItem[\T\] = a SQCAP b
+    isZero(a: UniqueItem[\T\]): Boolean = (a = Nothing[\T\])
+end
+
+opr BIG SQCAP[\T\](): BigReduction[\UniqueItem[\T\],UniqueItem[\T\]\] =
+    BigReduction[\UniqueItem[\T\],UniqueItem[\T\]\](UniqueItemMeetReduction[\T\])
+
+opr BIG SQCAP[\T\](g: Generator[\UniqueItem[\T\]\]) =
+    __bigOperatorSugar[\UniqueItem[\T\],UniqueItem[\T\],UniqueItem[\T\],UniqueItem[\T\]\](BIG SQCAP[\T\](), g)
+
+object UniqueItemJoinReduction[\T\]
+        extends { CommutativeMonoidReduction[\UniqueItem[\T\]\],
+                  ReductionWithZeroes[\UniqueItem[\T\],UniqueItem[\T\]\] }
+    getter asString(): String = "UniqueItemJoinReduction"
+    empty(): UniqueItem[\T\] = Nothing[\T\]
+    join(a: UniqueItem[\T\], b: UniqueItem[\T\]): UniqueItem[\T\] = a SQCUP b
+    isZero(a: UniqueItem[\T\]): Boolean = (a = NotUnique[\T\])
+end
+
+opr BIG SQCUP[\T\](): BigReduction[\UniqueItem[\T\],UniqueItem[\T\]\] =
+    BigReduction[\UniqueItem[\T\],UniqueItem[\T\]\](UniqueItemJoinReduction[\T\])
+
+opr BIG SQCUP[\T\](g: Generator[\UniqueItem[\T\]\]) =
+    __bigOperatorSugar[\UniqueItem[\T\],UniqueItem[\T\],UniqueItem[\T\],UniqueItem[\T\]\](BIG SQCUP[\T\](), g)
+
+(************************************************************
+* Exception hierarchy
+************************************************************)
+
+trait Exception comprises { UncheckedException, CheckedException }
+end
+
+(* Exceptions which are not checked *)
+
+trait UncheckedException extends Exception excludes CheckedException
+end
+
+object FailCalled(s:String) extends UncheckedException
+    getter asString(): String = "FAIL: " s
+end
+
+object DivisionByZero extends UncheckedException
+    getter asString(): String = "Division by zero"
+end
+
+object UnpastingError extends UncheckedException
+    getter asString(): String = "Unpasting error"
+end
+
+object CallerViolation extends UncheckedException
+    getter asString(): String = "Caller violation"
+end
+
+object CalleeViolation extends UncheckedException
+    getter asString(): String = "Callee violation"
+end
+
+object LabelException extends UncheckedException
+    getter asString(): String = "Exiting without an enclosing label block"
+end
+
+object TestFailure extends UncheckedException
+    getter asString(): String = "Test failure"
+end
+
+object ContractHierarchyViolation extends UncheckedException
+    getter asString(): String = "Contract hierarchy violation"
+end
+
+object NoEqualityOnFunctions extends UncheckedException
+    getter asString(): String = "No equality on functions"
+end
+
+object InvalidRange extends UncheckedException
+    getter asString(): String = "Invalid range"
+end
+
+object ForbiddenException(chain : Exception) extends UncheckedException
+    getter asString(): String = "Forbidden exception"
+end
+
+(* Should this be called "IndexNotFound" instead? *)
+object NotFound extends UncheckedException
+    getter asString(): String = "Not found"
+end
+
+object IndexOutOfBounds[\I\](range:Range[\I\],index:I) extends UncheckedException
+    getter asString(): String = index " is outside the range " range
+end
+
+object EmptyReduction extends UncheckedException
+    getter asString(): String = "EmptyReduction: no identity, no elements"
+end
+
+object NegativeLength extends UncheckedException
+    getter asString(): String = "Negative length"
+end
+
+object IntegerOverflow extends UncheckedException
+    getter asString(): String = "Integer Overflow"
+end
+
+object RationalComparisonError extends UncheckedException
+    getter asString(): String = "Rational comparison error"
+end
+
+object FloatingComparisonError extends UncheckedException
+    getter asString(): String = "Floating comparison error"
+end
+
+(* Checked Exceptions *)
+
+trait CheckedException extends Exception excludes UncheckedException
+end
+
+object CastError extends CheckedException
+    getter asString(): String = "Cast error"
+end
+
+object IOFailure extends CheckedException
+    getter asString(): String = "I/O error"
+end
+
+object MatchFailure extends CheckedException
+    getter asString(): String = "Match failure"
+end
+
+(* SetsNotDisjoint? *)
+object DisjointUnionError extends CheckedException
+    getter asString(): String = "Disjoint union error"
+end
+
+object APIMissing extends CheckedException
+    getter asString(): String = "Api is missing"
+end
+
+object APINameCollision extends CheckedException
+    getter asString(): String = "Api name collides with another"
+end
+
+object ExportedAPIMissing extends CheckedException
+    getter asString(): String = "Exported api is missing"
+end
+
+object HiddenAPIMissing extends CheckedException
+    getter asString(): String = "Hidden api is missing"
+end
+
+object TryAtomicFailure extends CheckedException
+    getter asString(): String = "Try/atomic failure"
+end
+
+(* Should take a spawned thread as an argument *)
+object AtomicSpawnSynchronization extends {UncheckedException}
+    getter asString(): String = "Atomic spawn synchronization"
+end
+
+(************************************************************
+* Array support
+************************************************************)
+
+oops(s:ZZ32, l:ZZ32, sz:ZZ32, got:ZZ32):() = do
+   fail("Index of dimension " s " out of bounds; got " got
+        " which is not in " l "#" sz);
+end
+
+trait HasRank extends Equality[\HasRank\] excludes { Number, AnyMaybe }
+  (** \vspace{-4ex} NOT YET: %comprises Array[\T,E,I\]
+                              where [\T,E,I\]{ T extends Array[\T,E,I\] }% *)
+  rank():ZZ32
+  opr =(self, other:HasRank): Boolean = false
+end
+
+(* Declared Rank-n-ness *)
+trait Rank[\ nat n \] extends HasRank
+  rank():ZZ32 = n
+end
+
+(* Potemkin exclusion traits.  Really we just want to say that
+ * Rank[\n\] excludes Rank[\m\] where { m =/= n }, but we can't yet. *)
+
+trait Rank1 extends { Rank[\1\]} excludes { Rank2, Rank3, Number, String }
+end
+
+trait Rank2 extends { Rank[\2\]} excludes { Rank3, Number, String }
+end
+
+trait Rank3 extends { Rank[\3\]} excludes { Number, String }
+end
+
+(* The trait Indexed_i[\n\] indicates that something has an i^th
+ * dimension of size n.  In general anything which extends Indexed_i
+ * must also extend Indexed_j for j < i. *)
+
+trait Indexed1[\ nat n \] extends HasRank end
+
+trait Indexed2[\ nat n \] extends HasRank end
+
+trait Indexed3[\ nat n \] extends HasRank end
+
+(** The indexed trait indicates that an object of type T can be
+indexed using type I to obtain elements with type E.
+
+An object i that's an instance of Indexed defines three basic things:
+  The indexing operator opr [], which must be defined for every instance of
+    the type.
+
+  A suite of generators: i.indices generates the index space of the
+    array.  i itself generates the values contained at those indices.
+    i.indexValuePairs yields pairs of (index,value).  All of these
+    share the same natural order.  It is necessary to define one of
+    self.indices and self.indexValuePairs, in addition to generate() (but
+    the latter requirement can be dispensed by instead extending
+    DelegatedIndexed).
+
+  A set of utility functions, assign, fill, and copy.  Only fill and
+    copy need to be defined.
+**)
+trait Indexed[\E, I\] extends Generator[\E\]
+    (** isEmpty indicates whether there are any valid indices.  It is
+        defined as size=0 *)
+    getter isEmpty(): Boolean = |self| = 0
+    getter nonEmpty(): Boolean = NOT self.isEmpty
+    (** %self.size% is equivalent to %|self|%. *)
+    getter size(): ZZ32 = |self|
+    (** self.bounds yields a range of indices that are valid for the
+        indexed generator. *)
+    getter bounds(): CompactFullRange[\I\]
+    (** self.indexValuePairs generates the elements of the indexed object
+        (exactly those elements that are generated by the object itself),
+        but each element is paired with its index.  When we obtain
+        (i,v) from indexValuePairs we know that:
+           self[i] = v
+           the i are distinct and i IN self.bounds
+           stripping away the i yields exactly the results of v <- self
+        This generator attempts to follow the structure of the
+        underlying object as closely as possible.  *)
+    getter indexValuePairs(): Indexed[\(I,E),I\] =
+        self.indices.map[\(I,E)\](fn (i:I): (I,E) => (i,self[i]))
+    (** reverse gives us an indexed object which is back-to-front:
+        the reversed object from the lower bound to the upper bound is the
+        original object from upper to lower *)
+    getter reverse():Indexed[\E,I\] = SimpleReversedIndexed[\E,I\](self)
+    (** self.indices yields the indices corresponding to the elements of
+        the indexed object---it corresponds to the index component of
+        self.indexValuePairs.  This may in general be a subset of all the
+        valid indices represented by self.bounds.  This generator
+        attempts to follow the structure of the underlying object as
+        closely as possible. *)
+    getter indices(): Generator[\I\] =
+        self.indexValuePairs.map[\I\](fn (i:I, e:E): I => i)
+
+    (** %|self|% indicates the number of distinct valid indices that may
+        be passed to indexing operations. *)
+    opr |self| : ZZ32 = self.size
+
+    (** Indexing.  i IN self.bounds must hold. *)
+    opr[i:I] : E
+
+    (** Locality of a particular index (NOT of its contents!). *)
+    region(i:I): Region = topRegion(self)
+
+    (** Indexing by ranges.  The results are 0-based when the
+        underlying index type has a notion of 0.  This ensures
+        consistency of behavior between types such as vectors that
+        *only* support 0 indexing and types such as arrays that permit
+        other choices of lower bounds.  The easiest way to write the
+        index by ranges operation for an instance of Indexed is to
+        take advantage of indexing on the ranges themselves by writing
+        (self.bounds)[r] in order to narrow and bounds check the range r
+        and obtain a closed range of indices on the underlying
+        data. **)
+    opr[r:Range[\I\]] : Indexed[\E,I\]
+    opr[_:TrivialOpenRange] : Indexed[\E,I\] = self[openRange[\I\]()]
+
+    (** Roughly speaking, ivmap(f) is equivalent to
+        indexValuePairs.map(f).  However ivmap function isn't merely a
+        convenient shortcut.  It's actually intended to create a copy
+        of the underlying indexed structure when that is appropriate.
+
+        The usual map function in Generator should do the same (and
+        does for the instances in this library).  Copying can be bad
+        for space, but is complexity-preserving if the mapped
+        generator is used more than once. **)
+    ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = self.indexValuePairs.map[\R\](f)
+    map[\R\](f:E->R): Indexed[\R, I\] = SimpleMappedIndexed[\E,R,I\](self,f)
+
+    (** indexOf(e) returns an index at which e can be found,
+        or Nothing if no such index exists. **)
+    indexOf(e:E): Maybe[\I\] =
+        label found
+            for (i,v) <- self.indexValuePairs, v=e do
+                exit found with Just[\I\](i)
+            end
+            Nothing[\I\]
+        end found
+end
+
+trait ZeroIndexed[\E\] extends Indexed[\E,ZZ32\]
+    getter bounds(): CompactFullRange[\ZZ32\] = 0 # |self|
+    zip[\F\](g:ZeroIndexed[\F\]):ZeroIndexed[\(E,F)\] =
+        DefaultZip[\E,F\](self,g)
+    opr[r:Range[\ZZ32\]] : ZeroIndexed[\E\]
+    opr[_:TrivialOpenRange] : ZeroIndexed[\E\] = self
+end
+
+object DefaultZip[\E,F\](e:ZeroIndexed[\E\],f:ZeroIndexed[\F\])
+        extends { ZeroIndexed[\(E,F)\], DelegatedIndexed[\(E,F),ZZ32\] }
+    getter size(): ZZ32 = |self|
+    getter indices(): Generator[\ZZ32\] =
+        if |e| <= |f| then e.indices else f.indices end
+    opr |self| : ZZ32 = |e| MIN |f|
+    opr[i:ZZ32]:(E,F) = (e[i],f[i])
+    opr[r:Range[\ZZ32\]] : ZeroIndexed[\(E,F)\] =
+        DefaultZip[\E,F\](e[r],f[r])
+end
+
+trait LexicographicOrder[\T extends LexicographicOrder[\T,E\],E\]
+        extends { StandardTotalOrder[\T\], ZeroIndexed[\E\] }
+    opr CMP(self, other:T): TotalComparison =
+        self.zip[\E\](other).generate[\TotalComparison\](
+            LexicographicReduction,
+            fn(a:E,b:E): TotalComparison => a CMP b) LEXICO
+        (|self| CMP |other|)
+    (** We give a specialized version of = because it can fail faster
+        than CMP by checking sizes early. **)
+    opr =(self,other:T): Boolean =
+        (|self| = |other|) AND:
+          (BIG AND [(a,b)<-self.zip[\E\](other)] a=b)
+end
+
+toArray[\E\](g:Indexed[\E,ZZ32\]): Array[\E,ZZ32\] = do
+    bnds = g.bounds
+    r = array[\E\](|bnds|).shift(bnds.lower)
+    for (i,v) <- g.indexValuePairs do
+        r.init(i,v)
+    end
+    r
+  end
+
+(** DelegatedIndexed is an Indexed generator that has recourse to
+    another Indexed self.generator internally.  By default this in turn
+    is defined in terms of self.indexValuePairs.  Thus it's only
+    necessary to define either self.indexValuePairs or self.indices.
+
+    This class is designed for convenience; it shouldn't be used as a
+    type in runing code, but only as a supertype in lieu of Indexed.
+**)
+trait DelegatedIndexed[\E,I\] extends Indexed[\E,I\]
+    getter generator(): Indexed[\E,I\] =
+        self.indexValuePairs.map[\E\](fn (i:I, e:E): E => e)
+    opr |self| : ZZ32 = |self.indices|
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        self.generator.generate[\R\](r,body)
+    seq(self): SequentialGenerator[\E\] = seq(self.generator)
+    cross[\G\](g: Generator[\G\]): Generator[\(E,G)\] =
+        self.generator.cross[\G\](g)
+    mapReduce[\R\](body: E->R, join:(R,R)->R, id:R): R =
+        self.generator.mapReduce[\R\](body,join,id)
+    reduce(j:(E,E)->E, z:E):E = self.generator.reduce(j,z)
+    reduce(r: Reduction[\E\]):E = self.generator.reduce(r)
+    loop(f:E->()): () = self.generator.loop(f)
+end
+
+(** The MutableIndexed trait is an indexed trait whose elements can be
+    mutated using indexed assignment.  Right now we're using this type
+    in a somewhat dangerous way, since eg Array1[\E,b0,s0\] extends
+    both Indexed[\Array1[\E,b0,s0\],E,ZZ32\] and
+    Indexed[\Array[\E,ZZ32\],E,ZZ32\].  We will need to find a
+    solution to this at some point.
+**)
+trait MutableIndexed[\E, I\]
+        extends { Indexed[\E,I\] }
+    opr[i:I]:=(v:E) : ()
+
+    (** For Ranged assignment, the extents of r and v.bounds must
+        match, but the lower bounds need not. **)
+    opr[r:Range[\I\]]:=(v:Indexed[\E,I\]) : ()
+    opr[_:TrivialOpenRange]:=(v:Indexed[\E,I\]) : () =
+        do self[self.bounds] := v end
+end
+
+(* Array whose bounds are implicit rather than static, and which may
+   be either mutable or immutable. *)
+trait ReadableArray[\E,I\]
+        extends { HasRank, Indexed[\E,I\], DelegatedIndexed[\E,I\] }
+    (** CONCRETE GETTERS
+        Default implementations of getters based on abstract methods
+        below. **)
+    getter indices(): Generator[\I\] = self.bounds
+    getter indexValuePairs(): Indexed[\(I,E),I\] =
+        zeroIndices().map[\(I,E)\](fn (i:I):(I,E) => (toIndex(i),get(i)))
+    getter generator(): Indexed[\E,I\] =
+        zeroIndices().map[\E\](fn (i:I):E => get(i))
+
+    (** CONCRETE METHODS
+        Default implementations of most array stuff based on the above.
+        The things we can't provide are anything involving replica. **)
+
+    opr[i:I]:E = get(offset(i))
+
+    (** Initialize element at index i with value v.  This should occur
+        once, before any other access or assignment occurs to element
+        i.  An error will be signaled if an uninitialized element is
+        read or an initialized element is re-initialized. **)
+    init(i:I, v:E): () = init0(offset(i),v)
+
+    generate[\R\](r: Reduction[\R\], body: E->R): R =
+        self.generator.generate[\R\](r,body)
+    seq(self): SequentialGenerator[\E\] = seq(self.generator)
+
+    (** 0-based non-bounds-checked indexing **)
+    get(i:I): E
+    init0(i:I, e:E): ()
+    zeroIndices(): CompactFullRange[\I\]
+    (** Convert from base()-based indexing to 0-based indexing,
+        performing bounds checking. **)
+    offset(i:I): I
+    (** Convert from 0-based indexing to base()-based indexing **)
+    toIndex(i:I): I
+
+    (** Indexed functionality with more specific type information **)
+    opr[r:Range[\I\]] : ReadableArray[\E,I\]
+    ivmap[\R\](f:(I,E)->R): ReadableArray[\R, I\]
+    map[\R\](f:E->R): ReadableArray[\R, I\]
+
+    (** Shift the origin of an array.  This should yield a new view of
+        the same array; ie initialization and/or update to either will
+        be reflected in the other. **)
+    shift(newOrigin:I):ReadableArray[\E,I\]
+
+    (** Bulk initialization of an array using a given function or
+        value.  These are defined with more specific self types in
+        StandardImmutableArrayType. **)
+    fill(f:I->E):ReadableArray[\E,I\]
+    fill(v:E):ReadableArray[\E,I\]
+
+    copy():ReadableArray[\E,I\]
+
+    (** Create a fresh array structurally identical to the present
+        one, but holding elements of type U. **)
+    replica[\U\]():ReadableArray[\U,I\]
+
+    opr =(self, other:HasRank): Boolean =
+        typecase other of
+            other':ReadableArray[\E,I\] => self.indices.generate[\Boolean\](AndReduction,
+                                           fn (i:I):Boolean => (self[i]=other'[i]))
+            else => false
+        end
+
+end
+
+trait ImmutableArray[\E,I\] extends { ReadableArray[\E,I\] }
+        excludes { Array[\E,I\] }
+    opr[r:Range[\I\]] : ImmutableArray[\E,I\]
+    opr[_:TrivialOpenRange] : ImmutableArray[\E,I\]
+    ivmap[\R\](f:(I,E)->R): ImmutableArray[\R, I\]
+    map[\R\](f:E->R): ImmutableArray[\R, I\]
+    shift(newOrigin:I):ImmutableArray[\E,I\]
+    fill(f:I->E):ImmutableArray[\E,I\]
+    fill(v:E):ImmutableArray[\E,I\]
+    copy():ImmutableArray[\E,I\]
+    replica[\U\]():ImmutableArray[\U,I\]
+
+    (** Thaw array (return mutable copy) **)
+    thaw():Array[\E,I\]
+end
+
+trait Array[\E,I\] extends { ReadableArray[\E,I\], MutableIndexed[\E,I\] }
+    (** 0-based non-bounds-checked indexing **)
+    put(i:I, e:E): ()
+    opr[i:I]:=(v:E):() = put(offset(i),v)
+
+    opr[r:Range[\I\]]:=(a:Indexed[\E,I\]):() = do
+        a0 = a[#]        (* Make a have 0 origin *)
+        s0 = self[r]            (* Make self have 0 origin *)
+        if a0.bounds = s0.bounds then
+            for (i,v) <- a0.indexValuePairs do
+                s0.put(i,v)
+            end
+        else
+            fail("Can't assign indexed with bounds " a.bounds //
+                 " to differently-sized subarray " s0.bounds)
+        end
+      end
+
+    (** The following are repetition with better return type info. **)
+    opr[r:Range[\I\]] : Array[\E,I\]
+    opr[_:TrivialOpenRange] : Array[\E,I\]
+    ivmap[\R\](f:(I,E)->R): Array[\R, I\]
+    map[\R\](f:E->R): Array[\R, I\]
+    shift(newOrigin:I):Array[\E,I\]
+    fill(f:I->E):Array[\E,I\]
+    fill(v:E):Array[\E,I\]
+    assign(f:I->E):Array[\E,I\]
+    copy():Array[\E,I\]
+    replica[\U\]():Array[\U,I\]
+
+    (** Freeze array (return mutable copy) **)
+    freeze(): ImmutableArray[\E,I\]
+end
+
+(** Factory for arrays that returns an empty 0-indexed array of a given
+    run-time-determined size. **)
+array[\E\](x:ZZ32):Array[\E,ZZ32\] = __arr1(__thrower[\E\],reflect(x))
+array[\E\](x:ZZ32,y:ZZ32):Array[\E,(ZZ32,ZZ32)\] =
+    __arr2(__thrower[\E\],reflect(x), reflect(y))
+array[\E\](x:ZZ32,y:ZZ32,z:ZZ32):Array[\E,(ZZ32,ZZ32,ZZ32)\] =
+    __arr3(__thrower[\E\],reflect(x), reflect(y), reflect(z))
+
+(* This should be local to array, but we don't support local
+   parametric methods in the language spec at all at the moment. *)
+__arr1[\E, nat n\](w:()->E,x:N[\n\]):Array1[\E,0,n\] =
+    array1[\E,n\]()
+__arr2[\E, nat n, nat m\](w:()->E,x:N[\n\],y:N[\m\]):
+    Array2[\E,0,n,0,m\] = array2[\E,n,m\]()
+__arr3[\E, nat n, nat m, nat p\](w:()->E,x:N[\n\],y:N[\m\],z:N[\p\]):
+    Array3[\E,0,n,0,m,0,p\] = array3[\E,n,m,p\]()
+
+(** Factory for immutable arrays that returns an empty 0-indexed array
+    of a given run-time-determined size. **)
+immutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\] =
+    __imm1(__thrower[\E\],reflect(x))
+(*
+immutableArray[\E\](x:ZZ32,y:ZZ32):ImmutableArray[\E,(ZZ32,ZZ32)\] =
+    __imm2(__thrower[\E\],reflect(x), reflect(y))
+immutableArray[\E\](x:ZZ32,y:ZZ32,z:ZZ32):ImmutableArray[\E,(ZZ32,ZZ32,ZZ32)\] =
+    __imm3(__thrower[\E\],reflect(x), reflect(y), reflect(z))
+*)
+
+(* This should be local to immutableArray, but we don't support local
+   parametric methods in the language spec at all at the moment. *)
+__imm1[\E, nat n\](w:()->E,x:N[\n\]):ImmutableArray1[\E,0,n\] =
+   immutableArray1[\E,n\]()
+(*
+__imm2[\E, nat n, nat m\](w:()->E,x:N[\n\],y:N[\m\]):
+    ImmutableArray2[\E,0,n,0,m\] = immutableArray2[\E,n,m\]()
+__imm3[\E, nat n, nat m, nat p\](w:()->E,x:N[\n\],y:N[\m\],z:N[\p\]):
+    ImmutableArray3[\E,0,n,0,m,0,p\] = immutableArray3[\E,n,m,p\]()
+*)
+
+primitiveArray[\E\](x:ZZ32):Array[\E,ZZ32\] = __parr(__thrower[\E\],reflect(x))
+__parr[\E, nat n\](w:()->E,x:N[\n\]):PrimitiveArray[\E,n\] =
+    PrimitiveArray[\E,n\]()
+
+primitiveImmutableArray[\E\](x:ZZ32):ImmutableArray[\E,ZZ32\] =
+    __piarr(__thrower[\E\],reflect(x))
+__piarr[\E, nat n\](w:()->E,x:N[\n\]):PrimImmutableArray[\E,n\] =
+    PrimImmutableArray[\E,n\]()
+
+(** NOTE: StandardImmutableArrayType is a parent of
+    StandardMutableArrayType.  It therefore doesn't extend
+    ImmutableArray as you might expect.  Other types that extend
+    it should also extend ImmutableArray explicitly. **)
+trait StandardImmutableArrayType[\T extends StandardImmutableArrayType[\T,E,I\],E,I\]
+        extends { ReadableArray[\E,I\] }
+    fill(f:I->E):T = do
+        for i <- zeroIndices() do init0(i,f(toIndex(i))) end
+        self
+      end
+    fill(v:E):T = do
+        for i <- zeroIndices() do init0(i,v) end
+        self
+      end
+
+    copy():T
+end
+
+
+trait StandardMutableArrayType[\T extends StandardMutableArrayType[\T,E,I\],E,I\]
+        extends { StandardImmutableArrayType[\T,E,I\], Array[\E,I\] }
+    assign(v:T):T = do
+        for i <- zeroIndices() do put(i,v.get(i)) end
+        self
+      end
+    assign(f:I->E):T = do
+        for i <- zeroIndices() do put(i,f(toIndex(i))) end
+        self
+      end
+end
+
+(* Canonical partitioning of a positive number x into two pieces.  If
+     (a,b) = partition(n)
+   and n > 0 then 0 < a <= b,  n = a + b.
+   As it turns out we choose a to be the largest power of 2 < n.
+*)
+partition[\I extends Integral[\I\]\](x:I):(I,I) = do
+    m = partitionL(x)
+    (m,x-m)
+  end
+
+(** A ReadableArray1[\T,b0,s0\] is an arbitrary 1-dimensional array
+    whose s0 elements are of type T, and whose lowest index is b0.
+
+    The natural order of all generators is from b0 to b0+s0-1. **)
+trait ReadableArray1[\T, nat b0, nat s0\]
+        extends { Indexed1[\s0\], Rank1, ReadableArray[\T,ZZ32\] }
+        comprises { ImmutableArray1[\T,b0,s0\], Array1[\T,b0,s0\] }
+    getter size():ZZ32 = s0
+    getter bounds():CompactFullRange[\ZZ32\] = sized1Range[\ZZ32\](0,b0,s0)
+    getter mutability():String
+    getter asString(): String = do
+        r = "[" b0 "#" s0 "]" self.mutability "["
+        if s0=0 then
+            r "]"
+        else
+            f(i:ZZ32,t:T):String = " " t
+            j(a:String,b:String):String = a b
+            r self.indexValuePairs.mapReduce[\String\](f,j,"") " ]"
+        end
+      end
+
+    opr |self| : ZZ32 = s0
+
+    subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\]
+
+    (* Offset converts from b0 indexing to 0 indexing,
+       bounds checking en route *)
+    offset(i:ZZ32):ZZ32 = do
+        r = i - b0
+        if NOT (0 <= r < s0) then oops(1, b0, s0, i) end
+        r
+    end
+    toIndex(i:ZZ32):ZZ32 = i + b0
+
+    zeroIndices(): CompactFullRange[\ZZ32\] = sized1Range[\ZZ32\](0,0,s0)
+end
+
+trait ImmutableArray1[\T, nat b0, nat s0\]
+    extends { StandardImmutableArrayType[\ImmutableArray1[\T,b0,s0\],T,ZZ32\],
+              ImmutableArray[\T,ZZ32\], ReadableArray1[\T,b0,s0\] }
+    getter mutability():String = "(immutable)"
+    shift(o:ZZ32): ImmutableArray[\T,ZZ32\] =
+        if o=0 then
+            self
+        else
+            __subarrayI(self,reflect(o),N[\s0\],N[\b0\],1)
+        end
+
+    opr[r: Range[\ZZ32\]] : ImmutableArray[\T,ZZ32\] = do
+        r' = self.bounds.narrowToRange(r) (*'*)
+        s = reflect( |r'| )
+        l = reflect(r'.lower)
+        m = r'.stride (*'*)
+        __subarrayI(self,N[\0\],s,l,m)
+      end
+    opr[_:TrivialOpenRange] : ImmutableArray1[\T,0,s0\] =
+        subarray[\0,s0,b0\](1)
+
+    (** subarray selects a subarray of this array based on static parameters.
+        b#s are the new bounds of the array; o is
+        the index of the subarray within the current array. **)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):ImmutableArray1[\T, b, s\] = do
+        boundsCheck = self.bounds.narrowToRange(o::m#s)
+        __ImmutableSubArray1[\T,b,s,b0,s0\](self,o-b0,m)
+    end
+
+    (* the replica method returns a replica of the array (similar layout
+       etc.) but with a different element type. *)
+    replica[\U\]():ImmutableArray1[\U,b0,s0\] = __immutableFactory1[\U,b0,s0\]()
+
+    copy():ImmutableArray1[\T,b0,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32):T => get(i-b0))
+
+    thaw():Array1[\T,b0,s0\] =
+        __builtinFactory1[\T,b0,s0\]().fill(fn (i:ZZ32):T => get(i-b0))
+
+    map[\R\](f:T->R): ImmutableArray1[\R,b0,s0\] =
+        replica[\R\]().fill(fn (i:ZZ32):R => f(get(i-b0)))
+    ivmap[\R\](f:(ZZ32,T)->R): ImmutableArray1[\R,b0,s0\] =
+        replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
+end
+
+(** Array1[\T,b0,s0\] is a 1-dimension array whose s0 elements are of
+    type T, and whose lowest index is b0. **)
+trait Array1[\T, nat b0, nat s0\]
+    extends { ReadableArray1[\T,b0,s0\],
+              StandardMutableArrayType[\Array1[\T,b0,s0\],T,ZZ32\] }
+    excludes {Number, String}
+
+    getter mutability():String = ""
+
+    shift(o:ZZ32): Array[\T,ZZ32\] =
+        if o=0 then
+            self
+        else
+            __subarray(self,reflect(o),N[\s0\],N[\b0\],1)
+        end
+
+    opr[r: Range[\ZZ32\]] : Array[\T,ZZ32\] = do
+        r' = self.bounds.narrowToRange(r) (*'*)
+        s = reflect( |r'| )   (*'*)
+        l = reflect(r'.left.get) (*'*)
+        m = r'.stride         (*'*)
+        __subarray(self,N[\0\],s,l,m)
+      end
+    opr[_:TrivialOpenRange] : Array1[\T,0,s0\] =
+        subarray[\0,s0,b0\](1)
+
+    (** subarray selects a subarray of this array based on static parameters.
+        b#s are the new bounds of the array; o is
+        the index of the subarray within the current array. **)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):Array1[\T, b, s\] = do
+      boundsCheck = self.bounds.narrowToRange(o::m#s)
+      __SimpleSubArray1[\T,b,s,b0,s0\](self,o-b0,m)
+    end
+
+    (* the replica method returns a replica of the array (similar layout
+       etc.) but with a different element type. *)
+    replica[\U\]():Array1[\U,b0,s0\] = __builtinFactory1[\U,b0,s0\]()
+
+    copy():Array1[\T,b0,s0\] =
+        replica[\T\]().fill(fn (i:ZZ32):T => get(i-b0))
+
+    freeze():ImmutableArray1[\T,b0,s0\] =
+        __immutableFactory1[\T,b0,s0\]().fill(fn (i:ZZ32):T => get(i-b0))
+
+    map[\R\](f:T->R): Array1[\R,b0,s0\] =
+        replica[\R\]().fill(fn (i:ZZ32):R => f(get(i-b0)))
+    ivmap[\R\](f:(ZZ32,T)->R): Array1[\R,b0,s0\] =
+        replica[\R\]().fill(fn (i:ZZ32):R => f(i,get(i-b0)))
+end
+
+(* WORK AROUND absence of type inference in method calls. *)
+__subarray[\T, nat b0, nat s0, nat b, nat s, nat o\]
+          (it:Array1[\T,b0,s0\],
+           _:N[\b\],_:N[\s\],_:N[\o\],m:ZZ32):Array1[\T,b,s\] =
+    it.subarray[\b,s,o\](m)
+
+__subarrayI[\T, nat b0, nat s0, nat b, nat s, nat o\]
+          (it:ImmutableArray1[\T,b0,s0\],
+           _:N[\b\],_:N[\s\],_:N[\o\],m:ZZ32):ImmutableArray1[\T,b,s\] =
+    it.subarray[\b,s,o\](m)
+
+
+(** A 1-D subarray of an Array1.
+    b_a#s_a is the underlying array's bounds; b0#s0 is the
+    result bounds.  o0 is the starting offset in the underlying array,
+    defined in 0-indexed space.  m0 is the stride within that array.
+    Invariant: (s0-1) m0 + o0 - b_a) < s_a *)
+object __SimpleSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
+       (arr:Array1[\T,b_a,s_a\], o0:ZZ32, m0:ZZ32)
+       extends Array1[\T, b0, s0\]
+    index(i:ZZ32):ZZ32 = i m0 + o0
+    get(i:ZZ32):T = arr.get(index(i))
+    put(i:ZZ32,v:T): () = arr.put(index(i),v)
+    init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):Array1[\T, b, s\] = do
+        boundsCheck = self.bounds.narrowToRange(o::m#s)
+        o_n : ZZ32 = o - b0
+        __SimpleSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m m0)
+      end
+end
+
+(** The same as above, but immutable. **)
+object __ImmutableSubArray1[\T, nat b0, nat s0, nat b_a, nat s_a\]
+       (arr:ImmutableArray1[\T,b_a,s_a\], o0:ZZ32, m0:ZZ32)
+       extends ImmutableArray1[\T, b0, s0\]
+    index(i:ZZ32):ZZ32 = i m0 + o0
+    get(i:ZZ32):T = arr.get(index(i))
+    put(i:ZZ32,v:T): () = arr.put(index(i),v)
+    init0(i:ZZ32,v:T): () = arr.init0(index(i),v)
+    subarray[\nat b, nat s, nat o\](m:ZZ32):ImmutableArray1[\T, b, s\] = do
+        boundsCheck = self.bounds.narrowToRange(o::m#s)
+        o_n : ZZ32 = o - b0
+        __ImmutableSubArray1[\T, b, s, b_a, s_a\](arr, index(o_n), m m0)
+      end
+end
+
+trait AnyVector end
+
+trait Vector[\T extends Number, nat s0\]
+        extends { AnyVector, Array1[\T,0,s0\], AdditiveGroup[\Vector[\T,s0\]\] }
+        excludes { AnyMultiplicativeRing }
+    opr +(self, v:Vector[\T,s0\]): Vector[\T,s0\] =
+        ivmap[\T\](fn (i:ZZ32, e: T):T => e + v.get(i))
+    opr -(self, v:Vector[\T,s0\]): Vector[\T,s0\] =
+        ivmap[\T\](fn (i:ZZ32, e: T):T => e - v.get(i))
+    opr -(self): Vector[\T,s0\] = map[\T\](fn (e: T):T => - e)
+    scale(t: T): Vector[\T,s0\] = map[\T\](fn (v) => t v)
+    pmul(v: Vector[\T,s0\]): Vector[\T,s0\] =
+        ivmap[\T\](fn (i:ZZ32, e: T):T => e v.get(i))
+    dot(v: Vector[\T,s0\]): T =
+        SUM [(i,me_i)<-self.indexValuePairs] me_i v.get(i)
+end
+
+object __DefaultVector[\T, nat s0\]() extends Vector[\T,s0\]
+  mem: PrimitiveArray[\T,s0\] = PrimitiveArray[\T,s0\]()
+  get(i:ZZ32):T = mem.get(i)
+  put(i:ZZ32, v:T):() = mem.put(i,v)
+  init0(i:ZZ32, v:T):() = mem.init0(i,v)
+  replica[\U\]():Array1[\U,0,s0\] = array1[\U,s0\]()
+end
+
+(* builtinFactory1 must be a non-overloaded 0-parameter factory for
+   1-D arrays.  The type parameters are enshrined in LHSEvaluator.java
+   and NonPrimitive.java; the factory name is enshrined in
+   WellKnownNames.java.  There must be some factory, named in this
+   file, with this type signature.  A similar thing is true for
+   K-dimensional array types. *)
+__builtinFactory1[\T, nat b0, nat s0\]():Array1[\T,b0,s0\] = do
+    r = array1[\T,s0\]()
+    typecase N[\b0\] of
+        N[\0\] => r
+        else => r.subarray[\b0,s0,0\](1)
+    end
+  end
+
+(* immutableFactory1 is a non-overloaded 0-parameter factory for
+   0-indexed 1-D arrays.  It is also mentioned in WellKnownNames as it
+   is used to allocate storage for varargs. *)
+__immutableFactory1[\T, nat b0, nat s0\]():ReadableArray1[\T,b0,s0\] = do
+    r = immutableArray1[\T,s0\]()
+    typecase N[\b0\] of
+        N[\0\] => r
+        else => r.subarray[\b0,s0,0\](1)
+    end
+  end
+
+__thrower[\T\](): T = throw ForbiddenException
+
+(* TODO: fix when Number is covariant. *)
+array1[\T, nat s0\]():Array1[\T,0,s0\] =
+    typecase __thrower[\T\] of
+        () -> Number => vector[\T,s0\]()
+        else => PrimitiveArray[\T,s0\]()
+    end
+array1[\T, nat s0\](v:T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(v)
+array1[\T, nat s0\](f:ZZ32->T):Array1[\T,0,s0\] = array1[\T,s0\]().fill(f)
+
+immutableArray1[\T, nat s0\](): ImmutableArray1[\T,0,s0\] =
+    PrimImmutableArray[\T,s0\]()
+
+(* vector is the same as array1, but specialized to numeric type arguments *)
+vector[\T extends Number, nat s0\]():Vector[\T,s0\] = __DefaultVector[\T,s0\]()
+vector[\T extends Number, nat s0\](v:T):Vector[\T,s0\] =
+    vector[\T,s0\]().fill(v)
+vector[\T extends Number, nat s0\](f:ZZ32->T):Vector[\T,s0\] =
+    vector[\T,s0\]().fill(f)
+
+pmul[\ T extends Number, nat k \]
+    (a : Vector[\T,k\], b : Vector[\T,k\]):Vector[\T,k\] = a.pmul(b)
+
+opr DOT[\ T extends Number, nat n \]
+       (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
+
+opr juxtaposition[\ T extends Number, nat n \]
+     (me : Vector[\T,n\], other : Vector[\T,n\]):T = me.dot(other)
+
+opr DOT[\ T extends Number, nat n \]
+       (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
+
+opr juxtaposition[\ T extends Number, nat n \]
+     (me : Vector[\T,n\], other : T) : Vector[\T,n\] = me.scale(other)
+
+opr DOT[\ T extends Number, nat n \]
+        (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
+
+opr juxtaposition[\ T extends Number, nat n \]
+     (other : T, me : Vector[\T,n\]) : Vector[\T,n\] = me.scale(other)
+
+squaredNorm[\T extends Number, nat s0\](a:Vector[\T,s0\]):T = a.dot(a)
+
+opr ||[\ T extends Number, nat k \]me : Vector[\T,k\]|| : RR64 = SQRT squaredNorm(me)
+
+(** Array2[\T,b0,s0,b1,s1\] is the type of 2-dimensional arrays of
+    element type T, with size s0 in the first dimension and s1 in the
+    second dimension and lowest index (b0,b1).  Natural order for all
+    generators in each dimension is from b to b+s-1; the overall order
+    of elements need only be consistent with the cross product of
+    these orderings (see Generator.cross()). **)
+trait Array2[\T, nat b0, nat s0, nat b1, nat s1\]
+    extends { Indexed1[\s0\], Indexed2[\s1\], Rank2,
+              StandardMutableArrayType[\Array2[\T,b0,s0,b1,s1\],T,(ZZ32,ZZ32)\] }
+    excludes { Number, String }
+  getter size():ZZ32 = s0 s1
+  getter sizes():(ZZ32,ZZ32) = (s0, s1)
+  getter bounds():CompactFullRange2D[\ZZ32,ZZ32\] = sized2Range[\ZZ32,ZZ32\](0,0,b0,b1,s0,s1)
+  getter asString(): String = do
+    r : String := "[" b0 "#" s0 "," b1 "#" s1 "]"
+    row(i) =
+      for j <- seq(0#s1) do
+         r := r " " get(i,j)
+      end
+    if s0 = 0 then
+      r "[]"
+    else
+      r := r  // "["
+      row(0)
+      for i <- seq(1#(s0-1)) do
+        r := r // " "
+        row(i)
+      end
+      r " ]"
+    end
+  end
+  opr |self| : ZZ32 = s0 s1
+  (* Translate from b0,b1-indexing to 0-indexing, checking bounds. *)
+  offset(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do
+    (a0,a1) = t1
+    c0 = a0 - b0
+    c1 = a1 - b1
+    if NOT (0 <= c0 < s0) then
+        oops(1,b0,s0,a0)
+    elif NOT (0 <= c1 < s1) then
+        oops(2,b1,s1,a1)
+    else
+        (c0,c1)
+    end
+  end
+  toIndex(t1:(ZZ32,ZZ32)):(ZZ32,ZZ32) = do (a0,a1)=t1; (a0+b0,a1+b1) end
+  opr[x:ZZ32,y:ZZ32]:=(v:T):() = do self[ (x,y) ] := v end
+  opr[r:Range[\(ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32)\] = do
+      r' = self.bounds.narrowToRange(r)
+      (z0,z1) = r'.extent.get
+      (l0,l1) = r'.left.get
+      (m0,m1) = r'.stride
+      __subarray(self, N[\0\],reflect(z0), N[\0\], reflect(z1),
+                 reflect(l0),reflect(l1),m0,m1)
+    end
+  opr[_:TrivialOpenRange] : Array2[\T,0,s0,0,s1\] =
+      subarray[\0,s0,0,s1,b0,b1\](1,1)
+  (** Indexing by pairs of ranges *)
+(*
+  opr[r0:Range[\ZZ32\], r1:Range[\ZZ32\]]: Array[\T,(ZZ32,ZZ32)\] = do
+      (r0',r1') = ((b0#s0).narrowToRange(r0), (b1#s1).narrowToRange(r1))
+      (z0,z1) = (r0'.extent.get,r1'.extent.get)
+      (l0,l1) = (r0'.left.get,r1'.left.get)
+      (m0,m1) = (r0'.stride,r1'.stride)
+      __subarray(self, N[\0\], reflect(z0), N[\0\], reflect(z1),
+                 reflect(l0),reflect(l1),m0,m1)
+    end
+  opr[_:TrivialOpenRange, r1:Range[\ZZ32\]]: Array[\T,(ZZ32,ZZ32)\] = do
+      self[b0#s0,r1]
+    end
+  opr[r0:Range[\ZZ32\], _:TrivialOpenRange]: Array[\T,(ZZ32,ZZ32)\] = do
+      self[r0,b1#s1]
+    end
+  opr[_:TrivialOpenRange, _:TrivialOpenRange]: Array[\T,(ZZ32,ZZ32)\] = self[:]
+*)
+  (** Row and column extraction *)
+  opr[_:TrivialOpenRange, i1:ZZ32]: Array[\T,ZZ32\] = Col(self[(b0,i1)#(s0,1)])
+(*
+  opr[r:Range[\ZZ32\], i1:ZZ32]: Array[\T,ZZ32\] =        Col(self[r, i1#1])
+*)
+  opr[i0:ZZ32, _:TrivialOpenRange]: Array[\T,ZZ32\] = Row(self[(i0,b1)#(1,s1)])
+(*
+  opr[i0:ZZ32, r:Range[\ZZ32\]]: Array[\T,ZZ32\] =        Row(self[i0#1, r])
+*)
+  shift(t1:(ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
+      (o0,o1)=t1
+      if o0=0 AND o1=0 then
+          self
+      else
+          __subarray(self,reflect(o0),N[\s0\], reflect(o1),N[\s1\], N[\b0\],N[\b1\],1,1)
+      end
+    end
+
+  (** 2-D subarray given static subarray parameters.
+      (bo1,bo2)#(so1,so2) are output bounds.
+      The result is the subarray starting at (o0,o1) in the original array,
+      striding by (m0,m1).
+   **)
+  subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
+          (m0:ZZ32,m1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] = do
+      boundsCheck = self.bounds.narrowToRange( (o0,o1)::(m0,m1)#(so0,so1) )
+      SubArray2[\T,bo0,so0,bo1,so1,b0,s0,b1,s1\](self,m0,o0,m1,o1)
+    end
+
+  zeroIndices():CompactFullRange2D[\ZZ32,ZZ32\] = sized2Range[\ZZ32,ZZ32\](0,0,0,0,s0,s1)
+
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\] =
+      __builtinFactory2[\U,b0,s0,b1,s1\]()
+  copy():Array2[\T,b0,s0,b1,s1\] =
+      self.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32):T => get(i-b0,j-b1))
+  put(t1:(ZZ32, ZZ32), v:T) : ()
+  get(t1:(ZZ32, ZZ32)):T
+  t():Array2[\T,b1,s1,b0,s0\] = TransposedArray2[\T,b1,s1,b0,s0\](self)
+  (* Copied here for better return type information. *)
+  map[\R\](f:T->R): Array2[\R,b0,s0,b1,s1\] =
+      replica[\R\]().fill(fn (i:ZZ32,j:ZZ32):R => f(get(i-b0,j-b1)))
+  ivmap[\R\](f:((ZZ32,ZZ32),T)->R): Array2[\R,b0,s0,b1,s1\] =
+      replica[\R\]().fill(fn (i:ZZ32,j:ZZ32):R => f((i,j),get(i-b0,j-b1)))
+
+  freeze():ImmutableArray[\T,(ZZ32,ZZ32)\] = fail("Freeze not defined yet!")
+end
+
+(** Hoisted out here to work around the lack of method type inference. **)
+__subarray[\T, nat b0, nat s0, nat b1, nat s1,
+           nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
+        (this:Array2[\T,b0,s0,b1,s1\],
+         _:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],
+         _:N[\o0\],_:N[\o1\],m0:ZZ32,m1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] = do
+    this.subarray[\bo0,so0,bo1,so1,o0,o1\](m0,m1)
+  end
+
+(** Default array is column-major, but we could switch it. **)
+object __DefaultArray2[\T, nat b0, nat s0, nat b1, nat s1\]()
+        extends Array2[\T, b0, s0, b1, s1\]
+    mem:PrimitiveArray[\T, (s0 s1) \] = PrimitiveArray[\T, (s0 s1) \]()
+    init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0(i s1 + j, v) end
+    put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put(i s1 + j, v) end
+    get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(i s1 + j) end
+end
+
+(** Transposes the index of the underlying array mem, and transposes
+    its natural order as well. **)
+object TransposedArray2[\T, nat b0, nat s0, nat b1, nat s1\]
+                       (mem:Array2[\T,b1,s1,b0,s0\])
+    extends Array2[\T, b0, s0, b1, s1\]
+  replica[\U\]():Array2[\U,b0,s0,b1,s1\] = mem.replica[\U\]().t()
+
+  init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0((j,i),v) end
+  put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put((j,i),v) end
+  get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(j,i) end
+  t():Array2[\T,b1,s1,b0,s0\] = mem
+  (** 2-D subarray given static subarray parameters.
+      (bo1,bo2)#(so1,so2) are output bounds.
+      The result is the subarray starting at (o0,o1) in the original array,
+      striding by (m0,m1).
+   **)
+  subarray[\nat bo0, nat so0, nat bo1, nat so1, nat o0, nat o1\]
+          (m0:ZZ32,m1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] =
+      mem.subarray[\bo1,so1,bo0,so0,o1,o0\](m1,m0).t()
+end
+
+(** Simple 2-D subarray, used when we have no other knowledge of the
+    underlying structure.  If we're on top of a PrimitiveArray we can
+    really do much better than this.
+    (b0,b1)#(s0,s1) are the bounds of the subarray.
+    (bu0,bu1)#(su0,su1) are the bounds of the underlying array.
+    m_i, o_i are multiplier and offset (0-based) of dimension i.
+**)
+object SubArray2[\T, nat b0, nat s0, nat b1, nat s1,
+                     nat bu0, nat su0, nat bu1, nat su1\]
+                (mem: Array2[\T,bu0,su0,bu1,su1\],
+                 m0:ZZ32, o0:ZZ32, m1:ZZ32, o1:ZZ32)
+        extends Array2[\T,b0,s0,b1,s1\]
+    index(a0:ZZ32, a1:ZZ32): (ZZ32,ZZ32) = (m0 a0 + o0, m1 a1 + o1)
+    init0(t1:(ZZ32,ZZ32), v:T): () = mem.init0(index(t1),v)
+    put(t1:(ZZ32,ZZ32), v:T): () = mem.put(index(t1),v)
+    get(t1:(ZZ32,ZZ32)): T = mem.get(index(t1))
+    (** 2-D subarray given static subarray parameters.
+        (bo1,bo2)#(so1,so2) are output bounds.
+        The result is the subarray starting at (o0,o1) in the original array,
+        striding by (m0,m1).
+     **)
+    subarray[\nat bo0, nat so0, nat bo1, nat so1, nat on0, nat on1\]
+            (mn0:ZZ32,mn1:ZZ32): Array2[\T,bo0,so0,bo1,so1\] = do
+        boundsCheck = self.bounds.narrowToRange( (on0,on1)::(mn0,mn1)#(so0,so1) )
+        (o0', o1') = index(on0 - bo0, on1 - bo1)
+        SubArray2[\T,bo0,so0,bo1,so1,bu0,su0,bu1,su1\](mem,mn0,o0',mn1,o1')
+      end
+end
+
+object Col[\T, nat b0, nat s0\](mem: Array2[\T,b0,s0,0,1\])
+        extends Array1[\T,b0,s0\]
+    get(i:ZZ32): T = mem.get(i,0)
+    put(i:ZZ32,v:T): () = mem.put((i,0),v)
+    init0(i:ZZ32,v:T): () = mem.init0((i,0),v)
+    offset(i:ZZ32): ZZ32 = do (r,_) = mem.offset(i,0); r end
+    toIndex(i:ZZ32): ZZ32 = do (r,_) = mem.toIndex(i,0); r end
+    subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\] =
+        Col[\T,b,s\](mem.subarray[\b,s,0,1,o,0\](m,1))
+end
+
+object Row[\T, nat b1, nat s1\](mem: Array2[\T,0,1,b1,s1\])
+        extends Array1[\T,b1,s1\]
+    get(i:ZZ32): T = mem.get(0,i)
+    put(i:ZZ32,v:T): () = mem.put((0,i),v)
+    init0(i:ZZ32,v:T): () = mem.init0((0,i),v)
+    offset(i:ZZ32): ZZ32 = do (_,r) = mem.offset(0,i); r end
+    toIndex(i:ZZ32): ZZ32 = do (_,r) = mem.toIndex(0,i); r end
+    subarray[\nat b, nat s, nat o\](m: ZZ32): ReadableArray1[\T, b, s\] =
+        Row[\T,b,s\](mem.subarray[\0,1,b,s,0,o\](1,m))
+end
+
+trait AnyMatrix end
+
+trait Matrix[\T extends Number, nat s0, nat s1\]
+        extends { AnyMatrix, Array2[\T, 0, s0, 0, s1\], AdditiveGroup[\Matrix[\T,s0,s1\]\] }
+        excludes { AnyMultiplicativeRing }
+    opr +(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
+        ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e + v.get(i))
+    opr -(self, v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] =
+        ivmap[\T\](fn (i:(ZZ32,ZZ32),e:T):T => e - v.get(i))
+    opr -(self): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => - e)
+    scale(t1: T): Matrix[\T,s0,s1\] = map[\T\](fn (e:T):T => t1 e)
+    mul[\ nat s2 \](other: Matrix[\T,s1,s2\]): Matrix[\T,s0,s2\] = do
+        res = matrix[\T,s0,s2\]()
+        mma(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
+            if k>=i AND k>=j then
+              if k=1 then
+                pr : T = get(a,b) other.get(b,c)
+                (* If this were atomic, we could parallelize j-partition. *)
+                res.put((a,c), res.get(a,c) + pr)
+              else
+                (k0,k1) = partition(k)
+                (mma(a,i,b,j,c,k0),mma(a,i,b,j,c+k0,k1))
+              end
+            elif j>=i then
+                (j0,j1) = partition(j)
+                mma(a,i,b,j0,c,k)
+                mma(a,i,b+j0,j1,c,k)
+            else
+                (i0,i1) = partition(i)
+                (mma(a,i0,b,j,c,k),mma(a+i0,i1,b,j,c,k))
+            end
+        mm(a:ZZ32,i:ZZ32,b:ZZ32,j:ZZ32,c:ZZ32,k:ZZ32):() =
+            if k>=i AND k>=j then
+              if k=1 then
+                res.put((a,c), get(a,b) other.get(b,c))
+              else
+                (k0,k1) = partition(k)
+                (mm(a,i,b,j,c,k0),mm(a,i,b,j,c+k0,k1))
+              end
+            elif j>=i then
+                (j0,j1) = partition(j)
+                mm(a,i,b,j0,c,k)
+                mma(a,i,b+j0,j1,c,k)
+            else
+                (i0,i1) = partition(i)
+                (mm(a,i0,b,j,c,k),mm(a+i0,i1,b,j,c,k))
+            end
+        if s0=0 OR s1=0 OR s2=0 then
+          res
+        else
+          mm(0,s0,0,s1,0,s2)
+          res
+        end
+      end
+    rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = do
+        row(i:ZZ32):T =
+            SUM[(j,v_j)<-v.indexValuePairs] get(i,j) v_j
+        vector[\T,s0\]().fill(row)
+      end
+    lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = do
+        col(i:ZZ32):T =
+            SUM[(j,v_j)<-v.indexValuePairs] v_j get(j,i)
+        vector[\T,s1\]().fill(col)
+      end
+    t(): Matrix[\T,s1,s0\] = TransposedMatrix[\T,s1,s0\](self)
+end
+
+(* Default matrix should match default array in column vs row-major. *)
+object __DefaultMatrix[\T, nat s0, nat s1\]()
+    extends Matrix[\T, s0, s1\]
+  mem:PrimitiveArray[\T, (s0 s1) \] = PrimitiveArray[\T, (s0 s1) \]()
+  init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0(i s1 + j, v) end
+  put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put(i s1 + j, v) end
+  get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(i s1 + j) end
+end
+
+object TransposedMatrix[\T, nat s0, nat s1\](mem:Matrix[\T,s1,s0\])
+        extends Matrix[\T, s0, s1\]
+    replica[\U\]():Array2[\U,0,s0,0,s1\] = mem.replica[\U\]().t()
+
+    init0(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.init0((j,i),v) end
+    put(t1:(ZZ32,ZZ32), v:T) : () = do (i,j)=t1; mem.put((j,i),v) end
+    get(t1:(ZZ32,ZZ32)):T = do (i,j)=t1; mem.get(j,i) end
+    t(): Matrix[\T,s1,s0\] = mem
+    add(v:TransposedMatrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.add(v.t()).t()
+    subtract(v:Matrix[\T,s0,s1\]): Matrix[\T,s0,s1\] = mem.subtract(v.t()).t()
+    negate(): Matrix[\T,s0,s1\] = mem.negate().t()
+    scale(f: T): Matrix[\T,s0,s1\] = mem.scale(f).t()
+    rmul(v: Vector[\T,s1\]): Vector[\T,s0\] = mem.lmul(v)
+    lmul(v: Vector[\T,s0\]): Vector[\T,s1\] = mem.rmul(v)
+(*  Can't overload generic methods yet, but this is preferable.
+    mul[\nat s2\](v:TransposedMatrix[\T,s1,s2\]): Matrix[\T,s0,s2\] =
+        v.t().mul(mem).t()
+*)
+end
+
+__builtinFactory2[\T,nat b0,nat s0,nat b1,nat s1\]():Array2[\T,b0,s0,b1,s1\] =
+    if b0=0 AND b1=0 then
+        array2[\T,s0,s1\]()
+    else
+        __DefaultArray2[\T,b0,s0,b1,s1\]()
+    end
+
+(* array2 is a factory for 0-based 2-D arrays. *)
+(* TODO: fix when Number is covariant. *)
+array2[\T, nat s0, nat s1\]():Array2[\T,0,s0,0,s1\] =
+    typecase __thrower[\T\] of
+        ()->Number => matrix[\T,s0,s1\]()
+        else => __DefaultArray2[\T,0,s0,0,s1\]()
+    end
+array2[\T, nat s0, nat s1\](v:T):Array2[\T,0,s0,0,s1\] =
+  array2[\T,s0,s1\]().fill(v)
+array2[\T, nat s0, nat s1\](f:(ZZ32,ZZ32)->T):Array2[\T,0,s0,0,s1\] =
+  array2[\T,s0,s1\]().fill(f)
+
+(* matrix is the same as array1, but specialized to numeric type
+   arguments, except that the default value (if given) is used to
+   construct a multiple of the identity matrix. *)
+matrix[\T extends Number, nat s0, nat s1\]():Matrix[\T,s0,s1\] =
+  __DefaultMatrix[\T,s0,s1\]()
+matrix[\T extends Number, nat s0, nat s1\](v:T):Matrix[\T,s0,s1\] =
+  array2[\T,s0,s1\]().fill(fn (x:ZZ32,y:ZZ32):T => if x=y then v else 0 end)
+
+(* Matrix multiplication; used to use a cache-oblivious algorithm, but
+   we ran into trouble due to lack of support for atomic increment of
+   matrix elements. *)
+opr DOT[\ T extends Number, nat n, nat m, nat p\]
+       (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\] =
+        me.mul[\p\](other)
+
+opr juxtaposition[\ T extends Number, nat n, nat m, nat p\]
+     (me:Matrix[\T,n,m\], other:Matrix[\T,m,p\]): Matrix[\T,n,p\] =
+        me.mul[\p\](other)
+
+
+(* matrix-vector multiplication *)
+opr DOT[\ T extends Number, nat n, nat m \]
+       (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
+
+opr juxtaposition[\ T extends Number, nat n, nat m \]
+     (me:Matrix[\T,n,m\], v:Vector[\T,m\]):Vector[\T,n\] = me.rmul(v)
+
+(* vector-matrix multiplication *)
+opr DOT[\ T extends Number, nat n, nat m \]
+       (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
+
+opr juxtaposition[\ T extends Number, nat n, nat m \]
+     (v:Vector[\T,n\], me:Matrix[\T,n,m\]):Vector[\T,m\] = me.lmul(v)
+
+opr DOT[\ T extends Number, nat n, nat m \]
+       (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
+
+opr juxtaposition[\ T extends Number, nat n, nat m \]
+     (me : Matrix[\T,n,m\], other : T) : Matrix[\T,n,m\] = me.scale(other)
+
+opr DOT[\ T extends Number, nat n, nat m \]
+       (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
+
+opr juxtaposition[\ T extends Number, nat n, nat m \]
+     (other : T, me : Matrix[\T,n,m\]) : Matrix[\T,n,m\] = me.scale(other)
+
+(** Array3[\T,b0,s0,b1,s1,b2,s2\] is the type of 3-dimensional arrays
+    of element type T, with size s_i in the i^th dimension and lowest
+    index (b0,b1,b2).  Natural order for all generators in each
+    dimension is from b to b+s-1; the overall order of elements need
+    only be consistent with the cross product of these orderings (see
+    Generator.cross()). **)
+trait Array3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]
+    extends { Indexed1[\s0\], Indexed2[\s1\], Indexed3[\s2\], Rank3,
+              StandardMutableArrayType[\Array3[\T,b0,s0,b1,s1,b2,s2\],T,
+                                        (ZZ32,ZZ32,ZZ32)\] }
+    excludes { Number, String }
+
+    getter size():ZZ32 = s0 s1 s2
+    getter sizes():(ZZ32,ZZ32,ZZ32) = (s0, s1, s2)
+    getter bounds():CompactFullRange3D[\ZZ32,ZZ32,ZZ32\] =
+        sized3Range[\ZZ32,ZZ32,ZZ32\](0,0,0,b0,b1,b2,s0,s1,s2)
+
+    getter asString():String = do
+      r : String := "[" b0 "#" s0 "," b1 "#" s1 "," b2 "#" s2 "]"
+      row(i,k) =
+          for j <- seq(0#s1) do
+            r := r " " self[b0+i,b1+j,b2+k]
+          end
+      plane(k) =
+        if s1 > 0 then
+          row(0,k)
+          for i <- seq(1#(s0-1)) do
+            r := r // " "
+            row(i,k)
+          end
+        end
+      if s0=0 then
+        r "[]"
+      else
+        r := r // "["
+        plane(0)
+        for k <- seq(1#(s2-1)) do
+          r := r " ;;" //  " "
+          plane(k)
+        end
+        r " ]"
+      end
+    end
+
+    opr |self| : ZZ32 = s0 s1 s2
+
+    (* Again, offset performs bounds checking and shifts to 0 indexing. *)
+    offset(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) = do
+      (a0,a1,a2)=t
+      c0 = a0 - b0; c1 = a1 - b1; c2 = a2 - b2
+      if NOT (0 <= c0 < s0) then oops(1, b0, s0, a0); end
+      if NOT (0 <= c1 < s1) then oops(2, b1, s1, a1); end
+      if NOT (0 <= c2 < s2) then oops(3, b2, s2, a2); end
+      (c0,c1,c2)
+    end
+    toIndex(t:(ZZ32,ZZ32,ZZ32)):(ZZ32,ZZ32,ZZ32) =
+        do (a0,a1,a2) = t; (a0+b0,a1+b1,a2+b2) end
+
+    (* And get and put are 0-indexed without bounds checks. *)
+    put(t:(ZZ32,ZZ32,ZZ32), v:T) : ()
+    get(t:(ZZ32,ZZ32,ZZ32)):T
+
+    opr[i:ZZ32, j:ZZ32, k:ZZ32] := (v:T): () = do self[ (i,j,k) ] := v end
+    opr[r:Range[\(ZZ32,ZZ32,ZZ32)\]]: Array[\T,(ZZ32,ZZ32,ZZ32)\] = do
+        r' = self.bounds.narrowToRange(r)
+        (z0,z1,z2) = r'.extent.get
+        (l0,l1,l2) = r'.left.get (*'*)
+        (m0,m1,m2) = r'.stride (*'*)
+        __subarray(self, N[\0\],reflect(z0), N[\0\],reflect(z1),
+                   N[\0\],reflect(z2), reflect(l0),reflect(l1), reflect(l2),m0,m1,m2)
+      end
+    opr[_:TrivialOpenRange] : Array3[\T,0,s0,0,s1,0,s2\] =
+        subarray[\0,s0,0,s1,0,s2,0,0,0\](1,1,1)
+    shift(t:(ZZ32,ZZ32,ZZ32)): Array[\T,(ZZ32,ZZ32)\] = do
+        (o0,o1,o2)=t
+        if o0=0 AND o1=0 AND o2=0 then
+            self
+        else
+            __subarray(self,
+                       reflect(o0),N[\s0\], reflect(o1),N[\s1\],
+                       reflect(o2),N[\s2\], N[\b0\],N[\b1\],N[\b2\],1,1,1)
+        end
+      end
+
+    (** 3-D subarray given static subarray parameters.
+        %(bo0,bo1,bo2)#(so0,so1,so2)% are output bounds.
+        The result is the subarray starting at %(o0,o1,o2)% in the original array,
+        striding by (m0,m1,m2).
+     **)
+    subarray[\nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
+              nat o0, nat o1, nat o2\]
+            (m0:ZZ32,m1:ZZ32,m2:ZZ32): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] = do
+        boundsCheck = self.bounds.narrowToRange( (o0,o1,o2)::(m0,m1,m2)#(so0,so1,so2) )
+        SubArray3[\T,bo0,so0,bo1,so1,bo2,so2,b0,s0,b1,s1,b2,s2\](self,m0,o0,m1,o1,m2,o2)
+      end
+
+    zeroIndices():CompactFullRange3D[\ZZ32,ZZ32,ZZ32\] =
+        sized3Range[\ZZ32,ZZ32,ZZ32\](0,0,0,0,0,0,s0,s1,s2)
+
+    replica[\U\]():Array3[\U,b0,s0,b1,s1,b2,s2\] =
+        __DefaultArray3[\U,b0,s0,b1,s1,b2,s2\]()
+    copy():Array3[\T,b0,s0,b1,s1,b2,s2\] =
+        self.replica[\T\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):T =>
+                                     get(i-b0,j-b1,k-b2))
+    map[\R\](f:T->R): Array3[\R,b0,s0,b1,s1,b2,s2\] =
+        replica[\R\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):R =>
+                                f(get(i-b0,j-b1,k-b2)))
+    ivmap[\R\](f:((ZZ32,ZZ32,ZZ32),T)->R): Array3[\R,b0,s0,b1,s1,b2,s2\] =
+        replica[\R\]().fill(fn (i:ZZ32,j:ZZ32,k:ZZ32):R =>
+                                f((i,j,k),get(i-b0,j-b1,k-b2)))
+
+    freeze():ImmutableArray[\T,(ZZ32,ZZ32,ZZ32)\] =
+        fail("Freeze not defined yet!")
+end
+
+(** hoisted out here to work around absence of type inference for methods. **)
+__subarray[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2,
+            nat bo0, nat so0, nat bo1, nat so1, nat bo2, nat so2,
+            nat o0, nat o1, nat o2\]
+      (this:Array3[\T,b0,s0,b1,s1,b2,s2\],
+       _:N[\bo0\],_:N[\so0\],_:N[\bo1\],_:N[\so1\],_:N[\bo2\],_:N[\so2\],
+       _:N[\o0\],_:N[\o1\],_:N[\o2\], m0:ZZ32,m1:ZZ32,m2:ZZ32): Array3[\T,bo0,so0,bo1,so1,bo2,so2\] =
+    this.subarray[\bo0,so0,bo1,so1,bo2,so2,o0,o1,o2\](m0,m1,m2)
+
+object __DefaultArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]() extends
+                                        Array3[\T, b0, s0, b1, s1, b2, s2\]
+  mem:PrimitiveArray[\T,(s0 (s1 s2))\] = PrimitiveArray[\T,(s0 (s1 s2))\]()
+
+  ofs(i:ZZ32,j:ZZ32,k:ZZ32):ZZ32 = (i s1 + j) s2 + k
+
+  init0(t:(ZZ32,ZZ32,ZZ32), v:T) : () = mem.init0(ofs(t),v)
+  put(t:(ZZ32,ZZ32,ZZ32), v:T) : () = mem.put(ofs(t),v)
+  get(t:(ZZ32,ZZ32,ZZ32)) : T = mem.get(ofs(t))
+end
+
+(** Simple 3-D subarray, used when we have no other knowledge of the
+    underlying structure.  If we're on top of a PrimitiveArray we can
+    really do much better than this.
+    (b0,b1,b2)#(s0,s1,s2) are the bounds of the subarray.
+    (bu0,bu1,bu2)#(su0,su1,su2) are the bounds of the underlying array.
+    m_i, o_i are multiplier and offset (0-based) of dimension i.
+**)
+object SubArray3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2,
+                     nat bu0, nat su0, nat bu1, nat su1, nat bu2, nat su2\]
+                (mem: Array3[\T,bu0,su0,bu1,su1,bu2,su2\],
+                 m0:ZZ32,o0:ZZ32, m1:ZZ32,o1:ZZ32, m2:ZZ32, o2:ZZ32)
+        extends Array3[\T,b0,s0,b1,s1,b2,s2\]
+    index(a0:ZZ32, a1:ZZ32, a2:ZZ32): (ZZ32,ZZ32,ZZ32) =
+        (m0 a0 + o0, m1 a1 + o1, m2 a2 + o2)
+    init0(t:(ZZ32,ZZ32,ZZ32), v:T): () = mem.init0(index(t),v)
+    put(t:(ZZ32,ZZ32,ZZ32), v:T): () = mem.put(index(t),v)
+    get(t:(ZZ32,ZZ32,ZZ32)): T = mem.get(index(t))
+end
+
+__builtinFactory3[\T, nat b0, nat s0, nat b1, nat s1, nat b2, nat s2\]():
+        Array3[\T,b0,s0,b1,s1,b2,s2\] =
+  __DefaultArray3[\T,b0,s0,b1,s1,b2,s2\]()
+
+array3[\T,nat s0, nat s1, nat s2\]():Array3[\T,0,s0,0,s1,0,s2\] =
+  __DefaultArray3[\T,0,s0,0,s1,0,s2\]()
+array3[\T, nat s0, nat s1, nat s2\](v:T):Array3[\T,0,s0,0,s1,0,s2\] =
+  array3[\T,s0,s1,s2\]().fill(v)
+array3[\T, nat s0, nat s1, nat s2\](f:(ZZ32,ZZ32)->T):Array3[\T,0,s0,0,s1,0,s2\] =
+  array3[\T,s0,s1,s2\]().fill(f)
+
+(*************
+
+trait Monoid[\ T, opr OPLUS \]
+  where { T extends Monoid[\ T, OPLUS \] }
+    self.zero : T
+    opr OPLUS(self, other:T):T
+end
+
+*************)
+
+(************************************************************
+* Reductions
+************************************************************)
+
+trait Reduction[\L\]
+    getter reverse():Reduction[\L\] = ReversedReduction[\L\](self)
+    empty(): L
+    join(a: L, b: L): L
+end
+
+object ReversedReduction[\R\](r:Reduction[\R\]) extends Reduction[\R\]
+  getter reverse():Reduction[\R\] = r
+  getter asString():String = "ReversedReduction(" || r.asString || ")"
+  empty():R = r.empty()
+  join(x:R,y:R):R = r.join(y,x)
+end
+
+(** Invariants:
+    join must be associative with identity empty
+    unlift(lift(x)) = x
+ **)
+trait ActualReduction[\R,L\] extends Reduction[\L\]
+    lift(r: Any): L
+    unlift(l:L): R
+    (** If this reduction left-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    leftDistribute(r: Reduction[\R\]): PossibleReductionPair[\R\] =
+        distribute(r)
+    (** If this reduction right-distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    rightDistribute(r: Reduction[\R\]): PossibleReductionPair[\R\] =
+        distribute(r)
+    (** If this reduction distributes over r, return a pair of
+        reductions with the same lift and unlift **)
+    (* a hack to avoid the error of overloaded methods *)
+    distribute(r: Any): PossibleReductionPair[\R\] =
+        NoReductionPair[\R\]
+(*    distribute[\K\](r: ActualReduction[\R,K\]): PossibleReductionPair[\R\] =
+        NoReductionPair[\R\]
+*)
+end
+
+trait PossibleReductionPair[\R\] extends Condition[\PossibleReductionPair[\R\]\]
+    comprises { NoReductionPair[\R\], SomeReductionPair[\R\] }
+end
+
+object NoReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean = false
+    cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = e()
+end
+
+trait SomeReductionPair[\R\] extends PossibleReductionPair[\R\]
+    getter holds(): Boolean = true
+    getter outer(): Reduction[\R\]
+    getter inner(): Reduction[\R\]
+    cond[\G\](t:PossibleReductionPair[\R\]->G, e:()->G): G = t(self)
+end
+
+trait ReductionPair[\R,L\] extends SomeReductionPair[\L\]
+    getter outer(): ActualReduction[\R,L\]
+    getter inner(): ActualReduction[\R,L\]
+end
+
+(** The usual lifting to Maybe for identity-less operators **)
+trait AssociativeReduction[\R\] extends ActualReduction[\R,AnyMaybe\]
+    empty(): Nothing[\R\] = Nothing[\R\]
+    join(a: AnyMaybe, b: AnyMaybe): AnyMaybe =
+        if av <- a then
+            if bv <- b then
+                Just(simpleJoin(av,bv))
+            else
+                a
+            end
+        else
+            b
+        end
+    simpleJoin(a:Any, b:Any): Any
+    lift(r:Any): AnyMaybe = Just(r)
+    unlift(r:AnyMaybe): R =
+        if res <- r then
+            res
+        else
+            throw EmptyReduction
+        end
+end
+
+(** The lifting of operators to be fused with identity-less operators
+    Nothing becomes zero
+**)
+object LiftedCommutativeMonoidReduction[\R\](org : CommutativeMonoidReduction[\R\]) extends ActualReduction[\R,AnyMaybe\]
+    getter asString(): String = org.asString "(Lifted)"
+    empty(): Nothing[\R\] = Just(org.empty())
+    join(a: AnyMaybe, b: AnyMaybe): AnyMaybe =
+        if av <- a then
+            if bv <- b then
+                Just(org.join(av,bv))
+            else
+                Nothing[\R\]
+            end
+        else
+            Nothing[\R\]
+        end
+    lift(r:Any): AnyMaybe = Just(r)
+    unlift(r:AnyMaybe): R =
+        if res <- r then
+            res
+        else
+            throw EmptyReduction
+        end
+end
+
+
+
+
+trait SomeCommutativeReduction end
+
+trait CommutativeReduction[\R\] extends { AssociativeReduction[\R\], SomeCommutativeReduction }
+    getter reverse():CommutativeReduction[\R\] = self
+end
+
+(** Monoids don't require a special lift and unlift operation. **)
+trait MonoidReduction[\R\] extends ActualReduction[\R,R\]
+    lift(r:Any): R = r
+    unlift(r:R): R = r
+end
+
+trait CommutativeMonoidReduction[\R\] extends { MonoidReduction[\R\], SomeCommutativeReduction}
+    getter reverse():CommutativeMonoidReduction[\R\] = self
+end
+
+trait ReductionWithZeroes[\R,L\] extends ActualReduction[\R,L\]
+    isLeftZero(l:L): Boolean = isZero(l)
+    isRightZero(l:L): Boolean = isZero(l)
+    isZero(l:L): Boolean = false
+end
+
+trait BigOperator[\I,O,R,L\]
+    getter reduction(): ActualReduction[\R,L\]
+    getter body(): I->R
+    getter unwrap(): R->O
+end
+
+object BigReduction[\R,L\](reduction:ActualReduction[\R,L\]) extends BigOperator[\R,R,R,L\]
+    getter body(): R->R = fn x => x
+    getter unwrap(): R->R = fn x => x
+end
+
+object Comprehension[\I,O,R,L\](unwrap: R->O, reduction: ActualReduction[\R,L\], body:I->R)
+        extends BigOperator[\I,O,R,L\]
+end
+
+(** VoidReduction is usually done for effect, so we pretend that
+    the completion performs the effects.  This rules out things
+    distributing over void (that would change the number of effects in
+    our program) but not void distributing over other things. **)
+object VoidReduction extends { CommutativeMonoidReduction[\()\] }
+    getter asString(): String = "VoidReduction"
+    getter reverse(): Reduction[\()\] = VoidReduction
+    empty(): () = ()
+    join(a: (), b: ()): () = ()
+end
+
+trait DistributesOver[\E\] end
+
+object SumProdReductionPair extends ReductionPair[\Number,Number\]
+    getter outer() = SumReduction
+    getter inner() = ProdReduction
+end
+
+object MaxSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MaxReduction[\Number\]
+    getter inner() = LiftedCommutativeMonoidReduction(SumReduction)
+end
+
+object MinSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MinReduction[\Number\]
+    getter inner() = LiftedCommutativeMonoidReduction(SumReduction)
+end
+
+object MaxNSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MaxReductionN
+    getter inner() = SumReduction
+end
+
+object MinNSumReductionPair extends ReductionPair[\Number,AnyMaybe\]
+    getter outer() = MinReductionN
+    getter inner() = SumReduction
+end
+
+(* Hack to permit any Number to work non-parametrically. *)
+object SumReduction extends {
+  CommutativeMonoidReduction[\Number\],
+  DistributesOver[\MaxReductionN\],
+  DistributesOver[\MinReductionN\],
+  DistributesOver[\MaxReduction[\Number\]\],
+  DistributesOver[\MaxReduction[\Number\]\]
+   }
+    getter asString(): String = "SumReduction"
+    empty(): Number = 0
+    join(a: Number, b: Number): Number = a+b
+    distribute(r: MaxReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] =
+    MaxSumReductionPair
+    distribute(r: MinReduction[\Number\]): PossibleReductionPair[\AnyMaybe\] =
+    MinSumReductionPair
+    distribute(r: MaxReductionN): PossibleReductionPair[\AnyMaybe\] =
+    MaxNSumReductionPair
+    distribute(r: MinReductionN): PossibleReductionPair[\AnyMaybe\] =
+    MaxNSumReductionPair
+end
+
+opr SUM[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, SumReduction, cast[\Number\])
+
+opr SUM[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](SUM[\T\](), g)
+
+object ProdReduction extends {
+  CommutativeMonoidReduction[\Number\],
+  DistributesOver[\SumReduction\]
+ }
+    getter asString(): String = "ProdReduction"
+    empty(): Number = 1
+    join(a:Number, b:Number): Number = a b
+    distribute(r: SumReduction): PossibleReductionPair[\Number\] =
+    SumProdReductionPair
+end
+
+opr PROD[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, ProdReduction, cast[\Number\])
+
+opr PROD[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](PROD[\T\](), g)
+
+(* MAX without lifting for Numbers... (what is -1/0?)*)
+object MaxReductionN extends {CommutativeMonoidReduction[\Number\] }
+    getter asString(): String = "MaxReductionN"
+    empty(): Number = -1/0
+    join(a: Number, b: Number): Number = a MAX b
+end
+
+opr BIG MAXN[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, MaxReductionN, cast[\Number\])
+opr BIG MAXN[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](BIG MAXN[\T\](), g)
+
+object MinReductionN extends {CommutativeMonoidReduction[\Number\] }
+    getter asString(): String = "MinReductionN"
+    empty(): Number = 1/0
+    join(a: Number, b: Number): Number = a MIN b
+end
+opr BIG MINN[\T extends Number\](): Comprehension[\T,Number,Number,Number\] =
+    Comprehension[\T,Number,Number,Number\](fn x => x, MinReductionN, cast[\Number\])
+
+opr BIG MINN[\T extends Number\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,Number,Number,Number\](BIG MINN[\T\](), g)
+
+object MinMaxReductionN extends {CommutativeMonoidReduction[\(Number,Number)\] }
+    getter asString(): String = "MinMaxReductionN"
+    empty(): Number = (1/0,-1/0)
+    join(a: (Number, Number), b: (Number, Number)): (Number, Number) = do
+        (na,xa) = a
+        (nb,xb) = b
+        (na MIN nb, xa MAX xb)
+      end
+end
+opr BIG MINMAXN[\T extends Number\]():
+        Comprehension[\T,(Number,Number),(Number,Number),(Number,Number)\] =
+    Comprehension[\T,(Number,Number),(Number,Number),(Number,Number)\](
+        fn x => x, MinMaxReductionN, fn x => (x,x))
+opr BIG MINMAXN[\T extends Number\](g: Generator[\T\]): (Number, Number) =
+    __bigOperatorSugar[\T,(Number,Number),(Number,Number),(Number,Number)\](
+        BIG MINMAXN[\T\](), g)
+
+
+object MinReduction[\T extends StandardMin[\T\]\] extends CommutativeReduction[\T\]
+    getter asString(): String = "MinReduction"
+    simpleJoin(a, b) = a MIN b
+end
+opr BIG MIN[\T extends StandardMin[\T\]\](): BigReduction[\T,AnyMaybe\] =
+    BigReduction[\T,AnyMaybe\](MinReduction[\T\])
+opr BIG MIN[\T extends StandardMin[\T\]\](g: Generator[\T\]) =
+    __bigOperatorSugar[\T,T,T,AnyMaybe\](BIG MIN[\T\](), g)
+
+object MaxReduction[\T extends StandardMax[\T\]\] extends CommutativeReduction[\T\]
+    getter asString(): String = "MaxReduction"
+    simpleJoin(a, b) = a MAX b
+end
+opr BIG MAX[\T extends StandardMax[\T\]\](): BigReduction[\T,AnyMaybe\] =
+    BigReduction[\T,AnyMaybe\](MaxReduction[\T\])
+opr BIG MAX[\T extends StandardMax[\T\]\](g: Generator[\T\]):(T,T) =
+    __bigOperatorSugar[\T,T,T,AnyMaybe\](BIG MAX[\T\](), g)
+
+object MinMaxReduction[\T extends StandardMinMax[\T\]\] extends CommutativeReduction[\(T,T)\]
+    getter asString(): String = "MinMaxReduction"
+    simpleJoin(a:(T,T),b:(T,T)): (T,T) = do
+        (na,xa) = a
+        (nb,xb) = b
+        (na MIN nb, xa MAX xb)
+      end
+end
+opr BIG MINMAX[\T extends StandardMinMax[\T\]\]():
+        Comprehension[\T,AnyMaybe,AnyMaybe,AnyMaybe\] =
+    Comprehension[\T,AnyMaybe,AnyMaybe,AnyMaybe\](fn x => x, MinMaxReduction[\T\], fn x => (x,x))
+opr BIG MINMAX[\T extends StandardMinMax[\T\]\](g:Generator[\T\]):(T,T) =
+    __bigOperatorSugar[\T,(T,T),(T,T),AnyMaybe\](BIG MINMAX[\T\](), g)
+
+opr BIG MINNUM(): BigReduction[\RR64,RR64\] =
+    BigReduction[\RR64,RR64\](
+        MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MINNUM b, 0.0/0.0))
+
+opr BIG MINNUM(g: Generator[\RR64\]) =
+    __bigOperatorSugar[\RR64,RR64,RR64,RR64\](BIG MINNUM(), g)
+
+opr BIG MAXNUM(): BigReduction[\RR64,RR64\] =
+    BigReduction[\RR64,RR64\](
+        MapReduceReduction[\RR64\](fn (a:RR64,b:RR64):RR64 => a MAXNUM b, 0.0/0.0))
+
+opr BIG MAXNUM(g: Generator[\RR64\]) =
+    __bigOperatorSugar[\RR64,RR64,RR64,RR64\](BIG MAXNUM(), g)
+
+
+(*) MIN/MAX combinations on tuples
+
+object TupleMinMinReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMinMinReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MIN b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MIN b2)
+        end
+      end
+end
+opr BIG MIN_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMinMinReduction[\T,U\], fn x => x)
+opr BIG MIN_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MIN_MIN[\T,U\](), g)
+
+object TupleMinMaxReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMinMaxReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MIN b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MAX b2)
+        end
+      end
+end
+opr BIG MIN_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMinMaxReduction[\T,U\], fn x => x)
+opr BIG MIN_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MIN_MAX[\T,U\](), g)
+
+object TupleMaxMinReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMaxMinReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MAX b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MIN b2)
+        end
+      end
+end
+opr BIG MAX_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMaxMinReduction[\T,U\], fn x => x)
+opr BIG MAX_MIN[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MAX_MIN[\T,U\](), g)
+
+object TupleMaxMaxReduction[\T extends StandardMinMax[\T\],
+                             U extends StandardMinMax[\U\]\]
+      extends CommutativeReduction[\(T,U)\]
+    getter asString(): String = "TupleMaxMaxReduction"
+    simpleJoin(a:(T,U),b:(T,U)): (T,U) = do
+        (a1,a2) = a
+        (b1,b2) = b
+        first = a1 MAX b1
+        if first =/= b1 then a
+        elif first =/= a1 then b
+        else (a1, a2 MAX b2)
+        end
+      end
+end
+opr BIG MAX_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\]():
+        Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\] =
+    Comprehension[\(T,U),(T,U),(T,U),AnyMaybe\](fn x => x, TupleMaxMaxReduction[\T,U\], fn x => x)
+opr BIG MAX_MAX[\T extends StandardMinMax[\T\],U extends StandardMinMax[\U\]\](g:Generator[\(T,U)\]):(T,U) =
+    __bigOperatorSugar[\(T,U),(T,U),(T,U),AnyMaybe\](BIG MAX_MAX[\T,U\](), g)
+
+
+(** AndReduction and OrReduction take advantage of natural zeroes for early exit. **)
+object AndReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
+    getter asString(): String = "AndReduction"
+    empty(): Boolean = true
+    join(a: Boolean, b: Boolean): Boolean = a AND b
+    isZero(a:Boolean): Boolean = NOT a
+end
+
+opr BIG AND[\T\](): BigReduction[\Boolean,Boolean\] =
+    BigReduction[\Boolean,Boolean\](AndReduction)
+
+opr BIG AND[\T\](g: Generator[\Boolean\]) =
+    __bigOperatorSugar[\Boolean,Boolean,Boolean,Boolean\](BIG AND[\T\](), g)
+
+object OrReduction
+        extends { CommutativeMonoidReduction[\Boolean\],
+                  ReductionWithZeroes[\Boolean,Boolean\] }
+    getter asString(): String = "OrReduction"
+    empty(): Boolean = false
+    join(a: Boolean, b: Boolean): Boolean = a OR b
+    isZero(a:Boolean): Boolean = a
+end
+
+opr BIG OR[\T\](): BigReduction[\Boolean, Boolean\] =
+    BigReduction[\Boolean,Boolean\](OrReduction)
+
+opr BIG OR[\T\](g: Generator[\Boolean\]): Boolean =
+    __bigOperatorSugar[\Boolean,Boolean,Boolean,Boolean\](BIG OR[\T\](), g)
+
+
+(** Operator reductions on integers *)
+
+(*
+object BitXorReduction[\T extends Integral[\T\]\]
+        extends { CommutativeMonoidReduction[\T\] }
+    getter asString(): String = "BitXorReduction"
+    empty(): T = 0
+    join(a: T, b: T): T = a BITXOR b
+end
+
+opr BIG BITXOR[\T extends Integral[\T\]\](): BigReduction[\T, T\] =
+    BigReduction[\T,T\](BitXorReduction)
+
+opr BIG BITXOR[\T extends Integral[\T\]\](g: Generator[\T\]): T =
+    __bigOperatorSugar[\T,T,T,T\](BIG BITXOR[\T\](), g)
+*)
+
+object BitXorReduction
+        extends { CommutativeMonoidReduction[\ZZ32\] }
+    getter asString(): String = "BitXorReduction"
+    empty(): ZZ32 = 0
+    join(a: ZZ32, b: ZZ32): ZZ32 = a BITXOR b
+end
+
+opr BIG BITXOR(): BigReduction[\ZZ32, ZZ32\] =
+    BigReduction[\ZZ32,ZZ32\](BitXorReduction)
+
+opr BIG BITXOR(g: Generator[\ZZ32\]): ZZ32 =
+    __bigOperatorSugar[\ZZ32,ZZ32,ZZ32,ZZ32\](BIG BITXOR(), g)
+
+(** A reduction performing String concatenation **)
+object StringReduction extends MonoidReduction[\String\]
+    getter asString(): String = "StringReduction"
+    empty(): String = ""
+    join(a:String, b:String): String = a || b
+end
+
+(** A reduction performing String concatenation with a space **)
+object SpaceReduction extends MonoidReduction[\String\]
+    getter asString(): String = "StringReduction"
+    empty(): String = ""
+    join(a:String, b:String): String = a ||| b
+end
+
+(** A reduction performing String concatenation with newline separation **)
+object NewlineReduction extends AssociativeReduction[\String\]
+    getter asString(): String = "NewlineReduction"
+    simpleJoin(a:String, b:String): String = a // b
+end
+
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary. **)
+opr BIG ||(): Comprehension[\Any,String,String,String\] =
+    Comprehension[\Any,String,String,String\](
+        identity[\String\],StringReduction,fn (x:Any)=> "" x)
+
+opr BIG ||[\T\](g: Generator[\T\]) =
+    __bigOperatorSugar[\Any,String,String,String\](BIG ||(), g.map[\Any\](identity[\Any\]))
+
+(** This operator performs string concatenation, first converting
+    its inputs (of type Any) to String if necessary, and separating
+    non-empty components by a space. **)
+opr BIG |||(): Comprehension[\Any,String,String,String\] =
+    Comprehension[\Any,String,String,String\](
+        identity[\String\],SpaceReduction,fn (x:Any)=> "" x)
+
+opr BIG |||[\T\](g: Generator[\T\]): String =
+    __bigOperatorSugar[\Any,String,String,String\](BIG |||(), g.map[\Any\](identity[\Any\]))
+
+(** This operator performs string concatenation with newline
+    separation, first converting its inputs (of type Any) to String if
+    necessary. **)
+opr BIG //(): Comprehension[\Any,String,String,AnyMaybe\] =
+    Comprehension[\Any,String,String,AnyMaybe\](
+        fn x => x,NewlineReduction,fn (x:Any)=> "" x)
+
+opr BIG //[\T\](g: Generator[\T\]) =
+    __bigOperatorSugar[\Any,String,String,AnyMaybe\](BIG //(), g.map[\Any\](identity[\Any\]))
+
+(** A %MapReduceReduction% takes an associative binary function %j% on
+    arguments of type %R%, and the identity of that function %z%, and
+    returns the corresponding reduction. **)
+object MapReduceReduction[\R\](j:(R,R)->R, z:R) extends MonoidReduction[\R\]
+    getter asString(): String = "mapReduceReduction"
+    empty(): R = z
+    join(a:R, b:R): R = (j)(a,b)
+end
+
+(** A %MIMapReduceReduction% takes an associative binary function %j% on
+    arguments of type %R%, and the identity of that function %z%, and
+    returns the corresponding reduction. **)
+object MIMapReduceReduction[\R\](j:(Any,Any)->R, z:Any) extends MonoidReduction[\Any\]
+    getter asString():String="MIMapReduceReduction from embiggen"
+    empty(): R = z
+    join(a:Any, b:Any): R = (j)(a,b)
+end
+
+(** %embiggen% takes a type %T% and an operation (either an operator
+    %OP% or binary function %f% on type %T%), along with the identity
+    %z% of the operation, and returns a function suitable as the right-hand
+    side of the definition of the corresponding BIG operator. **)
+(*
+embiggen[\T,opr OP\](z:Any, g:(Reduction[\Any\],T->Any) -> Any) : T =
+    g(MIOprReduction[\T,OP\](z), fn (x) => x)
+*)
+embiggen[\T\](j:(Any,Any)->T, z:T) : Comprehension[\T,T,Any,Any\] =
+    Comprehension[\T,T,Any,Any\](fn (x) => x, MIMapReduceReduction[\T\](j,z), fn (x) => x)
+
+(** Helpers for maps and cross products of generators.  These can be
+    quite a bit more sophisticated (for example, we can hoist maps
+    outwards if we think that'd be useful), but let's get this much
+    working first. *)
+trait SomeMappedGenerator[\F\] extends Generator[\F\] end
+
+trait MappedGenerator[\E,F\] extends SomeMappedGenerator[\F\]
+    getter g(): Generator[\E\]
+    getter f(): E -> F
+    getter asString(): String = "mapped(" (self asif Generator[\F\]).asString ")"
+    getter reverse(): SimpleMappedGenerator[\E,F\] = SimpleMappedGenerator[\E,F\](self.g.reverse, self.f)
+    generate[\R\](r: Reduction[\R\], m: F->R): R =
+        self.g.generate[\R\](r, m COMPOSE self.f)
+    reduce(r: Reduction[\F\]): F =
+        self.g.generate[\F\](r, self.f)
+    map[\G\](f': F->G): SimpleMappedGenerator[\E,G\] =
+        SimpleMappedGenerator[\E,G\](self.g, f' COMPOSE self.f)
+    seq(self): SimpleMappedSeqGenerator[\E,F\] = SimpleMappedSeqGenerator[\E,F\](seq(self.g),self.f)
+end
+
+object SimpleMappedGenerator[\E,F\](g0: Generator[\E\], f0: E->F)
+        extends MappedGenerator[\E,F\]
+    getter g() = g0
+    getter f() = f0
+end
+
+object SimpleMappedIndexed[\E,F,I\](g0: Indexed[\E,I\], f0: E->F)
+        extends { MappedGenerator[\E,F\], Indexed[\F,I\] }
+    getter size(): ZZ32 = |self.g|
+    getter g() = g0
+    getter f() = f0
+    getter bounds(): Range[\I\] = self.g.bounds
+    getter indexValuePairs(): Indexed[\(I,F),I\] =
+        self.g.indexValuePairs.map[\(I,F)\](fn (i:I, e:E):(I,F) => (i,(self.f)(e)))
+    getter indices(): Generator[\I\] = self.g.indices
+    opr |self| : ZZ32 = |self.g|
+    opr[i:I] : F = (self.f)(self.g[i])
+    opr[r:Range[\I\]] : Indexed[\F,I\] =
+        SimpleMappedIndexed[\E,F,I\](self.g[r],self.f)
+
+    ivmap[\R\](ff:(I,F)->R): Indexed[\R,I\] =
+        g0().ivmap[\R\](fn (i:I, e:E) => ff(i, (self.f)(e)))
+    map[\G\](f': F->G): SimpleMappedIndexed[\E,G,I\] =
+        SimpleMappedIndexed[\E,G,I\](self.g, f' COMPOSE self.f)
+end
+
+object SimpleMappedSeqGenerator[\E,F\](g0: SequentialGenerator[\E\], f0: E->F)
+        extends { MappedGenerator[\E,F\], SequentialGenerator[\F\] }
+    getter g() = g0
+    getter f() = f0
+    getter asString() = "mapped(" (self asif SequentialGenerator[\F\]).asString ")"
+    seq(self): SimpleMappedSeqGenerator[\E,F\] = self
+end
+
+trait FilterGenerator[\E\] extends Generator[\E\]
+    getter g(): Generator[\E\]
+    getter p(): E -> Condition[\()\]
+    getter asString(): String = self.g ".filter(self.p)"
+    getter reverse(): FilterGenerator[\E\] = SimpleFilterGenerator[\E\](self.g.reverse, self.p)
+    generate[\R\](r:Reduction[\R\], m: E->R): R =
+        self.g.generate[\R\](r, fn(e:E):R => if (self.p)(e).holds then m(e) else r.empty() end)
+    reduce(r: Reduction[\E\]): E =
+        self.g.generate[\E\](r, fn(e:E):E => if (self.p)(e).holds then e else r.empty() end)
+    filter(p': E -> Condition[\()\]): SimpleFilterGenerator[\E\] =
+        SimpleFilterGenerator[\E\](self.g, self.p ANDCOND p')
+    seq(self): SequentialGenerator[\E\] = SimpleSeqFilterGenerator[\E\](seq(self.g),self.p)
+end
+
+object SimpleFilterGenerator[\E\](g0:Generator[\E\], p0: E->Condition[\()\])
+        extends FilterGenerator[\E\]
+    getter g(): Generator[\E\]       = g0
+    getter p(): E -> Condition[\()\]  = p0
+end
+
+object SimpleSeqFilterGenerator[\E\](g0: SequentialGenerator[\E\], p0: E->Condition[\()\])
+        extends { FilterGenerator[\E\], SequentialGenerator[\E\] }
+    getter g(): Generator[\E\]       = g0
+    getter p(): E -> Condition[\()\]  = p0
+    getter asString() = "seq(" g0 ".filter(p))"
+    seq(self): SimpleSeqFilterGenerator[\E\] = self
+end
+
+trait NestedGenerator[\E,F\] extends Generator[\F\]
+    getter g(): Generator[\E\]
+    getter f(): E -> Generator[\F\]
+    getter asString(): String
+    getter reverse(): NestedGenerator[\E,F\] =
+        SimpleNestedGenerator[\E,F\](self.g.reverse,
+            fn(e:E):Generator[\F\] => self.f(e).reverse)
+    generate[\R\](r: Reduction[\R\], m: F->R): R =
+        self.g.generate[\R\](r,fn (e:E):R => (self.f)(e).generate[\R\](r,m))
+    mapReduce[\R\](body: F->R, join:(R,R)->R, id:R): R =
+        self.g.mapReduce[\R\](
+            fn (e:E): R => (self.f)(e).mapReduce[\R\](body,join,id),
+            join, id)
+    reduce(r: Reduction[\F\]): F =
+        self.g.generate[\F\](r,fn (e:E):F => (self.f)(e).reduce(r))
+    reduce(j:(F,F)->F, z:F):F =
+        self.g.mapReduce[\F\](fn (e:E): F => (self.f)(e).reduce(j,z), j, z)
+    loop(body:F->()): () =
+        self.g.loop(fn (e:E) => (self.f)(e).loop(body))
+    map[\G\](h:F->G): Generator[\G\] =
+        self.g.nest[\G\](fn (e:E): Generator[\G\] => (self.f)(e).map[\G\](h))
+    nest[\G\](h:F->Generator[\G\]): Generator[\G\] =
+        self.g.nest[\G\](fn (e:E):Generator[\G\] => (self.f)(e).nest[\G\](h))
+end
+
+object SimpleNestedGenerator[\E,F\](g0: Generator[\E\], f0: E->Generator[\F\])
+        extends { NestedGenerator[\E,F\] }
+    getter g() = g0
+    getter f() = f0
+    getter asString() = self.g ".nest(f)"
+    seq(self): SequentialGenerator[\E\] = do
+        ff = self.f
+        typecase ff of
+            ff':(E -> SequentialGenerator[\F\]) =>
+                SimpleNestedSeqGenerator[\E,F\](seq(self.g),ff')
+            else =>
+                SimpleNestedSeqGenerator[\E,F\](seq(self.g),
+                     fn (e:E): SequentialGenerator[\F\] => seq(ff(e)))
+        end
+    end
+end
+
+object SimpleNestedSeqGenerator[\E,F\]
+        (g0: SequentialGenerator[\E\], f0: E->SequentialGenerator[\F\])
+        extends { NestedGenerator[\E,F\], SequentialGenerator[\F\] }
+    getter g() = g0
+    getter f() = f0
+    getter asString() = "seq(" self.g ".nest(f))"
+end
+
+trait PairGenerator[\E,F\] extends Generator[\(E,F)\]
+  comprises { SimplePairGenerator[\E,F\], SimplePairSeqGenerator[\E,F\] }
+    getter e(): Generator[\E\]
+    getter f(): Generator[\F\]
+    getter asString(): String
+    getter size():ZZ32 = |self|
+    getter reverse(): PairGenerator[\E,F\] = SimplePairGenerator[\E,F\](self.e.reverse, self.f.reverse)
+    opr |self| : ZZ32 = |self.e| |self.f|
+    generate[\R\](r: Reduction[\R\], m:(E,F)->R): R =
+        self.e.generate[\R\](r, fn (a: E): R =>
+                              self.f.generate[\R\](r, fn (b: F): R => m(a,b)))
+end
+
+object SimplePairGenerator[\E,F\](e0: Generator[\E\], f0: Generator[\F\])
+        extends PairGenerator[\E,F\]
+    getter e() = e0
+    getter f() = f0
+    getter asString()=(e0 ".cross(" f0 ")" )
+    seq(self): SequentialGenerator[\E\] = SimplePairSeqGenerator[\E,F\](seq(e0),seq(f0))
+end
+
+object SimplePairSeqGenerator[\E,F\]
+        (e0: SequentialGenerator[\E\], f0: SequentialGenerator[\F\])
+        extends { PairGenerator[\E,F\], SequentialGenerator[\(E,F)\] }
+    getter e() = e0
+    getter f() = f0
+    getter asString()=("seq(" self.e ".cross(" self.f "))" )
+end
+
+(** Helpers for reversing generators and indexed objects. *)
+trait ReversedGenerator[\E\] extends Generator[\E\]
+    getter g():Generator[\E\]
+    getter reverse(): Generator[\E\] = self.g
+    generate[\R\](r:Reduction[\R\], body:E->R): R = self.g.generate[\R\](r.reverse, body)
+    map[\G\](f: E->G): Generator[\G\] = self.g.map[\G\](f).reverse
+    filter(f: E -> Condition[\()\]): Generator[\E\] = self.g.filter(f).reverse
+end
+
+object SimpleReversedGenerator[\E\](g0:Generator[\E\]) extends ReversedGenerator[\E\]
+    getter g():Generator[\E\] = g0
+    getter asString(): String = "SimpleReversedGenerator(" self.g.asString ")"
+end
+
+trait ReversedIndexed[\E,I\] extends { Indexed[\E,I\], ReversedGenerator[\E\] }
+    getter g():Indexed[\E,I\]
+
+    getter isEmpty(): Boolean = self.g.isEmpty
+    getter bounds(): CompactFullRange[\I\] = self.g.bounds
+    getter indices(): Generator[\I\] = self.g.indices
+
+    getter reverse(): Indexed[\E,I\] = self.g
+    getter indexValuePairs(): Indexed[\(I,E),I\] = self.g.indexValuePairs.reverse
+
+    opr |self|: ZZ32 = |(self.g)|
+    opr[i:I] : E = self.g[i]
+    opr[r:Range[\I\]] : Indexed[\E,I\] = (self.g)[r].reverse
+
+    ivmap[\R\](f:(I,E)->R): Indexed[\R, I\] = self.g.ivmap[\R\](f).reverse
+    map[\R\](f:E->R): Indexed[\R, I\] = self.g.map[\R\](f).reverse
+
+    indexOf(e:E): Maybe[\I\] = self.g.indexOf(e)
+end
+
+object SimpleReversedIndexed[\E,I\](g0:Indexed[\E,I\]) extends ReversedIndexed[\E,I\]
+    getter g():Indexed[\E,I\] = g0
+    getter asString(): String = "SimpleReversedIndexed(" self.g.asString ")"
+end
+
+(** Helper for serializing generators naively.  This code should make
+ *  obvious that naive seq is *VERY INEFFICIENT*.  It
+ *  constructs a function closure whose size is proportional to
+ *  %|g|%, and then executes that closure.  This trick is old hat
+ *  to lambda-calculus wonks, but pretty unfamiliar to the common man.
+ *
+ *  Basically each element takes in the accumulated value a from the element
+ *  to its left.  This is joined with the result of mapping on the
+ *  current element value, and that result is returned.  Join simply
+ *  reverse-composes the functions for its subtrees, so the output of the left
+ *  subtree is fed to the right subtree.
+ *
+ *  Note that a similar trick can be used to reverse and sequentialize
+ *  a generator (use forward function composition rather than reverse
+ *  composition, and flipping around the join at the leaves). *)
+object NaiveSeqGenerator[\E\](g: Generator[\E\])
+        extends SequentialGenerator[\E\]
+    getter size() = |g|
+    getter asString():String = "naive seq(" g.asString ")"
+    opr |self| : ZZ32 = |g|
+    generate[\R\](r: Reduction[\R\], m:E->R): R = do
+      rcompose(f:R->R, f':R->R): R->R = fn (x:R):R => f'(f(x))
+      id(x:R):R = x
+      mp(x:E):R->R = fn (a:R):R => r.join(a,m(x))
+      f : R -> R = g.mapReduce[\R->R\](mp,rcompose,id)
+      mt : R = r.empty()
+      f mt
+    end
+end
+
+(************************************************************
+* Ranges
+************************************************************)
+
+(** Ranges in general represent uses of the # and : operators.
+    It's mostly subtypes of Range that are interesting.
+
+    The partial order on ranges describes containment:
+      a < b iff all points in a are strictly contained in b.
+ **)
+trait Range[\I\] extends { StandardPartialOrder[\Range[\I\]\], Contains[\I\] }
+        excludes Number (* Important or the strided factories can't overload! *)
+    getter stride(): I
+    getter left(): Maybe[\I\]
+    getter right(): Maybe[\I\]
+    getter extent(): Maybe[\I\]
+    getter isLeftBounded(): Boolean = self.left.holds
+    getter isAnyBounded(): Boolean = self.left.holds OR self.right.holds
+    truncL(l:I): RangeWithLeft[\I\]
+    truncR(r:I): RangeWithRight[\I\] = self.flip().truncL(r).flip()
+    flip(): Range[\I\]
+    forward(): Range[\I\]
+    every(s:I): Range[\I\]
+    imposeStride(s:I): Range[\I\]
+    atMost(n:I): Range[\I\]
+    opr INTERSECTION(self, other: Range[\I\]): Range[\I\]
+
+    (** %narrowToRange% is used to bounds check indexing by ranges.
+        It is assumed that %self% describes the bounds of some object;
+        %narrowToRange% yields the subset of this index space that lie
+        in %other%.  Unlike %INTERSECTION%, %narrowToRange% signals an
+        error if the result is empty, neither argument is, and:
+          * The minimum bound of %other% is less than the minimum
+            bound of %self%.
+          * The maximum bound of %other% is greater than the maximum
+            bound of %self%.
+
+        In previous versions of Fortress ranges we did more vigorous
+        checking, but this proved to be merely annoying (preventing or
+        requiring special kludges for eg. indexing with a lower bound
+        past the end of a collection to obtain the empty collection).
+
+     *)
+    narrowToRange(other:Range[\I\]): Range[\I\] =
+        checkSelection[\Range[\I\], I\](self, other, self INTERSECTION other)
+    narrowToRange(other:OpenRange[\I\]): Range[\I\] = self INTERSECTION other
+    opr =(self, b:Range[\I\]): Boolean = false
+    opr IN(n:I, self): Boolean
+    opr CMP(self, other:Range[\I\]): Comparison =
+        ((self.stride SCMP other.stride) SYMMETRIC_PARTIAL:
+         (self.forward() FORWARD_CMP other.forward()))
+    opr FORWARD_CMP(self, other:Range[\I\]): Comparison
+    check(): Range[\I\]
+    abstract shiftLeft(shift: I): Range[\I\] (* ensures { |outcome| = |self| } *)
+    abstract shiftRight(shift: I): Range[\I\] (* ensures { |outcome| = |self| } *)
+    opr << (self, shift: I): Range[\I\] = self.shiftLeft(shift)
+    opr >> (self, shift: I): Range[\I\] = self.shiftRight(shift)
+end
+
+trait PartialRange[\I\] extends Range[\I\] end
+
+trait OpenRange[\I\] extends PartialRange[\I\]
+    getter left(): Nothing[\I\] = Nothing[\I\]
+    getter right(): Nothing[\I\] = Nothing[\I\]
+    getter extent(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    narrowToRange(other:OpenRange[\I\]): OpenRange[\I\] = self INTERSECTION other
+    opr FORWARD_CMP(self, other:OpenRange[\I\]): Comparison = EqualTo
+    opr FORWARD_CMP(self, other:Range[\I\]): Comparison = GreaterThan
+    opr IN(n:I, self): Boolean = true
+    forward(): OpenRange[\I\]
+    shiftLeft(shift: I): OpenRange[\I\] = self
+    shiftRight(shift: I): OpenRange[\I\] = self
+end
+
+object TrivialOpenRange extends OpenRange[\Any\]
+    getter asString(): String = ":"
+    getter asDebugString(): String = "TrivialOpenRange()"
+    getter stride(): () = ()
+    truncL(x:Any): RangeWithLeft[\Any\] = (x#)
+    truncR(x:Any): RangeWithRight[\Any\] = (:x)
+    flip(): TrivialOpenRange = self
+    forward(): TrivialOpenRange = self
+    every(x:Any): OpenRange[\Any\] = (::x)
+    imposeStride(x:Any): OpenRange[\Any\] = (::x)
+    atMost(k:Any): RangeWithExtent[\Any\] = (#k)
+    opr INTERSECTION(self, other:Range[\Any\]): Range[\Any\] = other
+    opr =(self, other:Range[\Any\]): Boolean = instanceOf[\TrivialOpenRange\](other)
+    opr IN(_:Any, self): Boolean = true
+    check(): TrivialOpenRange = self
+end
+
+trait RangeWithExtent[\I\] extends Range[\I\]
+    getter extent(): Just[\I\]
+end
+
+trait ExtentRange[\I\] extends { RangeWithExtent[\I\], PartialRange[\I\] }
+    getter left(): Nothing[\I\] = Nothing[\I\]
+    getter right(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    opr IN(n:I, self): Boolean = true
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
+        if ext <- other.extent then
+            ((self.extent.get PCMP ext) SYMMETRIC_PARTIAL:
+             (if other.left.holds then GreaterThan else EqualTo end))
+        elif other.left.holds OR other.right.holds then
+            Unordered
+        else
+            LessThan
+        end
+(* This signature is more specific, but troublesome:
+    opr INTERSECTION(self, other: Range[\I\]): RangeWithExtent[\I\]
+*)
+end
+
+trait BoundedRange[\I\] extends Range[\I\]
+    getter leftOrRight(): I
+    every(s:I): BoundedRange[\I\]
+    atMost(n:I): FullRange[\I\]
+    opr INTERSECTION(self, other: Range[\I\]): BoundedRange[\I\]
+    narrowToRange(other:OpenRange[\I\]): BoundedRange[\I\] = self INTERSECTION other
+    narrowToRange(other:Range[\I\]): BoundedRange[\I\] =
+        checkSelection[\BoundedRange[\I\], I\](self, other, self INTERSECTION other)
+end
+
+trait RangeWithLeft[\I\] extends BoundedRange[\I\]
+    getter left(): Just[\I\]
+    getter leftOrRight(): I = self.left.get
+end
+
+trait LeftRange[\I\] extends { RangeWithLeft[\I\], PartialRange[\I\] }
+    getter right(): Nothing[\I\] = Nothing[\I\]
+    getter extent(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
+        if l <- other.left then
+            sl = self.left.get
+            typecase sl PCMP l of
+                Unordered => Unordered
+                LessThan => GreaterThan
+                EqualTo => if other.right.holds then GreaterThan else EqualTo end
+                GreaterThan => if other.right.holds then Unordered else LessThan end
+            end
+        elif other.right.holds OR other.extent.holds then
+            Unordered
+        else
+            LessThan
+        end
+end
+
+trait RangeWithRight[\I\] extends BoundedRange[\I\]
+    getter right(): Just[\I\]
+end
+
+trait RightRange[\I\] extends { RangeWithRight[\I\], PartialRange[\I\] }
+    getter left(): Nothing[\I\] = Nothing[\I\]
+    getter leftOrRight(): Just[\I\] = self.right.get
+    getter extent(): Nothing[\I\] = Nothing[\I\]
+    getter isEmpty(): Boolean = false
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison =
+        if r <- other.right then
+            sr = self.right.get
+            typecase sr PCMP r of
+                Unordered => Unordered
+                LessThan => if other.left.holds then Unordered else LessThan end
+                EqualTo => if other.left.holds then GreaterThan else EqualTo end
+                GreaterThan => GreaterThan
+            end
+        elif other.left.holds OR other.extent.holds then
+            Unordered
+        else
+            LessThan
+        end
+end
+
+trait FullRange[\I\] extends { RangeWithLeft[\I\], RangeWithRight[\I\], RangeWithExtent[\I\], Indexed[\I,I\] }
+    getter extent(): Just[\I\]
+    narrowToRange(other:OpenRange[\I\]): FullRange[\I\] = self INTERSECTION other
+    narrowToRange(other:Range[\I\]): FullRange[\I\] = do
+        r = self INTERSECTION other
+        typecase r of
+            r':FullRange[\I\] => checkSelection[\FullRange[\I\], I\](self, other, r')
+            else => fail("Library error: FullRange INTERSECTION didn't yield FullRange")
+        end
+    end
+    opr FORWARD_CMP(self, other: Range[\I\]): Comparison = INVERSE (other FORWARD_CMP self)
+    opr FORWARD_CMP(self, other: FullRange[\I\]): Comparison =
+        ((other.left.get PCMP self.left.get) SYMMETRIC_PARTIAL:
+         (self.right.get PCMP other.right.get))
+end
+
+trait CompactFullRange[\I\] extends FullRange[\I\]
+    getter lower(): I = self.left.get
+    getter upper(): I = self.right.get
+    opr |self| : ZZ32 = do
+      (l, u) = (self.lower, self.upper)
+      typecase l of
+        l':ZZ32 => 0 MAX ((u - l') + 1)
+        l':(ZZ32, ZZ32) => do (l1, l2) = l'; (u1, u2) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) end
+        l':(ZZ32, ZZ32, ZZ32) => do (l1, l2, l3) = l'; (u1, u2, u3) = u; (0 MAX ((u1 - l1) + 1)) (0 MAX ((u2 - l2) + 1)) (0 MAX ((u3 - l3) + 1)) end
+      end
+    end
+    forward(): CompactFullRange[\I\] = self
+end
+
+trait StridedFullRange[\I\] extends FullRange[\I\] end
+
+(** The # and : operators serve as factories for parallel ranges. **)
+opr #[\I extends AnyIntegral\](lo:I, ex:I): CompactFullParScalarRange[\I\] = sized1Range(0 asif ZZ32,lo,ex)
+opr #[\I extends AnyIntegral, J extends AnyIntegral\]
+     (lo:(I,J), ex:(I,J)): CompactFullRange2D[\I,J\] =
+    do (l1,l2)=lo; (x1,x2)=ex; sized2Range(0 asif ZZ32,0 asif ZZ32,l1,l2,x1,x2) end
+opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+     (lo:(I,J,K), ex:(I,J,K)): CompactFullRange3D[\I,J,K\] =
+    do (l1,l2,l3)=lo; (x1,x2,x3)=ex
+       sized3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32,l1,l2,l3,x1,x2,x3)
+    end
+
+opr :[\I extends AnyIntegral\](lo:I, hi:I): CompactFullParScalarRange[\I\] =
+        bounded1Range(0 asif ZZ32,lo,hi)
+opr :[\I extends AnyIntegral, J extends AnyIntegral\]
+     (lo:(I,J), hi:(I,J)): CompactFullRange2D[\I,J\] =
+    do (l1,l2)=lo; (h1,h2)=hi; bounded2Range(0 asif ZZ32,0 asif ZZ32,l1,l2,h1,h2) end
+opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+     (lo:(I,J,K), hi:(I,J,K)): CompactFullRange3D[\I,J,K\] = do
+    (l1,l2,l3)=lo; (h1,h2,h3)=hi
+    bounded3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32,l1,l2,l3,h1,h2,h3)
+  end
+
+(** Factories for incomplete ranges **)
+opr (x:I)#[\I extends AnyIntegral\] : LeftRange[\I\] = left1Range(0 asif ZZ32, x)
+opr (p:(I,J))#[\I extends AnyIntegral, J extends AnyIntegral\] : LeftRange[\(I,J)\] = do
+    (x, y) = p
+    left2Range(0 asif ZZ32,0 asif ZZ32, x,y)
+  end
+opr (t:(I,J,K))#[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\] :
+         LeftRange[\(I,J,K)\] = do
+    (x, y, z) = t
+    left3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z)
+  end
+
+opr (x:I):[\I\] : LeftRange[\I\] = x#
+
+opr #[\I extends AnyIntegral\](x:I) : ExtentRange[\I\] = extent1Range(0 asif ZZ32, x)
+opr #[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : ExtentRange[\(I,J)\] =
+    do (x,y) = xy; extent2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
+opr #[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
+         ExtentRange[\(I,J,K)\] =
+    do (x,y,z) = xyz; extent3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
+
+opr :[\I extends AnyIntegral\](x:I) : RightRange[\I\] = right1Range(0 asif ZZ32, x)
+opr :[\I extends AnyIntegral, J extends AnyIntegral\](xy:(I,J)) : RightRange[\(I,J)\] =
+    do (x,y) = xy; right2Range(0 asif ZZ32,0 asif ZZ32, x,y) end
+opr :[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\](xyz:(I,J,K)) :
+         RightRange[\(I,J,K)\] =
+    do (x,y,z) = xyz; right3Range(0 asif ZZ32,0 asif ZZ32,0 asif ZZ32, x,y,z) end
+
+(* Actually want for above:
+opr (x:I)#[\I\] : LeftRange[\I\] = LeftRange[\I\](x)
+opr (x:I):[\I\] : LeftRange[\I\] = LeftRange[\I\](x)
+opr #[\I\](x:I) : ExtentRange[\I\] = ExtentRange[\I\](x)
+opr :[\I\](x:I) : RightRange[\I\] = RightRange[\I\](x)
+*)
+
+opr #() : TrivialOpenRange = TrivialOpenRange
+opr :() : TrivialOpenRange = TrivialOpenRange
+openRange[\I\](): OpenRange[\I\] = openRangeHelper( __thrower[\I\] )
+
+(** Factories for bare strided ranges.
+
+    The :: operator is used to construct strided ranges with information missing:
+    A:: is equivalent to A: or A#.
+    ::S takes every S'th element.
+    A::S is a range open to the right, starting with A and striding by S.
+
+*)
+
+opr (l:I)::[\I\] : LeftRange[\I\] = l#
+
+opr ::[\I extends AnyIntegral\](s:I) : OpenRange[\I\] = open1Range(0 asif ZZ32, s)
+opr ::[\I extends AnyIntegral, J extends AnyIntegral\](ij:(I,J)) : OpenRange[\(I,J)\] =
+    do (i,j) = ij; open2Range(0 asif ZZ32, 0 asif ZZ32, i,j) end
+opr ::[\I extends AnyIntegral, J extends AnyIntegral, K extends AnyIntegral\]
+      (ijk:(I,J,K)) : OpenRange[\(I,J,K)\] =
+    do (i,j,k) = ijk; open3Range(0 asif ZZ32, 0 asif ZZ32, 0 asif ZZ32, i,j,k) end
+
+opr ::[\I\](l:I,s:I): LeftRange[\I\] = (l:):s
+
+(** Operators on ranges.
+
+    Most of these build on an existing range; however, due to operator
+    associativity we can't always handle every case gracefully.  Here
+    are fully-parenthesized versions of tight uses of the range
+    construction operators.  We indicate which ones are handled:
+
+((A:B):C)
+((A#B):C)
+((:A):B)
+((#A):B)
+((::A):B)
+   All impose striding on the left-hand range.  Note that in the case
+   of A#B and #B this will in general *decrease* the size of the
+   range.  You might want to actually write (A::B)#C, with the
+   parentheses, if that's not what you want.
+
+(A:(B#C))  For now we reject this.
+(A:(B:))   Don't use these, just write A:B instead.
+(A:(B#))
+(A:(B::))
+
+((A#B)#C)  Reject for now.
+((:A)#B)   The remaining 3 are sized ranges specifying an upper bound.
+((#A)#B)
+((::A)#B)
+
+(A#(B:))   Use A#B instead.
+(A#(B#))
+(A#(B::))
+
+The following are rejected at present:
+((A::B)::C)
+((A#B)::C)
+((A:B)::C)
+((:A)::B)
+((#A)::B)
+((::A)::B)
+
+(A::(B#C))
+    Note that you probably wanted (A::B)#C (C elements, starting
+    from A and striding by B).  For the moment, parenthesize this.
+    In this form we can't distinguish it from the next line, and
+    the two should behave differently when written A::B#C and A::B:C.
+(A::(B:C))
+(A::(B:))
+(A::(B#))
+(A::(B::))
+
+*)
+
+opr :[\I\](r: Range[\I\], stride:I): Range[\I\] = r.imposeStride(stride)
+(* This doesn't obey the subtyping rule due to the genericity involved!
+opr :[\I\](r: FullRange[\I\], stride:I): FullRange[\I\] = r.imposeStride(stride)
+*)
+
+opr #[\I\](r: PartialRange[\I\], size:I): Range[\I\] = r.atMost(size)
+
+(************************************************************
+* STRINGS
+************************************************************)
+
+trait String extends { StandardTotalOrder[\String\], ZeroIndexed[\Char\], DelegatedIndexed[\Char,ZZ32\] }
+             excludes {Number, Char, AnyMultiplicativeRing, AnyList}
+    getter size() : ZZ32
+    getter asString() : String = self
+    getter indices() : CompactFullRange[\ZZ32\] = self.bounds
+
+    getter left(): Maybe[\Char\] = if |self| = 0 then Nothing[\Char\] else self.get(0) end
+    getter right(): Maybe[\Char\] = if |self| = 0 then Nothing[\Char\] else self.get(self.size-1) end
+
+    (* This is the "dumb" generator.  It always works, but can be "Big O" inefficient, e.g., for
+       CatString trees.  Sub-traits should override it with equivalent but more efficient code. *)
+    getter generator() : Generator[\Char\] =
+        self.indices.map[\Char\](fn (i:ZZ32):Char => self[i])
+    getter asFlatString(): String
+
+    opr |self| : ZZ32 = self.size
+
+    opr CASE_INSENSITIVE_CMP(self, other:String): TotalComparison =
+      ((BIG LEXICO[i <- 0#(|self| MIN |other|) ] self.get(i) CASE_INSENSITIVE_CMP other.get(i)) LEXICO (|self| CMP |other|))
+
+    opr CMP(self, other:String): TotalComparison =
+      ((BIG LEXICO[i <- 0#(|self| MIN |other|) ] self.get(i) CMP other.get(i)) LEXICO (|self| CMP |other|))
+
+    opr [i:ZZ32]: Char =
+        (** As a convenience, we permit LeftRange indexing to go 1 past the bounds
+        of the String, returning the empty String, in order to permit some convenient
+        String-trimming idioms. **)
+        if 0 <= i < |self|
+        then self.get(i)
+        else
+            (* errorPrintln "Index " i " not in bounds " self.bounds *)
+            throw IndexOutOfBounds[\ZZ32\](self.bounds,i)
+        end
+
+    opr[r0:Range[\ZZ32\]] : String =  do
+        r1 = self.bounds[r0]     (* This will complete r0 if it is incomplete, and throw a bounds exception when necessary *)
+        self.uncheckedSubstring(r1)
+    end
+
+    uncheckedSubstring(r0: Range[\ZZ32\]) : String
+    allButLast(): String = self[0#(|self| - 1)]
+    allButFirst(): String = self[1:]
+
+    opr ^(self, n: ZZ32): String =
+      if n <= 1 then
+        if n=1 then self elif n=0 then "" else throw NegativeLength end
+      else
+        x = (self || self)^(n DIV 2)
+        if odd n then x || self else x end
+      end
+
+    upto(c: Char): String =
+      if c IN self then
+        n = BIG MIN[i <- self.indices, self[i]=c] i
+        self[ 0#n ]
+      else self end
+
+    beyond(c: Char): String =
+      if c IN self then
+        n = BIG MIN[i <- self.indices, self[i]=c] i
+        self[ (n+1): ]
+      else "" end
+
+    (** The operator %||% with at least one String argument converts
+        to String and concatenates **)
+    opr ||(self, b:String):String
+    opr ||(self, b:Number):String = self || b.asString
+    opr ||(self, c:Char):String
+    opr ||(self, b:()):String = self || "()"
+    opr ||(self, b:(Any,Any)):String = do (i,j) = b; self || "(" || i || "," j || ")" end
+    opr ||(self, b:(Any,Any,Any)):String =
+        do (i,j,k) = b; self || "(" || i || "," j || "," k || ")" end
+    opr ||(self, b:(Any,Any,Any,Any)):String =
+        do (i,j,k,l) = b; self || "(" || i || "," j || "," k || "," l || ")" end
+    opr ||(self, b:(Any,Any,Any,Any,Any)):String =
+        do (i,j,k,l,m) = b; self || "(" || i || "," j || "," k || "," l || "," m || ")" end
+    opr ||(self, b:(Any,Any,Any,Any,Any,Any)):String =
+        do (i,j,k,l,m,n) = b; self || "(" || i || "," j || "," k || "," l || "," m || "," n || ")" end
+    opr ||(a:Any, self):String = a.asString || self
+    opr ||(self, b:Any):String = self || b.asString
+
+    (** The operator %|||% with at least one String argument converts to string,
+        then appends with a whitespace separator unless one of the two arguments is
+        empty.  If there is an empty argument, the other argument is returned. **)
+    opr |||(self, b:String): String =
+        if |self| = 0 then b
+        elif |b| = 0 then self
+        else self || " " || b
+        end
+    opr |||(self, b:Any): String = self ||| (""||b)
+    opr |||(a:Any, self): String = (""||a) ||| self
+
+    (** Right now for backward compatibility juxtaposition works like %||% **)
+    opr juxtaposition(a:Any, self):String = (""||a) || self
+    opr juxtaposition(self, b:String):String = self || b
+    opr juxtaposition(self, b:Any):String = self || b
+
+    (** opr %//% appends a single line separator.  Note that as
+        with %||% and %|||% at least one argument must be a String.
+        There is a postfix version defined as a top-level operator in
+        FortressLibrary that performs string conversion, but the prefix
+         version must occur before a String. **)
+    opr //(self) : String = newline || self
+    opr //(self, a:String): String = self || newline || a
+    opr //(self, a:Any): String    = self || newline || a
+    opr //(a:Any, self): String    = a || newline || self
+
+    (** opr %///% appends a double line separator.  Note that, as
+        with %||% and %|||%, at least one argument must be a String.
+        There is a postfix version defined as a top-level operator in
+        FortressLibrary that performs string conversion, but the prefix
+         version must occur before a String. **)
+    opr ///(self) : String = doubleNewline || self
+    opr ///(self, a:String): String = self || doubleNewline || a
+    opr ///(self, a:Any): String    = self || doubleNewline || a
+    opr ///(a:Any, self): String    = a || doubleNewline || self
+
+    abstract writeOn(s: WriteStream): ()
+
+    stats(): StringStats = do
+        ss = StringStats()
+        ss.collectStatsFor(self)
+        ss
+    end
+
+    (* Python-style join operator *)
+    join[\E\](g:Generator[\E\]):String = g.generate[\Maybe[\String\]\](StringJoinReduction(self), fn(x:E):Maybe[\String\] => Just[\String\]("" x)).getDefault("")
+
+  end String
+
+(* Concatenates arguments with the given separator *)
+object StringJoinReduction(s:String) extends Reduction[\Maybe[\String\]\]
+    getter asString():String = "StringJoinReduction(" s ")"
+    empty():Maybe[\String\] = Nothing[\String\]
+    join(a:Maybe[\String\], b:Maybe[\String\]):Maybe[\String\] = do
+        if x <- a then
+            if y <- b then
+                Just[\String\](x || s || y)
+            else
+                a
+            end
+        else
+            b
+        end
+    end
+end
+
+reverse(sequence:String):String = BIG || [c<-sequence.reverse()] c
+
+(***********************************************************
+* Numeric primitives
+************************************************************)
+
+nanoTime():ZZ64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Long$NanoTime")
+printTaskTrace():() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintTaskTrace")
+
+__globalTimeInformation: ZZ64 := 0
+recordTime(dummy: Any): () = do __globalTimeInformation := nanoTime() end
+printTime(dummy: Any): () = do
+    r = nanoTime()
+    e = r - __globalTimeInformation
+    __globalTimeInformation := r
+    secs: ZZ64 = (e+500000) DIV 1000000
+    println("Operation took " secs "ms")
+  end
+
+fromRawBits(a:ZZ64):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$FromRawBits")
+
+random(a:Number):RR64 = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Float$Random")
+randomZZ32(x:ZZ32):ZZ32 = narrow |\random(x)/|
+
+char(a:ZZ32):Char = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.Char$Chr")
+
+(* First the ones that do the work *)
+print(a: String):() = do stdOut.write(a); stdOut.flush() end
+println(a: String): () = do stdOut.write(a || newline); stdOut.flush() end
+errorPrint(a: String):() = do stdErr.write(a); stdErr.flush() end
+errorPrintln(a: String): () = do stdErr.write(a || newline); stdErr.flush() end
+
+print(a:Any):() = print("" a)           (* These use concatenation rather than .asString because the formulation *)
+println(a:Any):() = println("" a)     (* with concat also works for tuples *)
+errorPrint(a:Any):() = errorPrint("" a)           (* These use concatenation rather than .asString because the formulation *)
+errorPrintln(a:Any):() = errorPrintln("" a)     (* with concat also works for tuples *)
+
+(* 0-argument versions handle passing of the empty string to single-argument versions. *)
+print():() = print("")
+println():() = println("")
+errorPrint():() = errorPrint("")
+errorPrintln():() = errorPrintln("")
+
+forDigit(x:ZZ32, radix:ZZ32): Maybe[\Char\] =
+    if (radix<2 OR radix>16 OR x<0 OR x>=radix) then
+        Nothing[\Char\]
+    elif (radix <= 12) then
+        forDigit(x, "0123456789xe")
+    else
+        forDigit(x, "0123456789abcdef")
+    end
+
+forDigit(x:ZZ32, radixString:String): Maybe[\Char\] =
+    if( 0 <= x < |radixString| ) then
+        Just[\Char\](radixString[x])
+    else
+        Nothing[\Char\]
+    end
+
+
+(** Convert string to arbitrary integral type.  String may contain
+    leading - or +.  Valid radixes are 2,8,10,12, and 16.  No spaces
+    may occur in the string, and it must have at least one digit.
+
+    Right now we're oblivious to overflow!  This ought to be fixed.
+
+    This ought to support arbitrary integer types, but right now
+    there's no clean way to convert all the arithmetic to use a
+    provided type without having an instance of that type in hand.
+    Unsigned types in particular are a bit sticky.
+ **)
+strToInt(s: String, radix: ZZ32): ZZ32 = do
+    if |s| = 0 then fail("strToInt of empty string") end
+    (i0, neg) =
+        if s[0] = '-' then (1, true)
+        elif s[0] = '+' then (1, false)
+        else (0,false) end
+    n = |s| - 1
+    r = SUM[ i <- i0:n] if d <- digit(s[i], radix) then
+                          d radix^(n-i)
+                      else
+                          fail("strToInt(" s.asString "," radix "): non-digit " s[i].asString)
+                      end
+    if neg then -r else r end
+  end
+
+(** Radix-10 digit conversion.  All caveats of the flexible-radix conversion above apply. *)
+strToInt(s: String): ZZ32 = strToInt(s,10)
+
+
+strToFloat(s: String): RR64 = do   (*) Quick and dirty implementation
+  intpart = s.upto('.')
+  frac = s.beyond('.')
+  both = intpart || frac
+  1.0 (SUM[k <- 0 # |both|] 10^k (both[|both| - 1 - k].codePoint - '0'.codePoint))/(10^(|frac|))
+end
+
+
+
+match(regex:FlatString,some:FlatString):Boolean = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$Match")
+
+(** postfix %//% appends a single line separator.  The postfix version
+    performs implicit conversion to String, which is why it's a
+    standalone top-level function.  Infix and prefix versions are defined by String. **)
+opr (x:Any)// : String = x || newline
+
+(** postfix %///% appends a double line separator.  The postfix version
+    performs implicit conversion to String, which is why it's a
+    standalone top-level function.  Infix and prefix versions are defined by String. **)
+opr (x:Any)/// : String = x || doubleNewline
+
+(* These are useful temporary hacks for debugging multi-threaded programs *)
+printThreadInfo(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
+printThreadInfo(a:Number):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintThreadInfo")
+
+printWithThread(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintWithThread")
+printlnWithThread(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$PrintlnWithThread")
+
+(* time to get rid of this:
+throwError(a:String):() = builtinPrimitive("com.sun.fortress.interpreter.glue.prim.StringPrim$ThrowError")
+*)
+
+opr SEQV(a:Any, b:Any):Boolean =
+    builtinPrimitive("com.sun.fortress.interpreter.glue.prim.AnyPrim$SEquiv")
+
+opr XOR(a:Boolean, b:Boolean):Boolean = if a then NOT b else b end
+opr OR(a:Boolean, b:Boolean):Boolean = if a then true else b end
+opr AND(a:Boolean, b:Boolean):Boolean = if a then b else false end
+opr OR(a:Boolean, b:()->Boolean):Boolean = if a then true else b() end
+opr AND(a:Boolean, b:()->Boolean):Boolean = if a then b() else false end
+opr NOT(a:Boolean):Boolean = if a then false else true end
+opr ->(a: Boolean, b:Boolean):Boolean = if a then b else true end
+opr ->(a: Boolean, b:()->Boolean):Boolean = if a then b() else true end
+opr <->(a: Boolean, b:Boolean):Boolean = a=b
+
+(*)true : Boolean = () SEQV ()
+(*)false : Boolean = true SEQV ()
+
+opr +[\T extends Number\](x:T):T = x
+
+(* Shouldn't these operators have to extend something? A,B,C? *)
+
+opr =[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
+    (a1,b1) = t1
+    (a2,b2) = t2
+    (a1=a2) AND: (b1=b2)
+  end
+
+opr <[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
+    (a1,b1) = t1
+    (a2,b2) = t2
+    typecase a1 CMP a2 of
+        LessThan => true
+        EqualTo => b1 < b2
+        GreaterThan => false
+    end
+  end
+
+opr <=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
+    (a1,b1) = t1
+    (a2,b2) = t2
+    typecase a1 CMP a2 of
+        LessThan => true
+        EqualTo => b1 <= b2
+        GreaterThan => false
+    end
+  end
+
+opr >[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
+    (a1,b1) = t1
+    (a2,b2) = t2
+    typecase a1 CMP a2 of
+        LessThan => false
+        EqualTo => b1 > b2
+        GreaterThan => true
+    end
+  end
+
+opr >=[\A,B\](t1:(A,B), t2:(A,B)): Boolean = do
+    (a1,b1) = t1
+    (a2,b2) = t2
+    typecase a1 CMP a2 of
+        LessThan => false
+        EqualTo => b1 >= b2
+        GreaterThan => true
+    end
+  end
+
+opr CMP[\A,B\](t1:(A,B), t2:(A,B)): Comparison = do
+    (a1,b1) = t1
+    (a2,b2) = t2
+    (a1 CMP a2) LEXICO: (b1 CMP b2)
+  end
+
+opr =[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
+    (a1,b1,c1) = t1
+    (a2,b2,c2) = t2
+    (a1=a2) AND: (b1=b2) AND: (c1=c2)
+  end
+
+opr <[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
+    (a1,b1,c1) = t1
+    (a2,b2,c2) = t2
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => true
+        EqualTo => c1 < c2
+        GreaterThan => false
+    end
+  end
+
+opr <=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
+    (a1,b1,c1) = t1
+    (a2,b2,c2) = t2
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => true
+        EqualTo => c1 <= c2
+        GreaterThan => false
+    end
+  end
+
+opr >[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
+    (a1,b1,c1) = t1
+    (a2,b2,c2) = t2
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => false
+        EqualTo => c1 > c2
+        GreaterThan => true
+    end
+  end
+
+opr >=[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Boolean = do
+    (a1,b1,c1) = t1
+    (a2,b2,c2) = t2
+    typecase (a1 CMP a2) LEXICO: (b1 CMP b2) of
+        LessThan => false
+        EqualTo => c1 >= c2
+        GreaterThan => true
+    end
+  end
+
+opr CMP[\A,B,C\](t1:(A,B,C), t2:(A,B,C)): Comparison = do
+    (a1,b1,c1) = t1
+    (a2,b2,c2) = t2
+    (a1 CMP a2) LEXICO: (b1 CMP b2) LEXICO: (c1 CMP c2)
+  end
+
+object Box[\T\](var val : T)
+end
+
+
+
+(*--------------- for Generators-of-Generators ---------------*)
+(*--- for turning on/off dispatching in GGs ---------------*)
+var enableDispatching : Boolean := true
+switchDispatching(r : Boolean) : () = enableDispatching := r
+dispatchingEnabled() : Boolean = enableDispatching
+
+
+(*--- base traits of Generators-of-Generators ---------------*)
+trait SomeGenerator2 end  (* marking for GG *)
+
+(* non-filtered GG *)
+trait Generator2[\ E \]
+  extends {Generator[\ Generator[\ E \] \], SomeGenerator2}
+  getter seed() : Generator[\ E \]
+
+  generate2[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = do
+    ths = theorems[\ R, L1, L2 \]()
+    i : ZZ32 := 0
+    label dispatchingLoop
+    while dispatchingEnabled() AND i < |ths| do
+      (condition, efficientImpl) = ths[i]
+      if(condition(q, r, f)) then
+        (* println("use efficient implementaion") *)
+        exit dispatchingLoop with efficientImpl(q, r, f)
+      end
+      i += 1
+    end
+    (* println("use naive implementaion") *)
+    naiveImpl[\ R, L1, L2 \](q, r, f)
+    end dispatchingLoop
+  end
+
+  naiveImpl[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = q.unlift(generate[\L1\](q, (fn (x) => q.lift(r.unlift(x.generate[\L2\](r,fn a => r.lift(f(a))))))))
+
+  theorems[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L1 \], E -> R)->R)\] = <| |>
+
+
+  naiveImplFiltered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p : Generator[\E\] -> Condition[\()\], f : E -> R) : R = q.unlift(generate[\L1\](q, (fn (x) => if (p(x)).holds() then q.lift(r.unlift(x.generate[\L2\](r, fn a => r.lift(f(a))))) else q.empty() end)))
+
+  (* this is just for internal use *)
+  __generate2filtered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p : Generator[\E\] -> Condition[\()\], f : E -> R) : R = do
+    ths = theoremsFiltered[\ R, L1, L2 \]()
+    i : ZZ32 := 0
+    label dispatchingLoop
+    while dispatchingEnabled() AND i < |ths| do
+      (condition, efficientImpl) = ths[i]
+      if(condition(q, r, p, f)) then
+        (* println("use efficient implementaion") *)
+        exit dispatchingLoop with efficientImpl(q, r, p, f)
+      end
+      i += 1
+    end
+    (* println("use naive implementaion") *)
+    naiveImplFiltered[\ R, L1, L2 \](q, r, p, f)
+    end dispatchingLoop
+  end
+
+
+  theoremsFiltered[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->R)\] = <| |>
+
+
+  filter(p: Generator[\ E \] -> Condition[\()\]): Generator2[\E\] =
+        SimpleFilterGenerator2[\E\](self, p)
+end
+
+(* filtered GG *)
+trait FilterGenerator2[\ E \]
+  extends { Generator2[\ E \], FilterGenerator[\ Generator[\ E \] \] }
+  filter(p': Generator[\ E \] -> Condition[\()\]): SimpleFilterGenerator2[\E\] =
+  SimpleFilterGenerator2[\E\](self.g, self.p ANDCOND p')
+  generate2[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], f : E -> R) : R = self.g.__generate2filtered[\ R, L1, L2 \](q,r,self.p,f)
+  __generate2filtered[\ R, L1, L2 \](q : ActualReduction[\ R, L1 \], r : ActualReduction[\ R, L2 \], p' : Generator[\E\] -> Condition[\()\], f : E -> R) : R = self.g.__generate2filtered[\R, L1, L2\](q,r,self.p ANDCOND p',f)
+
+  theoremsFiltered[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], Generator[\E\] -> Condition[\()\], E -> R)->R)\] = self.g.theoremsFiltered[\R, L1, L2\]()
+
+  theorems[\R, L1, L2\]() : Generator[\((ActualReduction[\ R, L1 \], ActualReduction[\ R, L2 \], E -> R)->Boolean, (ActualReduction[\ R, L1 \], ActualReduction[\ R, L1 \], E -> R)->R)\] = self.g.theorems[\R\]()
+end
+
+(* object to hold predicates *)
+object SimpleFilterGenerator2[\E\](g0:Generator2[\E\], p0: Generator[\E\]->Condition[\()\])
+        extends FilterGenerator2[\E\]
+    getter g(): Generator2[\E\]       = g0
+    getter p(): Generator[\E\] -> Condition[\()\]  = p0
+    getter seed() : Generator[\ E \] = self.g.seed()
+end
+
+(*---------------------------Relational Predicates -------------------------*)
+(* base of relational predicates condition *)
+trait RelationalPredicateCondition[\E\] extends { Condition[\()\] } excludes Condition[\()\]
+  relation() : (E, E) -> Boolean
+  target() : Generator[\ E \]
+  cond[\G\](t: () -> G, e: () -> G) : G = do
+    (* println("condition is evaluated...") *)
+    x = target()
+    if x.size<=1 then
+      t()
+    else
+      sz = x.size - 1
+      res = (0#sz).generate[\Boolean\](AndReduction, fn i => relation()(x[i],x[i+1]))
+      if res then t() else e() end
+    end
+  end
+end
+
+(* condition returned by relational predicate *)
+object ConcreteRelationalPredicateCondition[\E\](r : (E, E) -> Boolean, x : Generator[\ E \]) extends RelationalPredicateCondition[\()\]
+  relation() : (E, E) -> Boolean = r
+  target() : Generator[\ E \] = x
+end
+
+(* combining two relational predicates into a new relational predicate *)
+opr ANDCOND[\E\](p : Generator[\ E \] -> RelationalPredicateCondition[\ E \] , q : Generator[\ E \] -> RelationalPredicateCondition[\ E \] ) : Generator[\ E \] -> Condition[\ () \] = (fn (x : Generator[\ E \]) : AndRelationalPredicateCondition[\ E \] => AndRelationalPredicateCondition[\ E \](p, q, x))
+
+(* Combined condition for relational predicates *)
+object AndRelationalPredicateCondition[\ E \](fst : Generator[\ E \] -> RelationalPredicateCondition[\ E \], snd : Generator[\ E \] -> RelationalPredicateCondition[\ E \], x : Generator[\ E \])
+  extends { RelationalPredicateCondition[\ E \] }
+  relation() : (E, E) -> Boolean = fn (a:E, b:E) => fst(x).relation()(a,b) AND: snd(x).relation()(a,b)
+  target() : Generator[\ E \] = x
+end
+
+(* Shortcut to create a relational predicate *)
+relationalPredicate[\E\](relation : (E, E) -> Boolean) : E -> RelationalPredicateCondition[\ E \] = fn (x : Generator[\ E \]) : RelationalPredicateCondition[\ E \] => ConcreteRelationalPredicateCondition[\E\](relation, x)
+
+
+(*) Some random stuff related to arrays and the MCKPE benchmark
+
+(*) For now, use a sequential implementation
+opr PREFIX_SUM(x: Array[\ZZ32,ZZ32\]): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- seq(1 # (|x| - 1)) do result[i] += result[i-1] end
+  result
+end
+
+(*) For now, use a sequential implementation
+opr SUFFIX_SUM(x: Array[\ZZ32,ZZ32\]): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- seq((|x| - 2):0:-1) do result[i] += result[i+1] end
+  result
+end
+
+opr +(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] += y end
+  result
+end
+
+opr -(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] -= y end
+  result
+end
+
+opr MIN(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] MIN= y end
+  result
+end
+
+opr MAX(x: Array[\ZZ32,ZZ32\], y: ZZ32): Array[\ZZ32,ZZ32\] = do
+  result = x.copy()
+  for i <- x.indices() do result[i] MAX= y end
+  result
+end
+
+
+end

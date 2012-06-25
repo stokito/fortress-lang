@@ -1,0 +1,54 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2012, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newsec{Blocks}{blocks}
+
+A block is a series of one or more declarations and expressions that are to be evaluated sequentially.
+A block is not in itself syntactically an expression, but appears as part of a `do` expression~\secref{do-also}, `label` expression~\secref{label-exit},
+`while` expression~\secref{while}, `for` expression~\secref{for}, `if` expression~\secref{if}, `case` expresion~\secref{case}, `typecase` expression~\secref{typecase},
+or `try` expression~\secref{try}.  For purposes of type-checking and evaluation, it may be regarded as an expression.
+
+
+%%%%% GRAMMAR %%%%%
+%Block
+%BlockElement
+%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%
+
+It is a static error if the last \NT{BlockElement} in a \NT{Block} is an expression of the form ````{`a=b`}''
+that cannot be regarded as a local declaration.
+It is a static error if any block element other than the last one is an expression whose type is not `()`.
+If the last block element of a block is a declaration, then the type of the block is `()`;
+if the last block element of a block is an expression, then the type of the block is the type of that expression.
+
+Every block introduces a new scope.  For the scoping behavior of local declarations within a block, see~\secref{localvardecls} and~\secref{localfndecls}.
+
+Not shown in the grammar is the fact that adjacent block elements may be separated by a semicolon ``;' if desired.
+This is necessary if the block elements appear in the same line of source code.
+If a newline occurs between two adjacent block elements, then no semicolon is necessary.
+
+A block is evaluated by evaluating its block elements sequentially, in order from left to right;
+evaluation of each block element must complete before evaluation of the next can begin.
+If evaluation of any block element completes abruptly for some reason,
+then evaluation of the block completes abruptly for the same reason,
+and no further block elements are evaluated.  If the evaluations of all block elements
+complete normally, then the value of the block is the value of the last block element.
+
+If it is desired to have, as a non-final block element, an expression `e` whose type is not `()`,
+one may instead write the local variable declaration `_=e`, thus signifying explicitly that
+the value of `e` is to be discarded (by binding an anonymous variable to the value).
+
+If it is desired to have, as a final block element, an equality test expression of the form `a=b`,
+simply enclose the expression in parentheses.
+
+Here is an example of a `do` expression that contains a single block having six block elements:
+
+\codesample{Block1}

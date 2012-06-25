@@ -1,0 +1,78 @@
+(*******************************************************************************
+    Copyright 2008,2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Xml
+
+  import FortressAst.{...}
+  import List.{...}
+
+  export Xml
+
+  trait Content
+    getter asString():String
+    hasElements():Boolean = false
+  end
+
+  object Element(info:Header, content_:List[\Content\], endTag:String) extends Content
+    getter asString():String = toXml()
+
+    toXml():String =
+      do
+        if info.startTag =/= endTag then
+          println "Tags dont match start '" info.startTag "' end '" endTag "'"
+        end
+        var s:String = "<" info.startTag (BIG || [x<-info.attributes] x) ">"
+        for x <- seq(content_) do
+          s := s (typecase x of
+                   x':Element => // x'.toXml()
+                   else => x.asString
+                  end)
+        end
+        s := s "</" endTag ">"
+        s
+      end
+
+    children():List[\Element\] =
+        content_.map[\Element\](fn x => cast[\Element\](x))
+
+    hasElements():Boolean = content_.isEmpty OR: (isElement(content_[0]))
+    content():CData = cast[\CData\](content_[0])
+    (*
+    hasElements():Boolean = false
+    *)
+
+    isElement(e):Boolean =
+        typecase e of
+            Element => true
+            else => false
+        end
+
+    tag():String = info.startTag
+
+    attributes():List[\Attribute\] = info.attributes
+  end
+  Element(info:Header) = Element(info, <|[\Content\] |>, info.startTag)
+  Element(info:Header, endTag:String) = Element(info, <|[\Content\] |>, endTag)
+
+  object Header(startTag:String, attributes:List[\Attribute\])
+  end
+
+  object Attribute(key:String, val:String)
+    getter getKey():String = key
+    getter getValue():String = val
+    getter asString():String = " " self.getKey "= '" ||  self.getValue || "'"
+  end
+
+  object CData(v:String) extends Content
+    getter asString():String = v
+  end
+
+end

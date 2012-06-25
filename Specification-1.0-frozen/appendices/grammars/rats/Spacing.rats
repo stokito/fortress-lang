@@ -1,0 +1,87 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{verbatim}
+EndOfFile  = "\u001a"? w !_
+
+Whitespace =
+     Space
+   / Newline
+Space      =
+     " "
+   / "\f"
+   / "&" s Whitespace
+   / InvalidSpace
+   / NoNewlineComment
+InvalidSpace =
+     <ErrorProduction1> ("\t" / "\u000b")
+   / <ErrorProduction2> ("\u001c" / "\u001d" / "\u001e" / "\u001f")
+Newline =
+     "\r\n" / "\r" !("\n") / "\n" / [\u2028\u2029]
+   / !("&") NewlineComment
+Comment =
+     "(*" CommentContents "*)"
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+
+NoNewlineComment =
+     "(*)" NNCommentContents
+   / "(*" NNCommentContents "*)"
+   / "&" s NewlineComment
+   / <ErrorProduction> "(*" CommentContents w EndOfFile
+
+CommentContents =
+     CommentContent*
+
+NNCommentContents =
+     NNCommentContent*
+
+WhitespaceCharacters =
+     [\u0009\u000a\u000b\u000c\u000d\u001c\u001d\u001e\u001f\u2028\u2029]
+
+NoNewlineWhitespaceCharacters =
+     [\u0009\u000b\u000c\u001c\u001d\u001e\u001f]
+
+CommentContent =
+     "(*)"
+   / Comment
+   / '*' !')'
+   / WhitespaceCharacters
+   / c:_ &{ c != '*' && Character.getType(c) != Character.CONTROL }
+
+NNCommentContent =
+     "(*)"
+   / NoNewlineComment
+   / '*' !')'
+   / NoNewlineWhitespaceCharacters
+   / c:_ &{ c != '*' && c != '\n' && c != '\r' && Character.getType(c) != Character.CONTROL }
+
+NewlineComment = Comment
+
+w  = Whitespace*
+wr = Whitespace+
+
+s  = Space*
+sr = Space+
+
+nl = s Newline w
+br = nl / s semicolon w
+
+WhitespaceString =
+     Space
+   / Newline
+hasW =
+     WhitespaceString*
+
+RectSeparator =
+     (w semicolon)+ w
+   / nl
+   / sr
+\end{verbatim}

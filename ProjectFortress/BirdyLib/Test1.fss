@@ -1,0 +1,39 @@
+component Test1
+  
+  import Set.{...}
+  import Bazaar.{...}
+  import Util.{...}
+  import Maybe.{...}
+  export Executable
+    
+  object SumRed extends MonoidReduction[\ZZ32\]
+    getter asString(): String = "Plus red"
+    getter id(): ZZ32 = 0
+    join(x: ZZ32, y: ZZ32) = x + y    
+  end  
+    
+  run() = 
+  do x: ZZ32 = 3
+     s: Set[\ZZ32\] = set[\ZZ32\]()
+     s' = s.add(1).add(2).add(4)
+     println(s')
+     s'' = s' UNION singleton[\ZZ32\](7)
+     println(s'')     
+     s3 = s''.delete(7)
+     println(s3)
+     s4 = s3 INTERSECTION s.add(1).add(2).add(7)
+     println(s4)
+     println(s4 = s4)
+     println(s3 SUBSET s'')
+     println(s'' SUBSET s3)
+     if foo <- s3.minimum() then println(foo) else println("bar") end
+     if bar <- s3.maximum() then println(bar) end
+     y: ZZ32 =  s'.generate[\ZZ32\](SumRed,fn z => z z) 
+     println(y)
+     foo: ZZ32 = BIG + [bar <- s'] bar bar
+     println(foo)
+     println("PASS")
+  end
+  
+  
+end

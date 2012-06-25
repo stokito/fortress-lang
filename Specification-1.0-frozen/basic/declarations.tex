@@ -1,0 +1,635 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Names and Declarations}
+\chaplabel{declarations}
+\chaplabel{names}
+
+\note{This chapter should be revised according to Victor's new description.
+
+Qualified names, dimensions and units, tests and properties,
+where clauses, keyword and varargs parameters, and
+type aliases are not yet supported.}
+
+\note{
+Issues -- Victor
+\begin{itemize}
+\item opr parameter scope, etc.
+\item delayed initialization of variables
+\begin{itemize}
+\item Synonyms?  (especially for operators, but maybe for identifers)
+\item  \EXP{T.\KWD{coerce}} is a new kind of ``name'', so we need to be careful
+  how we phrase this.  (If we can't call \EXP{T.\KWD{coerce}} explicitly,
+  then should coercion declarations even be considered declarations?)
+\end{itemize}
+\item Should distinguish simple names, API names, and qualified names.
+\begin{itemize}
+\item Need to discuss (perhaps in components/APIs chapter) restriction
+  on API names so that ``first part'' does not conflict with any
+  name declared in (or imported unqualified by) the component.
+\item Should also discuss declaration by import statements.  Is that
+  a declaration?  Even if we don't consider normal import statements
+  to be declarations--the declarations are in the APIs--when import
+  statements provide aliases, that must be considered a declaration.
+\end{itemize}
+\end{itemize}}
+
+\note{Expressions that declare names:
+  typecase, catch clauses, generators, labeled blocks, bindings?
+  the declaration in a typecase is just a binding
+  so it's not actually that special, except for the static type
+
+ I think we can consider ``self'' and ``coerce'' to be
+ ``special identifiers''.  Or else the ``names'' declared
+ by declarations are more than just identifiers and operators.
+
+ Search for comments for some recommendations for local changes.
+}
+
+Names are used to refer to certain kinds of entities
+in a Fortress program.
+Names may be simple or qualified.
+A simple name is either an identifier or an operator.
+An operator may be an operator token,
+a special token corresponding to a special operator character,
+or a matching pair of enclosing operator tokens.
+A qualified name consists of an \apiN\ name
+followed by ``\EXP{.}'',
+followed by an identifier,
+where an \apiN\ name consists of a sequence of identifiers
+separated by ``\EXP{.}'' tokens.
+Note that operators cannot be qualified.
+Except in \secref{qualified-names},
+we consider only simple names in this chapter.
+
+Simple names are typically introduced by declarations,
+which bind the name to an entity.
+In some cases,
+the declaration is implicit.
+Every declaration has a scope,
+in which the declared name can be used to refer to the declared entity.
+
+\emph{Declarations} introduce \emph{named entities};
+we say that a declaration \emph{declares} an entity
+and a name by which that entity can be referred to,
+and that the declared name \emph{refers to} the declared entity.
+As discussed later, there is not a one-one correspondence
+between declarations and named entities:
+some declarations declare multiple named entities,
+some declare multiple names,
+and some named entities are declared by multiple declarations.
+
+Some declarations contain other declarations.
+For example, a trait declaration may contain method declarations,
+and a function declaration may contain parameter declarations.
+
+The positions in which a declaration may legally
+appear in a component are determined by the nonterminal \emph{Decl}
+in the simplified Fortress grammar in \appref{concrete-syntax}.
+
+
+\section{Kinds of Declarations}
+\seclabel{decl-kinds}
+
+\note{The grammar the follows is only for top-level declarations.}
+
+\begin{Grammar}
+\emph{Decl} &::=& \emph{TraitDecl}\\
+&$|$& \emph{ObjectDecl}\\
+&$|$& \emph{VarDecl}\\
+&$|$& \emph{FnDecl}\\
+&$|$& \emph{DimUnitDecl}\\
+&$|$& \emph{TypeAlias}\\
+&$|$& \emph{TestDecl}\\
+&$|$& \emph{PropertyDecl}\\
+&$|$& \emph{ExternalSyntax}
+\footnote{
+Fortress provides declarations of syntax expanders for domain-specific languages
+as described in \chaplabel{syntax-expanders}.
+ However, these declarations do not introduce named entities.
+}\\
+\end{Grammar}
+There are two kinds of declarations: \emph{top-level declarations} and
+\emph{local declarations}.
+
+Top-level declarations occur at the top level of a component,
+not within any other declaration or expression.
+A top-level declaration is one of the following:\footnote{The
+Fortress component system, defined in \chapref{components},
+includes declarations of \emph{components} and \emph{\apisN}.
+Because component names are not used in a Fortress program and
+\apiN\ names are used only in
+qualified names and
+\KWD{import} and \KWD{export} statements,
+we do not discuss them in this chapter.
+However, these declarations are not proper constituents of a valid
+program.  Rather, valid programs are \emph{assembled} from them.
+}
+\begin{itemize}
+
+\item
+trait declarations (see \chapref{traits});
+
+\item
+object declarations (see \chapref{objects}),
+which may be singleton declarations or constructor declarations;
+
+\item
+top-level variable declarations
+(see \secref{top-var-decls});
+
+\item
+top-level function declarations
+(see \chapref{functions}),
+including top-level operator declarations
+(see \chapref{operators});
+
+\item
+dimension declarations (see \chapref{dimunits});
+
+\item
+unit declarations (see \chapref{dimunits});
+
+\item
+top-level type aliases (see \secref{type-alias});
+
+\item
+test declarations
+(see \chapref{tests});
+
+\item
+top-level property declarations;
+(see \chapref{tests})
+
+\end{itemize}
+
+Local declarations occur in another declaration
+or in some expression (or both).
+A local declaration is one of the following:
+\begin{itemize}
+
+\item
+field declarations (see \secref{fields}),
+which occur in object declarations and object expressions,
+and include field declarations
+in the parameter list of a constructor declaration;
+
+\item
+method declarations (see \secref{methods}),
+which occur in trait and object declarations
+and object expressions;
+
+\item
+coercion declarations (see \chapref{conversions-coercions}),
+which occur in trait and object declarations;
+
+\item
+local variable declarations (see \secref{local-var-decls}),
+which occur in expression blocks;
+
+\item
+local function declarations (see \secref{local-fn-decls}),
+which occur in expression blocks;
+
+\item
+local property declarations (see \chapref{tests}),
+which occur in trait and object declarations and object expressions;
+
+\item
+labeled blocks (see \secref{label-expr}),
+which are expressions;
+
+\item
+static-parameter declarations,
+which may declare
+type parameters,
+\KWD{nat} parameters,
+\KWD{int} parameters,
+\KWD{bool} parameters,
+\KWD{dim} parameters,
+\KWD{unit} parameters,
+or \KWD{opr} parameters
+(see \chapref{trait-parameters}),
+and occur in static-parameter lists
+of trait and object declarations,
+top-level type aliases,
+top-level function declarations,
+method declarations,
+and local function declarations.
+
+\item
+hidden-type-variable declarations,
+which occur in \KWD{where} clauses
+(see \secref{where-clauses})
+of trait and object declarations,
+top-level function declarations,
+and method declarations;
+
+\item
+type aliases in \KWD{where} clauses,
+of trait and object declarations,
+top-level function declarations,
+and method declarations;
+
+\item
+(value) parameter declarations,
+which may be keyword-parameter declarations
+which occur in parameter lists
+of constructor declarations,
+top-level function declarations,
+method declarations,
+local function declarations,
+and function expressions
+
+\end{itemize}
+
+Some declarations are syntactic sugar
+for other declarations.
+Throughout this chapter,
+we consider declarations after they have been desugared.
+Thus, apparent field declarations in trait declarations
+are actually method declarations (as described in \secref{methods}),
+and a dimension and unit declaration
+may desugar into several separate declarations
+(as described in \secref{abbrev-dimunits}).
+After desugaring, the kinds of declarations listed above are disjoint.
+
+In addition to these explicit declarations,
+there are two cases in which names are declared implicitly:
+\begin{itemize}
+
+\item
+the special name \KWD{self} is implicitly declared
+as a parameter of dotted methods
+(see \secref{methods} for details);
+and
+
+\item
+the name \VAR{result} is implicitly declared
+as a variable for the \KWD{ensures} clause of a contract
+(see \secref{contracts} for details).
+
+\end{itemize}
+
+\note{This is *not* the proper reference, 
+but I don't know what is.}
+As discussed in \chapref{variables}, 
+the initialization of a local variable 
+may be separated from its declaration.
+In this case 
+we do not consider the initialization of an immutable variable 
+to be a declaration, 
+even though it is syntatically indistinguishable 
+from a declaration of an immutable variable.
+
+Trait declarations,
+object declarations,
+top-level type aliases,
+type-parameter declarations,
+and hidden-type-variable declarations
+are collectively called \emph{type declarations};
+they declare names that refer to \emph{types}
+(see \chapref{types}).
+Dimension declarations
+and \KWD{dim}-parameter declarations
+are \emph{dimension declarations},
+and unit declarations
+and \KWD{unit}-parameter declarations
+are \emph{unit declarations}.
+Constructor declarations,
+top-level function declarations,
+method declarations,
+and local function declarations
+are collectively called \emph{functional declarations}.
+Singleton declarations,
+top-level variable declarations,
+field declarations,
+local variable declarations
+(including implicit declarations of \VAR{result})
+and (value) parameter declarations
+(including implicit declarations of \KWD{self})
+are collectively called \emph{variable declarations}.
+Static-parameter declarations
+and hidden-type-variable declarations are also
+collectively called \emph{static-variable declarations}.
+Note that static-variable declarations are disjoint
+from variable declarations.
+\note{
+Victor: May want to add ``module-wide'' declarations, 
+which are the top-level declarations plus functional method declarations.
+These are the declarations whose reach is the entire component
+and that can be imported from an API.}
+
+The groups of declarations defined in the previous paragraph
+are neither disjoint nor exhaustive.
+For example, labeled blocks are not included in any of these groups, and
+an object declaration is both a type declaration
+and either a function or variable declaration,
+depending on whether it is singleton.
+
+Most declarations declare a single name
+given explicitly in the declaration
+(though, as discussed in \secref{namespaces},
+they may declare this name in multiple namespaces).
+There is one exception:
+wrapped field declarations (described in \secref{abstract-fields})
+in object declarations and object expressions declare both the field name
+and names for methods provided
+by the declared type of the field.
+
+Method declarations in a trait may be either
+\emph{abstract} or \emph{concrete}.
+Abstract declarations do not have bodies;
+concrete declarations, sometimes called \emph{definitions}, do.
+
+
+\section{Namespaces}
+\seclabel{namespaces}
+
+Fortress supports three namespaces,
+one for types, one for values, and one for labels.
+(If we consider the Fortress component system,
+there is another namespace for \apisN.)
+These namespaces are logically disjoint:
+names in one namespace do not conflict
+with names in another.
+
+Type declarations, of course,
+declare names in the type namespace.
+Function and variable declarations declare names
+in the value namespace.
+(This implies that object names
+are declared in both the type and value namespaces.)
+Labeled blocks declare names in the label namespace.
+Although they are not all type declarations,
+all the static-variable declarations declare names
+in the type namespace, as do dimension declarations.
+In addition,
+\KWD{nat} parameters,
+\KWD{int} parameters,
+\KWD{bool} parameters,
+\KWD{unit} parameters, and
+\KWD{opr} parameters
+are also declared in the value namespace.
+\secref{opr-ident} describes
+\KWD{opr} parameters in more detail.
+
+Every occurrence of a name in a program
+is either a declaration or a reference.
+\footnote{We are abusing terminology here
+by using ``declaration'' to denote
+the occurrence of a name,
+whereas we have generally been using ``declaration''
+to denote the syntactic construct that declares the name.
+Many declarations in the latter sense
+allow the declared name to occur several times:
+only one such occurrence is a declaration in the former sense;
+the rest are references.}
+A reference to a name is resolved to
+the entity that the name refers to the namespace
+appropriate to the context
+in which the reference occurs.
+For example, a name refers to a label
+if and only if it occurs immediately following
+the reserved word \KWD{exit}.
+It refers to a type if and only if it appears in a type context
+(described in \chapref{types}).
+Otherwise, it refers to a value.
+
+
+\section{Reach and Scope of Declarations}
+\seclabel{scope}
+\seclabel{shadowing}
+
+In this section,
+we define the \emph{reach} and \emph{scope} of a declaration,
+which determine where a declared name may be used to refer to the entity
+declared by the declaration.  
+It is a static error 
+for a reference to a name to occur at any point in a program
+at which the name is not \emph{in scope} in the appropriate namespace
+(as defined below),
+except immediately after the `.'
+of a dotted field access or dotted method invocation
+when the name is the name of the field or dotted method
+provided by the static type of the receiver expression
+(see Sections~\ref{sec:field-access}
+and~\ref{sec:dotted-method-calls}).
+It is also a static error 
+for multiple declarations with overlapping reaches 
+to declare the same name in the same namespace 
+unless the declarations are \emph{overloaded} 
+or one declaration \emph{shadows} the other, 
+as defined below.
+
+We first define a declaration's \emph{reach}.
+The reach of a labeled block is the block itself.
+The reach of a functional method declaration
+is the component containing that declaration.
+A dotted method declaration not in an object expression
+(described in \secref{object-expr}) or declaration
+must be in the declaration of some trait $T$,
+and its reach is the declaration of $T$
+and any trait or object declarations
+or object expressions
+that extend $T$;
+that is,
+if the declaration of trait $T$
+contains a method declaration,
+and trait $S$ extends trait $T$,
+then the reach of that method declaration
+includes the declaration of trait $S$.
+The reach of any other (explicit) declaration
+is the smallest block strictly containing that declaration
+(i.e., not just the declaration itself).
+For example,
+the reach of any top-level declaration
+(including any imported declaration)
+is the component containing (or importing) that declaration;
+the reach of a field declaration
+is the enclosing object declaration or expression;
+the reach of a parameter declaration
+is the constructor declaration, functional declaration,
+or function expression in whose parameter list it occurs;
+and the reach of a local variable declaration
+is the smallest block in which that declaration occurs
+(recall from \chapref{programs}
+that a local variable declaration always starts a new block).
+The reach of an implicit declaration of \KWD{self}
+by a dotted method declaration
+is the method declaration
+(the same as the explicit parameters of the method),
+and the reach of an implicit declaration of \VAR{result}
+by an \KWD{ensures} clause of a contract 
+is the \KWD{ensures} clause.
+We say that a declaration \emph{reaches}
+any point within its reach.
+
+One declaration \emph{shadows} another for a name in a namespace 
+if they both declare the name in the namespace,
+and any of the following conditions hold:
+\begin{itemize}
+
+\item
+The first declaration is a field or dotted method declaration 
+in a trait declaration, object declaration or object expression
+contained strictly within the reach of the second declaration, 
+unless the first declaration is in an object expression 
+that extends a trait 
+that provides the second declaration 
+(in which case the declarations are overloaded).
+
+\note{
+Alternatively, split above condition into two:
+\begin{itemize}
+\item
+The first declaration is a field or dotted method declaration 
+in a trait or object declaration 
+and the second declaration is a top-level or functional method declaration.
+
+\item
+The first declaration is a field or dotted method declaration 
+in an object expression
+contained strictly entirely within the reach of the second declaration, 
+unless the object expression extends a trait 
+that provides the second declaration
+(in which case the declarations are overloaded).
+\end{itemize}
+}
+
+\item
+The first declaration is a keyword-parameter declaration 
+of a function or method declaration 
+contained strictly in the reach of the second declaration.
+
+\item
+the name is \KWD{self}, 
+and the reach of the first declaration 
+is contained in the reach of the second declaration.
+\note{
+I'm not sure this is necessary because self should not be in scope
+in an enclosed object expression in any case.
+However, we still have two declarations of self with overlapping reaches, 
+but which are not overloaded,
+so it may be safer to say there is shadowing in any case.}
+
+\item
+the name is \VAR{result}
+and the first declaration is an implicit declaration by an \KWD{ensures} clause 
+contained in the reach of the second declaration.
+
+\end{itemize}
+We omit the name and the namespace when they are clear from context.
+We say that the second declaration \emph{is shadowed by} the first 
+at any point in the program that their reaches overlap.
+No other shadowing is permitted in a Fortress program.
+
+
+The \emph{scope} of a declaration for a name in a namespace 
+(assuming the declaration declares the name in the namespace) 
+consists of all points in the reach of the declaration except the following:
+\begin{itemize}
+
+\item
+any point where the declaration is shadowed by another 
+for that name and namespace;
+
+\item
+the declaration is a type alias (top-level or not),
+a dimension declaration or a unit declaration,
+and the program point is in the declaration;
+
+\item
+if the declaration is a field, local variable or parameter declaration, 
+any point in the declaration or that textually precedes the declaration;
+
+\item
+if the name is \KWD{self}, 
+any point in an object expression 
+contained in the reach of the declaration;
+
+\item
+if the declaration is a labeled block,
+any point in a \KWD{spawn} expression
+in the labeled block.
+
+\end{itemize}
+We say that a name is \emph{in scope} in a namespace 
+at any point in the program 
+that is in the scope of some declaration for that name and namespace.
+Again, we omit the name and/or namespace when they are clear from context.
+
+As mentioned above,
+it is a static error for a reference to a name to occur 
+where it is not in scope in the appropriate namespace.
+In addition, 
+local variables must be properly initialized before they are used, 
+as discussed in \chapref{variables}.
+
+If the scope of multiple declarations for the same name and namespace overlap, 
+then we say that the name is \emph{overloaded} in that namespace 
+in the overlap, 
+and we say that the declarations are \emph{overloaded} for that name.
+
+Declarations may be overloaded only if one of the following conditions hold:
+\begin{itemize}
+
+\item
+They are all dotted method declarations.
+
+\item
+They are all top-level function declarations and functional method declarations.
+
+\item
+One is a field declaration, 
+and the rest are getter and setter declarations.
+
+\end{itemize}
+In the first two cases,
+the declarations define an \emph{overloaded functional} 
+(i.e., function or method), 
+and they must satisfy certain rules 
+that ensure that the functional does not admit ambiguous calls.
+See \chapref{overloaded-declarations} for further discussion on this topic.
+In the last case, 
+the type of the field must be a subtype of the return type of any getter 
+and a supertype of the parameter type of any setter.
+\note{
+Can we put the rules for fields overloading into the overloading chapter 
+and over here simply say, "in either case, see Chapter XX"?
+We might also join the first two cases, and leave the discussion of 
+which kinds of functional declarations can be overloaded 
+to the overloading chapter.}
+
+\section{Imported Declarations and Qualified Names}
+\seclabel{qualified-names}
+\begin{Grammar}
+\emph{QualifiedName} &::=& \emph{Id}(\EXP{.}\emph{Id})$^*$\\
+\end{Grammar}
+
+Fortress provides a component system
+in which the entities declared in a component
+are described by an \apiN.
+A component may \emph{import} \apisN,
+allowing it to refer to these entities
+declared by the imported \apisN.
+In some cases,
+references to these entities must be \emph{qualified}
+by the \apiN\ name.
+These qualified names can be used
+in any place that a simple name would be used
+had the entity been declared directly in the component
+rather than being imported.
+Note that qualified names are distinguished from simple names
+by the inclusion of a ``\EXP{.}'' token,
+so they never shadow, nor are they shadowed by, simple names.
+For further discussion on \apisN\ and the component system,
+see \chapref{components}.

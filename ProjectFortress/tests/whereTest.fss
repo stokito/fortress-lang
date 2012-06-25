@@ -1,0 +1,26 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component whereTest
+
+import List.{...}
+export Executable
+
+trait T[\S, int i, unit U, bool b\]
+  where [\bool b', nat n\]
+        { S extends Number, type IntList = List[\ZZ64\],
+          S widens String, NOT b, b IMPLIES b',
+          n = i, U = dimensionless, 2 n + i < 2^8 }
+end
+
+run() = println "Where clasues can be parsed."
+
+end

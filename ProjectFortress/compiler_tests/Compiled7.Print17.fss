@@ -1,0 +1,21 @@
+(*******************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* First-order version of Compiled7 *)
+
+run(): () = do
+(* Next line fails due to hosure either in primitive types or in
+   dotted method invocation. *)
+(*    println((17.0).asString) *)
+    println((23.0 - 6.0).asString)
+  end
