@@ -40,8 +40,6 @@ trait ReferenceGenome extends { DefaultSequentialGeneratorImplementation[\Refere
 object ReferenceGenomeChunk(start: ZZ32, length: ZZ32, buffer: String, padLength: ZZ32)
   getter range(): Range = start # length
   getACGT(r: Range): String = do
-    (*)println("Padlength: " || padLength)
-    (*)println("Range size: " || |r|)
     buffer.substring(padLength + (r.lowerBound - start),padLength + (r.lowerBound - start) + |r| + 1)
   end
   getColors(r: Range): String = do
@@ -121,12 +119,12 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
     end
     currentRange := refRange
     tmpSet = list_filter(currentSet, fn rd => rd.range.lowerBound <= refRange.upperBound AND refRange.lowerBound <= rd.range.upperBound)
-    currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- currentSet |>
+    currentSet := <|[\Read\] rd.withNewChunk(refChunk) | rd <- tmpSet |>
     if rd <- peekAhead then
       if rd.range.upperBound < refRange.lowerBound then
         peekAhead := Nothing[\Read\]
       elif rd.range.lowerBound <= refRange.upperBound then
-        currentSet ||= singleton(rd.withNewChunk(refChunk))
+        currentSet := currentSet.addRight(rd.withNewChunk(refChunk))
         peekAhead := Nothing[\Read\]
         inputMoreReads(refChunk)
       end
@@ -142,16 +140,19 @@ private object FileBasedReadList(rs: ReadStream, maxReadSize: ZZ32) extends Read
         if rd <- parseOneRead(rs, refChunk) then
           if refRange.upperBound < rd.range.lowerBound then
             peekAhead := Just rd
+            println("Peak ahead!")
             gobble := false
           elif refRange.lowerBound <= rd.range.upperBound then
-            currentSet ||= singleton(rd)
+            println("Adding: " || rd)
+            (*)println("CurrentSet size before: " || (|currentSet|))
+            currentSet := currentSet.addRight(rd) (*) currentSet ||= singleton(rd)
+            (*)println("CurrentSet size after: " || (|currentSet|))               
           end
         end
       end
   end
 
   getReads(refChunk: ReferenceGenomeChunk): List[\Read\] = do
-    println("Getting the reads")
     if currentRange =/= refChunk.range then getNextRange(refChunk) end
     currentSet
   end
@@ -184,15 +185,11 @@ private parseOneRead(r: ReadStream, refChunk: ReferenceGenomeChunk): Maybe[\Read
   header: String = r.uncheckedReadLine()
   sequence: String = r.uncheckedReadLine()
   if header = "" OR: sequence = "" then Nothing[\Read\] else
-    println(header)
-    println(sequence)
     if header[0] =/= '>' OR sequence[0] = '>' then
       fail("File of 'reads' not in expected alternating-line format")
     end
-    name: String = upto(header,',')
-    println("Name: " || name)
-    loc: String = upto(beyond(beyond(header,','),'_'),'.')
-    println("Loc: " || loc)
+    name: String = header.upto(',') (*) upto(header,',')
+    loc: String =  header.beyond(',').beyond('_').upto('.')  (*) upto(beyond(beyond(header,','),'_'),'.')
     length: ZZ32 = |sequence| - 1
     negativeOrientation: Boolean = (loc[0] = '-')
     pos: ZZ32 = if (negativeOrientation) then strToInt(loc.substring(1,|loc|)) - length + 1 else strToInt(loc) - 1 end (*) HERE

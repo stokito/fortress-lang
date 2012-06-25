@@ -21,8 +21,8 @@ export FileSupport
  * Types to support file input and output
  ***********************************************************)
 
-object FileReadError extends UncheckedException 
-  asString() = "FileReadError"
+object FileReadError(s: String) extends UncheckedException 
+  asString() = "FileReadError: " || s
 end
 
 trait Closeable
@@ -190,7 +190,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
             else
                 if s0 <- readOne(reader) then
                     r.join(body(s0),go(r,body))
-                else throw FileReadError    
+                else r.id    
                 end
             end     
               
@@ -235,7 +235,7 @@ object FileGenerator[\S\](reader:ReadStream, upper: ZZ32,
                 if s0 <- readOne(reader) then
                   (a,b) = (f(s0), go2(f)) (*) JT: mention this to VL and GS
                   ()
-                else throw FileReadError
+                else ()
                 end                
             end    
 

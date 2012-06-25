@@ -19,7 +19,7 @@ component Test3
      println(l4)
      l5 = <|[\ZZ32\] x + x | x <- l4 |>
      println(l5)
-     l6 = <|[\ZZ32\] y + y | y <- l4, isNotTwo(y) |>
+     l6 = <|[\ZZ32\] y + y | y <- l4, isNot Two(y) |>
      println(l6)
      if (beg,last) <- l2.extractRight() then println(last) end
      if foo <- l1.left() then println(foo) end

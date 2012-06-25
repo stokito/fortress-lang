@@ -232,7 +232,6 @@ object Sample(s: String, r: ReadList, e: ErrorRates) end
 getSampleData(name: String): Sample = do
   rl = getReadListFromFile(sampleFilesDir || "/" || name || "/" || sampleFilesFileName, readSize)
   er = readErrorRateFile(errorRateFilesDir || "/" || name || "/" || errorFilesFileName)
-  (*)er = ErrorRates(<|[\RR64\] |>, <|[\RR64\] |>)
   Sample(name, rl, er)
 end
 
@@ -254,12 +253,12 @@ end
 *)
 
 run() = do
-  println("homeDir is " homeDir)
-  ref = getReferenceGenomeFromFile(referenceFile, 50, 15)
+  ref = getReferenceGenomeFromFile(referenceFile, 237, 35)
   samples = <|[\Sample\] getSampleData(name) | name <- sampleNames |>
   for refChunk <- ref do
     (databaseData, coverageData) = transpose <|[\MyTuple[\Map[\ZZ32, List[\Event\]\], Map[\String, Map[\ZZ32,ZZ32\]\]\]\]
                                                   processSample(sample.s, sample.r, sample.e, refChunk) | sample <- samples |>
+  
     database: Map[\ZZ32, List[\Event\]\] = BIG UNIONCAT[\ZZ32,Event\][x <- databaseData] x
     coverage: Map[\String, Map[\ZZ32,ZZ32\]\] = BIG UPLUS[\String, Map[\ZZ32,ZZ32\]\] [x <- coverageData] x
 
