@@ -11,9 +11,9 @@ tests=Compiled5.s
 STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
 compile
 compile_err_equals=\
-${STATIC_TESTS_DIR}/Compiled5.s.fss:16:3-15:\n\
-\ A typecase clause is unreachable.\n\
-${STATIC_TESTS_DIR}/Compiled5.s.fss:17:3-19:2:\n\
-\ A typecase clause is unreachable.\n\
+${STATIC_TESTS_DIR}/Compiled5.s.fss:16:3-15:29:\n\
+\   The typecase clause, (String, ZZ32), is unreachable.\n\
+${STATIC_TESTS_DIR}/Compiled5.s.fss:17:3-15:29:\n\
+\   The typecase clause, (ZZ32, String), is unreachable.\n\
 File Compiled5.s.fss has 2 errors.\n
 compile_out_equals=

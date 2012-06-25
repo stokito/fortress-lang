@@ -234,9 +234,17 @@ trait Misc { self: STypeChecker with Common =>
         } else {
           toOption(header.getParams) match {
             case Some(ps) => toOption(toList(ps).apply(i).getIdType)
-            case _ =>
-              signal(t, "A trait is expected to have value parameters for patterns.")
-              None
+            case _ => 
+              // get the binder information
+              if (pb.getBinderName.isDefined) {
+                val pair_list = toList(header.getDecls).foldRight(empty)((d, r) => declToIdType(d) ::: r)
+                getOptionTy(pb.getBinderName.get, pair_list)
+              
+              }
+              else {
+                signal(t, "A trait is expected to have value parameters for patterns.")
+                None
+              }
           }
         }
       case _ =>
@@ -254,12 +262,24 @@ trait Misc { self: STypeChecker with Common =>
   def getBoundIdWithType(p : (PatternBinding, Type)): (Type, List[(Id, Type)]) = {
     val (pb, typ) = p
     pb match {
-      case SPlainPattern(_, _, name, _, Some(idType)) =>
+      case SPlainPattern(_, _, _, name, _, Some(idType)) =>
         val (t, idty_list) = getTypeAndIdTyList(idType, typ)
+        // Redundancy check : signals an error if a type in a type clause exclusives the type of the selector 
+        if (self.analyzer.excludes (t, typ)==True) 
+          signal (pb, "This typecase clause is unreachable: " + idType + " excludes the type of a field of the selector.")
         (t, (name, t) :: idty_list)
-      case SPlainPattern(_, _, name, _, None) => (typ, List((name, typ)))
-      case STypePattern(_, _, tt) => (normalize(NF.makeIntersectionType(tt, typ)), List())
-      case SNestedPattern(_, _, pat) => getTypeAndIdTyList(pat, typ)
+      case SPlainPattern(_, _, _, name, _, None) => (typ, List((name, typ)))
+      case STypePattern(_, _, _, tt) => 
+        // Redundancy check : signals an error if a type in a type clause exclusives the type of the selector 
+        if (self.analyzer.excludes (tt, typ)==True) 
+          signal (typ, "This typecase clause is unreachable: " + tt + " excludes the type of a field of the selector.")
+        (normalize(NF.makeIntersectionType(tt, typ)), List())
+      case SNestedPattern(_, _, _, pat) => 
+        val (t, idty_list) = getTypeAndIdTyList(pat, typ)
+        // Redundancy check : signals an error if a type in a type clause exclusives the type of the selector 
+        if (self.analyzer.excludes (t, typ)==True) 
+          signal (typ, "This typecase clause is unreachable: " + pat + " excludes the type of a field of the selector.")
+        (t, idty_list)
     }
   }
 
@@ -274,32 +294,8 @@ trait Misc { self: STypeChecker with Common =>
       toOption(pattern.getName) match {
         case Some(ty) =>
           if (isTupleType) { // error
-            signal(pattern, "A typecase clause is unreachable.")
-            ty
-          }
-          /* A structure of a pattern shoud be checked in comparison with the structure of 'ty'.*/
-          /* error handling in case that a pattern has an incorrect structure. */
-          ty match {
-            case t:TraitType if typeConses.keySet.contains(t.getName) =>
-              val params = typeConses.get(t.getName).ast.asInstanceOf[TraitObjectDecl].getHeader.getParams
-              val (numParams, paramIdlist) =
-                  toOption(params) match {
-                    case Some(ps) => (ps.size, toList(ps).map(_.getName))
-                    case _ => (0, List())
-                  }
-              /* check whether a given pattern is a keyword pattern or not */
-              def isKeywordPattern(pattern : PatternBinding) : Boolean =
-                toOption(pattern.getField) match {
-                  case Some(kw) => !(paramIdlist.contains(kw))
-                  case _ => false
-                }
-              if(ps.filter(! isKeywordPattern(_)).size != numParams) {  // error 
-                signal(ty, "The number of patterns to bind should be greater than or equal to " + numParams)
-                return (ty, List())
-              }
-            case _ => // error
-              signal(ty, "Type " + ty + " not found.")
-              return (ty, List())
+            signal(pattern, "The typecase clause, " + pattern + ", is unreachable.")
+            return (expr_type, List())
           }
           /* get types of all fields of the type "ty" corresponding to each pattern."*/
           val collected = ps.zipWithIndex.map(pbToPbTy(_, ty)).map(getBoundIdWithType)
@@ -308,25 +304,18 @@ trait Misc { self: STypeChecker with Common =>
 
         case None => // tuple pattern
           if ((ps.length != expr_size) || !isTupleType) {
-            signal(tp, "A typecase clause is unreachable.")
+            signal(tp, "The typecase clause, " + pattern + ", is unreachable.")
             (expr_type, List())
           } else {
             val eltTypes = toList(expr_type.asInstanceOf[TupleType].getElements)
             val collected = (ps zip eltTypes).map(getBoundIdWithType)
-            (NF.makeMaybeTupleType(NU.getSpan(tp), toJavaList(collected.map(_._1))),
+            (normalize(NF.makeMaybeTupleType(NU.getSpan(tp), toJavaList(collected.map(_._1)))),
              collected.foldRight(List[(Id,Type)]()){ (pair, idty_list) => pair._2 ::: idty_list})
           }
       }
     } else {
-      val ty = tp.asInstanceOf[Type]
-      if (( isTupleType && !NU.isTupleType(ty)) ||
-          (!isTupleType &&  NU.isTupleType(ty)) ||
-          ( isTupleType &&  NU.isTupleType(ty) &&
-            ty.asInstanceOf[TupleType].getElements.size !=
-            expr_type.asInstanceOf[TupleType].getElements.size)) {
-        signal(tp, "A typecase clause is unreachable.")
-        (ty, List())
-      } else (normalize(NF.makeIntersectionType(ty, expr_type)), List())
+        val ty = tp.asInstanceOf[Type]
+        (normalize(NF.makeIntersectionType(ty, expr_type)), List())
       }
   }
 
@@ -338,6 +327,11 @@ trait Misc { self: STypeChecker with Common =>
     val STypecaseClause(info, nameOpt, matchType, body) = c
     // Construct the types corresponding to ids
     val checkLeft = getTypeAndIdTyList(matchType, checkedType)
+    // Redundancy check : signals an error if a type in a type clause exclusives the type of the selector 
+    
+    if (self.analyzer.excludes (checkedType, checkLeft._1)==True){
+      signal (checkLeft._1, "The typecase clause, " + matchType + ", is unreachable.")
+    } 
     var idty_list : List[(Id, Type)] = checkLeft._2
     idty_list = if (nameOpt.isDefined) (nameOpt.get, checkLeft._1) :: idty_list
                 else idty_list
