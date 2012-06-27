@@ -26,11 +26,11 @@ component Maybe
         
     isSome(): Boolean = isSome(self)
 
-    extract(self): T throws NothingInHere =
+    abstract extract(self): T throws NothingInHere (* =
       typecase self of
         j: Just[\T\] => j.content
         Nothing[\T\] => throw NothingInHere
-      end      
+      end  *) 
 
     extract() : T throws NothingInHere = extract(self) 
   
@@ -40,10 +40,12 @@ component Maybe
 
   object Just[\T extends Any\](content: T) extends Maybe[\T\] 
     cond[\R extends Any\](t: T -> R,e: () -> R) = t(content)
+    extract(self):T = content
   end
 
   object Nothing[\T extends Any\] extends Maybe[\T\] 
     cond[\R extends Any\](t: T -> R,e: () -> R) = e()
+    extract(self):Zilch throws NothingInHere = throw NothingInHere
   end
 
   __cond[\E extends Any,R extends Any\](c:Maybe[\E\], t:E->R, e:()->R): R = c.cond[\R\](t,e)

@@ -43,7 +43,7 @@ fi
 cat > "${dot}-wrapper.tex" <<EOF
 \documentclass{article}
 \pagestyle{empty}
-\textheight=220in
+\textheight=120in
 \usepackage{fortify}
 \usepackage{graphicx}
 \begin{document}
@@ -55,7 +55,7 @@ TEXINPUTS=".:$FORTRESS_HOME/Fortify:" pdflatex "${dot}-wrapper.tex"
 
 pdfcrop "${dot}-wrapper.pdf" "${dot}.pdf"
 
-rm "${dot}-wrapper."{pdf,aux,log}
+# rm "${dot}-wrapper."{pdf,aux,log}
 
 gs -sDEVICE=png48 -r600 -dNOPAUSE -sOutputFile="${dot}.png" "${dot}.pdf" < /dev/null
 
