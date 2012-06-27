@@ -14,6 +14,7 @@ component List
 import Maybe.{...}
 import Util.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation, DefaultSequentialGeneratorImplementation}
+import CompilerAlgebra.{AllStandardTotalOrders}
 export List
 
 (** Thrown when taking big intersection of no Lists. **)
@@ -25,7 +26,7 @@ weight:ZZ32 = 4
 
 (** The natural order of the List, and indexing on the List, yields List
     elements in ascending order. **)
-trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
+trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\] excludes AllStandardTotalOrders
 
     getter isEmpty():Boolean
     opr ||(self, other:List[\E\]): List[\E\] = self.concat(other)

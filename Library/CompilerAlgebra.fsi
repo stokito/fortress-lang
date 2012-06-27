@@ -11,7 +11,9 @@
 
 api CompilerAlgebra
 
-trait StandardTotalOrder[\T\] extends Equality[\T\] comprises T
+trait AllStandardTotalOrders end
+
+trait StandardTotalOrder[\T\] extends {Equality[\T\], AllStandardTotalOrders} comprises T
   abstract opr <(self, other:T): Boolean
   abstract opr >(self, other:T): Boolean
   abstract opr <=(self, other:T): Boolean
