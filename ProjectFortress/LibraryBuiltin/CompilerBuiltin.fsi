@@ -219,6 +219,7 @@ trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excl
     opr >=(self, other:ZZ32): Boolean
     opr =(self, other:ZZ32): Boolean
     opr =/=(self, other:ZZ32): Boolean
+    opr CMP(self, other:ZZ32): Boolean
     opr juxtaposition(self, other:ZZ32): ZZ32
     opr DOT(self, other:ZZ32): ZZ32
     opr BOXDOT(self, other:ZZ32): ZZ32
