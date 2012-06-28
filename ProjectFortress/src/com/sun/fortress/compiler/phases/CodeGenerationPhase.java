@@ -50,7 +50,13 @@ import java.util.Iterator;
 
 public class CodeGenerationPhase extends Phase {
 
-    public static final boolean debugOverloading = false;
+    /**
+     * 0 = no output
+     * 1 = one per outer overload
+     * 2 = one per overload (including inner)
+     * 3 = more
+     */
+    public static final int debugOverloading = 0;
 
     public CodeGenerationPhase(Phase parentPhase) {
         super(parentPhase);
@@ -216,7 +222,7 @@ public class CodeGenerationPhase extends Phase {
                                                   PredicateSet<Function> defs,
                                                   Set<OverloadSet> overloads) {
         // Woo-hoo, an overloaded function.
-        if (debugOverloading) System.err.println("Found an overloaded function " + name);
+        if (debugOverloading >= 2) System.err.println("Found an overloaded foreign function " + name);
 
         MultiMap<Integer, Functional> partitionedByArgCount = new MultiMap<Integer, Functional>();
 

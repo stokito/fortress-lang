@@ -14,10 +14,11 @@ api List
 import Util.{...}
 import Maybe.{...}
 import GeneratorLibrary.{DefaultGeneratorImplementation}
+import CompilerAlgebra.{AllStandardTotalOrders}
 
 object OutOfBounds extends UncheckedException end
 
-trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\]
+trait List[\E extends Any\] extends DefaultGeneratorImplementation[\E\] excludes AllStandardTotalOrders
 
   abstract getter isEmpty():Boolean    
   abstract extractLeft(): Maybe[\(E,List[\E\])\]

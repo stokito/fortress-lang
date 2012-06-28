@@ -3732,11 +3732,15 @@ public class CodeGen extends NodeAbstractVisitor_void implements Opcodes {
     }
 
     private void infiniteLoop() {
-        org.objectweb.asm.Label loop = new org.objectweb.asm.Label();
-        mv.visitLabel(loop);
-        mv.visitJumpInsn(GOTO, loop);
+        castToBottom(mv);
     }
     
+    static public void castToBottom(MethodVisitor mv) {
+        // better to push null, then throw it.
+        org.objectweb.asm.Label loop = new org.objectweb.asm.Label();
+        mv.visitLabel(loop);
+        mv.visitJumpInsn(GOTO, loop);        
+    }
     /**
      * @param x
      * @return
