@@ -17,7 +17,7 @@ api Maybe
     isSome(): Boolean
     isSome(self): Boolean
     extract() : T throws NothingInHere
-    extract(self): T throws NothingInHere
+    abstract extract(self): T throws NothingInHere
   end
   
   object Just[\T extends Any\](content: T) extends Maybe[\T\] end

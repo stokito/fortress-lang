@@ -286,7 +286,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
 
         // Ensure that they are all the same size.
         for (TaggedFunctionName f : lessSpecificThanSoFar) {
-            if (CodeGenerationPhase.debugOverloading)
+            if (CodeGenerationPhase.debugOverloading >= 2)
                 System.err.println("Overload: " + f);
             List<Param> parameters = f.getParameters();
             int this_size = parameters.size();
@@ -314,8 +314,9 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
            This matters because it may affect naming
            of the leaf (single) functions.
          */
-        if (CodeGenerationPhase.debugOverloading)
-            System.err.println(" Split " + this);
+        if (CodeGenerationPhase.debugOverloading >= 1)
+            System.err.println(
+                    Useful.listInDelimiters("Split [" , lessSpecificThanSoFar, "]", "\n      "));
 
 
         TopSortItemImpl<TaggedFunctionName>[] pofuns =
@@ -342,7 +343,7 @@ abstract public class OverloadSet implements Comparable<OverloadSet> {
                 TaggedFunctionName g = pofuns[gi].x;
                 if (!(f == g)) {
                     if (fLessSpecThanG(f, g)) {
-                        if (CodeGenerationPhase.debugOverloading)
+                        if (CodeGenerationPhase.debugOverloading >= 3)
                             System.err.println(g.toString() + " is <= " + f.toString());
                         i++;
                         pofuns[gi].edgeTo(pofuns[fi]);
@@ -1224,7 +1225,8 @@ nameTemp + "\n" +
             }
 
         } else if (t instanceof BottomType) {
-            throw new CompilerError("Not handling Bottom type yet in generic overload dispatch");
+            // Do nothing, see how that works....
+          //   throw new CompilerError("Not handling Bottom type yet in generic overload dispatch");
 
         } else if (t instanceof AnyType) {
             // throw new CompilerError("Not handling Any type yet in generic overload dispatch");
@@ -1716,8 +1718,13 @@ nameTemp + "\n" +
                 mv.visitMethodInsn(Opcodes.INVOKEINTERFACE, objectArrow, Naming.APPLY_METHOD, applySig);
                 
                 //cast to correct return type
-                String returnType = NamingCzar.makeBoxedTypeName(f.getReturnType(),f.tagA);
-                InstantiatingClassloader.generalizedCastTo(mv, returnType);
+                Type f_return = f.getReturnType();
+                if (f_return instanceof BottomType) {
+                    CodeGen.castToBottom(mv);
+                } else {
+                    String returnType = NamingCzar.makeBoxedTypeName(f_return,f.tagA);
+                    InstantiatingClassloader.generalizedCastTo(mv, returnType);
+                }
             } else {
             
                 //no inferences needed
@@ -1734,6 +1741,10 @@ nameTemp + "\n" +
                 String sig = jvmSignatureFor(f);
 
                 invokeParticularMethod(mv, f, sig);
+                Type f_return = f.getReturnType();
+                if (f_return instanceof BottomType) {
+                    CodeGen.castToBottom(mv);
+                }
             }
             
             mv.visitInsn(Opcodes.ARETURN);
@@ -1848,7 +1859,7 @@ nameTemp + "\n" +
             // mv.visitTypeInsn(Opcodes.CHECKCAST, NamingCzar.jvmBoxedTypeDesc((Type)ty, ifNone));
             i++;
         }
-        if (CodeGenerationPhase.debugOverloading)
+        if (CodeGenerationPhase.debugOverloading >= 3)
             System.err.println("Emitting call " + f.tagF + sig);
 
         invokeParticularMethod(mv, f, sig);
@@ -1982,7 +1993,7 @@ nameTemp + "\n" +
             sargs = staticParametersOf(principalMember.tagF);
         }
 
-        if (CodeGenerationPhase.debugOverloading)
+        if (CodeGenerationPhase.debugOverloading >= 2)
             System.err.println("Emitting overload " + _name + signature);
 
         String PCNOuter = null;
@@ -2281,6 +2292,9 @@ nameTemp + "\n" +
             if (principalMember != null) {
                 sargs = staticParametersOf(principalMember.tagF);
             }
+            
+            if (CodeGenerationPhase.debugOverloading >= 2)
+                System.err.println("Emitting overloaded method " + _name + signature);
 
             if (sargs != null) {
                 // Not yet prepared for overloaded GENERIC methods!
@@ -2326,11 +2340,6 @@ nameTemp + "\n" +
                 // throw new CompilerError("Not yet ready for overloaded generic methods:\n>> " + principalMember + "\n" + this);
 
             } else {
-
-                if (CodeGenerationPhase.debugOverloading)
-                    System.err.println("Emitting overloaded method " + _name + signature);
-
-
                 ArrayList<InitializedStaticField> isf_list = new ArrayList<InitializedStaticField>();
 
                 MethodVisitor mv = cv.visitMethod(Opcodes.ACC_PUBLIC, // access,
