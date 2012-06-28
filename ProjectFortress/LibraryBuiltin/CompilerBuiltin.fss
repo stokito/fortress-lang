@@ -636,6 +636,10 @@ trait ZZ32 extends { Number, Equality[\ZZ32\], StandardTotalOrder[\ZZ32\] } excl
     opr >(self, other:ZZ32): Boolean = jIntGT(self,other)
     opr >=(self, other:ZZ32): Boolean = jIntGE(self,other)
     opr =(self, other:ZZ32): Boolean = jIntEQ(self,other)
+    opr CMP(self, other:ZZ32): TotalComparison =
+        if self < other then LessThan
+        elif self > other then GreaterThan
+        else EqualTo end
     opr =/=(self, other:ZZ32): Boolean = NOT (self = other)
     opr juxtaposition(self, other:ZZ32): ZZ32 = jIntOverflowingMul(self,other)
     opr BITNOT(self): ZZ32 = jIntBitNot(self)
