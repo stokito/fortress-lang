@@ -28,9 +28,9 @@ component Maybe
 
     abstract extract(self): T throws NothingInHere (* =
       typecase self of
-        j: Just[\T\] => j.content
+        j: Just[\T\] => j.content (*) bug in compilation here
         Nothing[\T\] => throw NothingInHere
-      end  *) 
+      end *)
 
     extract() : T throws NothingInHere = extract(self) 
   

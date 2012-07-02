@@ -1,0 +1,74 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+ 
+import CompilerAlgebra.{...}
+(*)import CompilerBuiltin.{...}
+import List.{...}
+export Executable
+
+lia = <| [\ZZ32\] 1,2,3,4,5 |>
+lib = <| [\ZZ32\] 5,4,3,2,1 |>
+lsa = <| [\String\] "cat", "dog", "emu" |>
+lsb = <| [\String\] "ant", "bat", "fox" |>
+
+object Unimplemented(s:String) extends UncheckedException
+    getter asString(): String = s "Unimplemented!"
+end
+
+opr CMP(x:Object, y:Object) : Comparison =
+   throw Unimplemented("CMP of Objects " x " and " y)
+
+opr CMP[\T extends StandardTotalOrder[\T\]\] (x:List[\T\], y:List[\T\]) : TotalComparison = do
+  lx = |x|
+  ly = |y|
+  if lx = 0 then
+    if ly = 0 then EqualTo else LessThan end
+  elif ly = 0 then GreaterThan
+  elif lx = 1 AND ly = 1 then
+     x.left().extract() CMP y.left().extract() 
+  else
+     (xa, xb) = x.splitIndex((lx+1) DIV 2)
+     (ya, yb) = y.splitIndex((ly+1) DIV 2)
+     (ca, cb) = (xa CMP ya, xb CMP yb)
+     if ca = EqualTo then cb else ca end
+  end
+end
+
+(* opr <[\T extends StandardTotalOrder[\T\]\] (x:List[\T\], y:List[\T\]) : Boolean = 
+  (x CMP y) = LessThan 
+*)
+
+opr  < (x:Object, y:Object) : Boolean = 
+  (x CMP y) = LessThan
+
+
+run() =do
+    o:Object = lia
+    p:Object = lsb
+    q:Object = lsa
+    r:Object = "ca"||"t"
+    s:Object = "do"||"g"
+    t:Object = 11
+  println("Integer lists" (lia < lib))
+  println("String lists" (lsa < lsb))
+  println("String lists as objects" (p < q))
+  println("Strings"  (("ca"||"t") < ("do"||"g") ))
+  try
+    println("should not print, mixed integer-string lists" (o < p))
+  catch x
+    Unimplemented => println( "Unimplemented, as expected" )
+  end
+  try
+    println("should not print, mixed integer and string" (s < t))
+  catch x
+    Unimplemented => println( "Unimplemented, as expected" )
+  end
+  println("String as Objects" (r < s))
+end
