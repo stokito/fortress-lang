@@ -61,13 +61,8 @@ public class DeterministicRandom {
      * [0, exclusiveMax) */
     public static double deterministicRandomDouble(double exclusiveMax) {
         FortressTaskRunner ftr = (FortressTaskRunner) Thread.currentThread();
-        BaseTask bt = ftr.task();
-
-        long newDotProduct = 
-            bt.getDotProduct() + 
-            (MagicNumbers.a(bt.getDepth()) * bt.getRandomCount());
-        bt.incRandomCount();
-        return fromLong(mixBits(newDotProduct)) * exclusiveMax;
+        long dotProduct = ftr.task().makeNewRandom();
+        return fromLong(mixBits(dotProduct)) * exclusiveMax;
     }
 
     /* Returns a deterministic random integer in the interval
