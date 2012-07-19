@@ -1,0 +1,13 @@
+#!/bin/bash
+
+ver=`svnversion`
+
+echo "Echo zipping version ${ver}, logged in zip_${ver}.log"
+zip -9 fortress_${ver}.zip \
+`find . \( -name .svn -o \
+           -name "fortress_*.zip" -o \
+           -name .hg -o \
+           -name "*.log" -o \
+           -name "*~" -o \
+           -name .dependencies -o \
+           -name "TEST-RESULTS" \) -prune -o -print` > zip_${ver}.log

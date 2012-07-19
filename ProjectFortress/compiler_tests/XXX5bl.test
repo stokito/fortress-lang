@@ -1,0 +1,18 @@
+#    Copyright 2009, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=Compiled5.bl
+STATIC_TESTS_DIR=${FORTRESS_AUTOHOME}/ProjectFortress/compiler_tests
+compile
+compile_err_equals=\
+${STATIC_TESTS_DIR}/Compiled5.bl.fss:21:10-38:\n\
+\ Could not check function application\n\
+\ - ZZ32->String is not applicable to an argument of type Foo.\n\
+File Compiled5.bl.fss has 1 error.\n
+compile_out_equals=

@@ -1,0 +1,442 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Format
+
+import Set.{...}
+import List.{...}
+export Format
+
+(* Formatted strings.
+ * usage: format("literal string %s\n", "ok")
+ * format variables have the form
+ *  format := %[attribute[&attribute...]]var
+ *  attribute := key=value
+ *
+ * Possible vars:
+ *  d - format as integer. keys = w, ww, i, r, n, nn
+ *  f - format as a floating point number. keys = w, ww, i, r, n, nn
+ *  e - format in scientific notation. keys = w, ww
+ *  b - format as a boolean( true/false ). keys =
+ *  m - format for Maybe types, only print object if a Just is given. keys =
+ *  s - format using asString of the object. keys = w, ww
+ *  x - format as hex. keys = w, ww, i, n, nn
+ *
+ * Possible keys:
+ *  w=num - pad the left side
+ *  ww=num - pad the right side
+ *  p='char' - character to pad with. default is ' '
+ *  i=num - index into the argument list
+ *  n=num - number of chars to skip before placing a delimiter. default delimiter is ','
+ *  nn='char' - delimiter to use
+ *  r=num - radix of number
+ *
+ * See tests/formatTest.fss for some examples.
+ *)
+
+padHelper(string:String,c:Char,size:ZZ32):String =
+    if |string| < size then
+        n = size - |string|
+        (BIG || [_<-1:n] c)
+    else
+        ""
+    end
+
+padLeft(string:String,c:Char,size:ZZ32):String =
+    padHelper(string,c,size) string
+
+padRight(string:String,c:Char,size:ZZ32):String =
+    string padHelper(string,c,size)
+
+radixConvert(n:ZZ32):String = do
+    alphas = "0123456789abcdefghijklmnopqrstuvwxyz"
+    alphas[ n ] ""
+end
+
+(* deal with negative numbers because negating the most negative number
+ * that n-bits can represent in twos-complement becomes the same negative number.
+ * With 8 bits we would have -128 = 0xff. Negating -128 is
+ * -128 ^ 0xff + 1 = 127 + 1 = -128
+ *)
+radixHelper(base:ZZ64,val:ZZ64):String = do
+    n = |/(val / base)\|
+    if n =/= 0 then
+        radixHelper(base, n) radixConvert(-narrow(val REM base))
+    else
+        radixConvert(-narrow(val REM base))
+    end
+end
+
+radix(base:ZZ64,val:ZZ64):String = do
+    if val < 0 then
+        "-" radixHelper(base,val)
+    else
+        radixHelper(base,-val)
+    end
+end
+
+scientificHelper(number:RR64):String = do
+    if number = 0 then
+        "0.000000e+00"
+    else
+        exponent = log(number)/log(10)
+        power = |\exponent/|
+        sign = if power >= 0 then "+" else "-" end
+        tens = |\(|power|)/|
+        if number < 1 AND number > -1 then
+            ((padRight((number 10^(-power))"",'0',8))[0#8]) "e" sign "" padLeft(tens"",'0',2)
+        else
+            ((padRight((number / 10^(power))"",'0',8))[0#8]) "e" sign "" padLeft(tens"",'0',2)
+        end
+    end
+end
+
+(*
+scientific(number:ZZ32):String = do
+    scientific(widen(number))
+end
+*)
+
+scientific(number:RR64):String = do
+    if number < 0 then
+        "-" scientificHelper(-number)
+    else
+        scientificHelper(number)
+    end
+end
+
+digitSeparator(num:String,nth:ZZ32,separator:String):String = do
+    total = narrow(|\((|num|)-1) / nth/|)
+    num[0#((|num|)-(total nth))] (BIG || [index <- 0#total] (separator num[((|num|) - ((total - index)nth))#nth]))
+end
+
+digitSeparatorRight(num:String,nth:ZZ32,separator:String):String = do
+    total = narrow(|\((|num|)-1) / nth/|)
+    (BIG || [index <- 0#total] (num[(index nth)#nth] separator)) num[(total nth):]
+end
+
+minIndexOf(string:String,find:Char):Maybe[\ZZ32\] = do
+    label out
+        for g<-seq(0#|string|) do
+            if string[g] = find then
+                exit out with Just[\ZZ32\](g)
+            end
+        end
+        exit out with Nothing[\ZZ32\]
+    end out
+end
+
+digitSeparator(num:String,nth:ZZ32,separator:String,middle:Char):String = do
+    if num[0] = '-' then
+        "-" digitSeparator(num[1:((|num|)-1)],nth,separator,middle)
+    else
+        place = minIndexOf(num,middle)
+        if n <- place then
+            left = num[0:n-1]
+            right = num[(n+1):]
+            digitSeparator(left,nth,separator) middle digitSeparatorRight(right,nth,separator)
+        else
+            digitSeparator(num,nth,separator)
+        end
+    end
+end
+
+(*
+ * %d - int
+ * %x - hex
+ * %base x -
+ * %o - octaln
+ * %e - scientific notation
+ * %f - floating point
+ * %g - scientific notation with all the digits
+ * %a - hexidecimal floating point
+ * %% - %
+ * %s - string, asString
+ * %1$s
+ *)
+
+ (* %w=1&d='&d *)
+
+object FormatException(reason:String) extends UncheckedException
+    getter asString(): String = "Format exception: " reason
+    getter asExprString(): String = "FormatException(" reason.asEvalString ")"
+end
+
+object Parameters(widthLeft:Maybe[\ZZ32\],
+                  widthRight:Maybe[\ZZ32\],
+                  index:Maybe[\ZZ32\],
+                  chars:Maybe[\ZZ32\],
+                  charType:Maybe[\String\],
+                  desiredRadix:ZZ32,
+                  pad:Char)
+end
+
+(* available characters *)
+(* acghijkloqtuvwyz *)
+
+parseParameters(string:String):Parameters = do
+    var current:String := string
+    var widthLeft:Maybe[\ZZ32\] := Nothing[\ZZ32\]
+    var widthRight:Maybe[\ZZ32\] := Nothing[\ZZ32\]
+    var index:Maybe[\ZZ32\] := Nothing[\ZZ32\]
+    var chars:Maybe[\ZZ32\] := Nothing[\ZZ32\]
+    var charType:Maybe[\String\] := Just[\String\](",")
+    var radix_:ZZ32 := 10
+    var pad:Char := ' '
+    while |current| > 0 do
+        equals = minIndexOf(current,'=')
+        if place <- equals then
+            front = current[0:(place-1)]
+            readString() = do
+                if last <- minIndexOf(current,'&') then
+                    s = current
+                    current := current[(last+1):]
+                    s[(place+1):(last-1)]
+                else
+                    s = current
+                    current := ""
+                    s[(place+1):]
+                end
+            end
+            readInt() = do
+                strToInt(readString())
+            end
+
+            case front of
+                "w" => widthLeft := Just[\ZZ32\](readInt())
+                "ww" => widthRight := Just[\ZZ32\](readInt())
+                "i" => index := Just[\ZZ32\](readInt() - 1)
+                "n" => chars := Just[\ZZ32\](readInt())
+                "nn" => charType := Just[\String\](readString())
+                "r" => radix_ := readInt()
+                "p" => pad := (readString())[0]
+            end
+        else
+            throw FormatException("illegal parameter syntax: " current)
+        end
+    end
+    Parameters(widthLeft,widthRight,index,chars,charType,radix_,pad)
+end
+
+getArg(params:Parameters,args,allArgs) = do
+    if i <- params.index then
+        allArgs[i]
+    else
+        args[0]
+    end
+end
+
+getDelimiter(params:Parameters,arg):String = do
+    if i <- params.chars then
+        digitSeparator(arg,i,params.charType.get)
+    else
+        arg
+    end
+end
+
+getWidth(params:Parameters,arg):String = do
+    if width <- params.widthLeft then
+        padLeft(arg "",params.pad, width)
+    elif width <- params.widthRight then
+        padRight(arg "",params.pad, width)
+    else
+        arg
+    end
+end
+
+restArgs(params:Parameters,args) = do
+    if i <- params.index then
+        args
+    else
+        args.drop(1)
+    end
+end
+
+getPlain(arg):String = arg ""
+
+(* front:123 *)
+compileD(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        (fn () => getWidth(params,
+                  getDelimiter(params,
+                  radix(params.desiredRadix,
+                  getArg(params,args,allArgs)))))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+end
+
+compileF(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        getPlain'(x) = x + 0.0
+        (fn () => getWidth(params,
+                  getDelimiter(params,
+                  getPlain'(
+                  getArg(params,args,allArgs)))))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+end
+
+compileX(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        (fn () => getWidth(params,
+                  getDelimiter(params,
+                  radix(16,
+                  getArg(params,args,allArgs)))))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+end
+
+compileS(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        (fn () => getWidth(params,
+                  getPlain(
+                  getArg(params,args,allArgs))))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+
+end
+
+compileB(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        getPlain'(arg) = if arg then "true" else "false" end
+        (fn () => getPlain'(
+                  getArg(params,args,allArgs)))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+end
+
+compileM(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        getPlain'(arg) = if i <- arg then i else "" end
+        (fn () => getPlain'(
+                  getArg(params,args,allArgs)))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+end
+
+compileE(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    this(params) = do
+        getPlain'(arg) = scientific(arg)
+        (fn () => getPlain'(
+                  getArg(params,args,allArgs)))
+    end
+    params = parseParameters(front)
+    compile(string,allArgs,restArgs(params,args)).addLeft(this(params))
+end
+
+compileSpecifier(front:String,string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    start = front[0:((|front|)-2)]
+    case front[(|front|)-1] of
+        'd' => compileD(start,string,allArgs,args)
+        's' => compileS(start,string,allArgs,args)
+        'b' => compileB(start,string,allArgs,args)
+        'm' => compileM(start,string,allArgs,args)
+        'e' => compileE(start,string,allArgs,args)
+        'x' => compileX(start,string,allArgs,args)
+        'f' => compileF(start,string,allArgs,args)
+        '%' => compile(string,allArgs,args).addLeft((fn () => "%"))
+        else => throw FormatException("unknown format specifier")
+
+    end
+end
+
+compilePercent(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    if |string| = 0 then
+        throw FormatException("no characters left")
+    else
+        rest = if |string| > 0 then
+            string[1:]
+        else
+            ""
+        end
+        chars = "dsbmexf%"
+        var count:ZZ32 := 0
+        stuff = label out
+            var in_string:Boolean := false
+            var escape:Boolean := false
+            var result:String := ""
+            for i <- seq(0#|string|) do
+                count := count + 1
+                if escape then
+                    escape := false
+                    result := result string[i]
+                else
+                    if NOT in_string then
+                        case string[i] of
+                            "'" => in_string := NOT in_string
+                            "\\" => escape := true
+                            chars => do
+                                result := result string[i]
+                                exit out with result
+                            end
+                            else => result := result string[i]
+                        end
+                    else
+                        case string[i] of
+                            "'" => in_string := NOT in_string
+                            "\\" => escape := true
+                            else => result := result string[i]
+                        end
+                    end
+                end
+            end
+            throw FormatException("missing format specifier")
+        end out
+        compileSpecifier(stuff,string[count:],allArgs,args)
+    end
+
+end
+
+
+(* String -> [(fn String -> String)] *)
+compile(string:String,allArgs:List[\Any\],args:List[\Any\]):List[\Any\] = do
+    if |string| = 0 then
+        <|[\Any\] |>
+    else
+        percent = minIndexOf(string,'%')
+        if index <- percent then
+            if index = 0 then
+                compilePercent(string[1:],allArgs,args)
+            else
+                this = (fn () => string[0#index])
+                compile(string[index:],allArgs,args).addLeft(this)
+            end
+        else
+            <|[\Any\] (fn () => string) |>
+            (*
+            singleton[\String\]( (fn () => string) )
+            *)
+        end
+        (*
+        rest = string[1:]
+        case string[0] of
+            '%' => compilePercent(rest,allArgs,args)
+            else => do
+                this = (fn () => string[0])
+                compile(rest,allArgs,args).addLeft(this)
+            end
+        end
+        *)
+    end
+end
+
+format(string:String,args:Any...): String = do
+    lst = <|[\Any\] i | i <- args |>
+    BIG || [f<-compile(string,lst,lst)] f()
+end
+
+end (* component *)

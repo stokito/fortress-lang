@@ -1,0 +1,811 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Booleans and Boolean Intervals}
+\chaplabel{lib:booleans}
+
+\Trait{Fortress.Core.Boolean}
+\seclabel{lib:boolean}
+
+%trait Boolean
+%    extends { BooleanAlgebra[\Boolean,juxtaposition,OR,NOT,XOR\],
+%              BooleanAlgebra[\Boolean,juxtaposition,OR,NOT,OPLUS\],
+%              BooleanAlgebra[\Boolean,AND,OR,NOT,XOR\],
+%              BooleanAlgebra[\Boolean,AND,OR,NOT,OPLUS\],
+%              BooleanAlgebra[\Boolean,OR,juxtaposition,NOT,EQV\],
+%              BooleanAlgebra[\Boolean,OR,juxtaposition,NOT,IFF\],
+%              BooleanAlgebra[\Boolean,OR,AND,NOT,EQV\],
+%              BooleanAlgebra[\Boolean,OR,AND,NOT,IFF\],
+%              TotalOrder[\Boolean,IMPLIES\],
+%              PartialOrderAndBoundedLattice[\Boolean,IMPLIES,juxtaposition,OR\],
+%              PartialOrderAndBoundedLattice[\Boolean,IMPLIES,AND,OR\],
+%              IdentityEquality[\Boolean\],
+%              EquivalenceRelation[\Boolean,EQV\],
+%              EquivalenceRelation[\Boolean,IFF\],
+%              Symmetric[\Boolean,AND\], Symmetric[\Boolean,OR\],
+%              Symmetric[\Boolean,XOR\], Symmetric[\Boolean,OPLUS\],
+%              Symmetric[\Boolean,NAND\], Commutative[\Boolean,NAND\],
+%              Symmetric[\Boolean,NOR\], Commutative[\Boolean,NOR\] }
+%    comprises { ... }
+%  coerce[\bool b\](x: BooleanLiteral[\b\])
+%  coerce(x: Identity[\juxtaposition\])
+%  coerce(x: Identity[\AND\])
+%  coerce(x: Identity[\OR\])
+%  coerce(x: Identity[\XOR\])
+%  coerce(x: Identity[\OPLUS\])
+%  coerce(x: Identity[\EQV\])
+%  coerce(x: Identity[\IFF\])
+%  coerce(x: ComplementBound[\AND\])
+%  coerce(x: ComplementBound[\OR\])
+%  coerce(x: Zero[\AND\])
+%  coerce(x: Zero[\OR\])
+%  coerce(x: MaximalElement[\IMPLIES\])
+%  coerce(x: MinimalElement[\IMPLIES\])
+%  getter hashCode(): NN64
+%  opr juxtaposition(self, other: Boolean): Boolean
+%  opr AND(self, other: Boolean): Boolean
+%  opr AND(self, other: ()->Boolean): Boolean
+%  opr OR(self, other: Boolean): Boolean
+%  opr OR(self, other: ()->Boolean): Boolean
+%  opr NOT(self): Boolean
+%  opr XOR(self, other: Boolean): Boolean
+%  opr OPLUS(self, other: Boolean): Boolean
+%  opr EQV(self, other: Boolean): Boolean
+%  opr =(self, other: Boolean): Boolean
+%  opr IFF(self, other: Boolean): Boolean
+%  opr IMPLIES(self, other: Boolean): Boolean
+%  opr IMPLIES(self, other: ()->Boolean): Boolean
+%  opr NAND(self, other: Boolean):  Boolean
+%  opr NOR(self, other: Boolean):  Boolean
+%  opr ===(self, other: Boolean): Boolean
+%  majority(self, other1: Boolean, other2: Boolean)
+%  toString(): String
+%  property FORALL (a, b) a b = (a AND b)
+%  property FORALL (a, b) (a XOR b) = (a OPLUS b)
+%  property FORALL (a, b) (a EQV b) = (a IFF b) = (a = b) = (a === b)
+%  property FORALL (a, b) (a IMPLIES b) = ((NOT a) OR b)
+%  property FORALL (a, b) (a NAND b) = NOT (a AND b)
+%  property FORALL (a, b) (a NOR b) = NOT (a OR b)
+%end
+%test testData[~] = { false, true }
+\begin{Fortress}
+\(\KWD{trait}\:\TYP{Boolean}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\, \null\)\pushtabs\=\+\(\TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\KWD{juxtaposition},\vee,\neg,\xor\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\KWD{juxtaposition},\vee,\neg,\oplus\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\wedge,\vee,\neg,\xor\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\wedge,\vee,\neg,\oplus\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\vee,\KWD{juxtaposition},\neg,\equiv\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\vee,\KWD{juxtaposition},\neg,\leftrightarrow\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\vee,\wedge,\neg,\equiv\rrbracket,\)\\
+\(              \TYP{BooleanAlgebra}\llbracket\TYP{Boolean},\vee,\wedge,\neg,\leftrightarrow\rrbracket,\)\\
+\(              \TYP{TotalOrder}\llbracket\TYP{Boolean},\rightarrow\rrbracket,\)\\
+\(              \TYP{PartialOrderAndBoundedLattice}\llbracket\TYP{Boolean},\rightarrow,\KWD{juxtaposition},\vee\rrbracket,\)\\
+\(              \TYP{PartialOrderAndBoundedLattice}\llbracket\TYP{Boolean},\rightarrow,\wedge,\vee\rrbracket,\)\\
+\(              \TYP{IdentityEquality}\llbracket\TYP{Boolean}\rrbracket,\)\\
+\(              \TYP{EquivalenceRelation}\llbracket\TYP{Boolean},\equiv\rrbracket,\)\\
+\(              \TYP{EquivalenceRelation}\llbracket\TYP{Boolean},\leftrightarrow\rrbracket,\)\\
+\(              \TYP{Symmetric}\llbracket\TYP{Boolean},\wedge\rrbracket, \TYP{Symmetric}\llbracket\TYP{Boolean},\vee\rrbracket,\)\\
+\(              \TYP{Symmetric}\llbracket\TYP{Boolean},\xor\rrbracket, \TYP{Symmetric}\llbracket\TYP{Boolean},\oplus\rrbracket,\)\\
+\(              \TYP{Symmetric}\llbracket\TYP{Boolean},\nand\rrbracket, \TYP{Commutative}\llbracket\TYP{Boolean},\nand\rrbracket,\)\\
+\(              \TYP{Symmetric}\llbracket\TYP{Boolean},\nor\rrbracket, \TYP{Commutative}\llbracket\TYP{Boolean},\nor\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{comprises} \{\,\ldots\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce}\llbracket\KWD{bool}\:b\rrbracket(x\COLON \TYP{BooleanLiteral}\llbracket{}b\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\KWD{juxtaposition}\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\wedge\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\vee\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\xor\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\oplus\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\equiv\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Identity}\llbracket\leftrightarrow\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{ComplementBound}\llbracket\wedge\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{ComplementBound}\llbracket\vee\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\wedge\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{Zero}\llbracket\vee\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{MaximalElement}\llbracket\rightarrow\rrbracket)\)\\
+\(  \KWD{coerce}(x\COLON \TYP{MinimalElement}\llbracket\rightarrow\rrbracket)\)\\
+\(  \KWD{getter}\:\VAR{hashCode}()\COLON \mathbb{N}64\)\\
+\(  \KWD{opr}\;\;\KWD{juxtaposition}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\wedge}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\wedge}(\KWD{self}, \VAR{other}\COLON ()\rightarrow\TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\vee}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\vee}(\KWD{self}, \VAR{other}\COLON ()\rightarrow\TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\neg}(\KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\xor}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\oplus}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\equiv}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\leftrightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\rightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\rightarrow}(\KWD{self}, \VAR{other}\COLON ()\rightarrow\TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\nand}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON  \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\nor}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON  \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}\)\\
+\(  \VAR{majority}(\KWD{self}, {other}_{1}\COLON \TYP{Boolean}, {other}_{2}\COLON \TYP{Boolean})\)\\
+\(  \VAR{toString}()\COLON \TYP{String}\)\\
+\(  \KWD{property} \forall (a, b)\; a\:b = (a \wedge b)\)\\
+\(  \KWD{property} \forall (a, b)\; (a \xor b) = (a \oplus b)\)\\
+\(  \KWD{property} \forall (a, b)\; (a \equiv b) = (a \leftrightarrow b) = (a = b) = (a \sequiv b)\)\\
+\(  \KWD{property} \forall (a, b)\; (a \rightarrow b) = ((\neg a) \vee b)\)\\
+\(  \KWD{property} \forall (a, b)\; (a \nand b) = \neg (a \wedge b)\)\\
+\(  \KWD{property} \forall (a, b)\; (a \nor b) = \neg (a \vee b)\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\KWD{test}\:\VAR{testData}[~] = \{\,\VAR{false}, \VAR{true}\,\}\)
+\end{Fortress}
+
+
+
+%  coerce[\bool b\](x: BooleanLiteral[\b\])
+\Method{\EXP{\KWD{coerce}\llbracket\KWD{bool} b\rrbracket(x\COLON \TYP{BooleanLiteral}\llbracket{}b\rrbracket)}}
+
+A boolean literal can always serve as a \TYP{Boolean} value.
+
+
+%  coerce(x: Identity[\juxtaposition\])
+%  coerce(x: Identity[\AND\])
+%  coerce(x: Identity[\OR\])
+%  coerce(x: Identity[\XOR\])
+%  coerce(x: Identity[\OPLUS\])
+%  coerce(x: Identity[\EQV\])
+%  coerce(x: Identity[\IFF\])
+%  coerce(x: ComplementBound[\AND\])
+%  coerce(x: ComplementBound[\OR\])
+%  coerce(x: Zero[\AND\])
+%  coerce(x: Zero[\OR\])
+%  coerce(x: MaximalElement[\IMPLIES\])
+%  coerce(x: MinimalElement[\IMPLIES\])
+\Method{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\KWD{juxtaposition}\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\wedge\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\vee\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\xor\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\oplus\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\equiv\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Identity}\llbracket\leftrightarrow\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{ComplementBound}\llbracket\wedge\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{ComplementBound}\llbracket\vee\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\wedge\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{Zero}\llbracket\vee\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{MaximalElement}\llbracket\rightarrow\rrbracket)}}
+\Method*{\EXP{\KWD{coerce}(x\COLON \TYP{MinimalElement}\llbracket\rightarrow\rrbracket)}}
+
+The identity for \EXP{\wedge} or \KWD{juxtaposition} is \VAR{true};
+the zero and the complement bound for \EXP{\wedge} or \KWD{juxtaposition} are \VAR{false}.
+
+The identity for \EXP{\vee} is \VAR{false};
+the zero and the complement bound for \EXP{\vee} are \VAR{false}.
+
+The identity for \EXP{\xor} or \EXP{\oplus} is \VAR{false};
+the identity for \EXP{\equiv} or \EXP{\leftrightarrow} is \VAR{true}.
+
+The maximal element for \EXP{\rightarrow} (regarded as a partial order operator) is \VAR{true},
+and the minimal element is \VAR{false}.
+
+
+
+%  getter hashCode(): NN64
+\Method{\EXP{\KWD{getter} \VAR{hashCode}()\COLON \mathbb{N}64}}
+
+
+%  opr juxtaposition(self, other: Boolean): Boolean
+\Method{\EXP{\KWD{opr}\ \KWD{juxtaposition}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+
+Juxtaposition of boolean expressions is equivalent to using the logical
+\scap{and} operator \EXP{\wedge}.
+
+
+%  opr AND(self, other: Boolean): Boolean
+%  opr AND(self, other: ()->Boolean): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\wedge}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\wedge}(\KWD{self}, \VAR{other}\COLON ()\rightarrow\TYP{Boolean})\COLON \TYP{Boolean}}}
+
+The logical \scap{and} operator \EXP{\wedge} (\STR{AND}) returns \VAR{true} if both arguments are \VAR{true};
+otherwise it returns \VAR{false}.
+
+The conditional logical \scap{and} operator \EXP{\wedge\COLONOP} (\STR{AND:}) examines its first argument;
+if it is \VAR{false}, the result is \VAR{false}, and the second argument (a thunk) is not evaluated.
+But if the first argument is \VAR{true}, the second argument is evaluated and its result becomes
+the result of the conditional logical \scap{and} operator expression.
+
+
+%  opr OR(self, other: Boolean): Boolean
+%  opr OR(self, other: ()->Boolean): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\vee}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\vee}(\KWD{self}, \VAR{other}\COLON ()\rightarrow\TYP{Boolean})\COLON \TYP{Boolean}}}
+
+The logical \scap{or} operator \EXP{\vee} (\STR{OR}) returns \VAR{false} if both arguments are \VAR{false};
+otherwise it returns \VAR{true}.
+
+The conditional logical \scap{or} operator \EXP{\vee\COLONOP} (\STR{OR:}) examines its first argument;
+if it is \VAR{true}, the result is \VAR{true}, and the second argument (a thunk) is not evaluated.
+But if the first argument is \VAR{false}, the second argument is evaluated and its result becomes
+the result of the conditional logical \scap{or} operator expression.
+
+
+%  opr NOT(self): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\neg}(\KWD{self})\COLON \TYP{Boolean}}}
+
+The logical \scap{not} operator \EXP{\neg} (\STR{NOT}) returns \VAR{true} if its argument is \VAR{false};
+it returns \VAR{false} if its argument is \VAR{true}.
+
+
+%  opr XOR(self, other: Boolean): Boolean
+%  opr OPLUS(self, other: Boolean): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\xor}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\oplus}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+
+The logical exclusive \scap{or} operator \EXP{\xor} (\STR{XOR}) returns \VAR{true} if
+the arguments are different, one being \VAR{true} and the other \VAR{false}; it returns
+\VAR{false} if both arguments are \VAR{true} or both arguments are \VAR{false}.
+
+The operator \EXP{\oplus} (\STR{OPLUS}) does the same thing as \EXP{\xor}.
+
+%  opr EQV(self, other: Boolean): Boolean
+%  opr =(self, other: Boolean): Boolean
+%  opr IFF(self, other: Boolean): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\equiv}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\leftrightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+
+The logical equivalence, or exclusive \scap{nor}, operator \EXP{\equiv} (\STR{EQV}) returns \VAR{true} if
+both arguments are \VAR{true} or both arguments are \VAR{false}; it returns \VAR{false} if
+the arguments are different, one being \VAR{true} and the other \VAR{false}.
+(Thus its behavior on boolean values happens to be exactly the same as that of the strict equivalence operator \EXP{\sequiv}.)
+
+The equality operator \EXP{=} and the if-and-only-if operator \EXP{\leftrightarrow} (\STR{IFF}) do the same thing as \EXP{\equiv}.
+
+For \EXP{\not\equiv} \see{operator-NEQV}.
+For \EXP{\neq} \see{operator-NE}.
+
+
+
+
+%  opr IMPLIES(self, other: Boolean): Boolean
+%  opr IMPLIES(self, other: ()->Boolean): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\rightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\KWD{opr} \mathord{\rightarrow}(\KWD{self}, \VAR{other}\COLON ()\rightarrow\TYP{Boolean})\COLON \TYP{Boolean}}}
+
+The logical implication operator \EXP{\rightarrow} (\STR{IMPLIES}) returns \VAR{false} if the first argument
+is \VAR{true} but the second argument is \VAR{false}; otherwise it returns \VAR{true}.
+
+The conditional logical implication operator \EXP{\rightarrow\COLONOP} (\STR{IMPLIES:}) examines its first argument;
+if it is \VAR{false}, the result is \VAR{true}, and the second argument (a thunk) is not evaluated.
+But if the first argument is \VAR{true}, the second argument is evaluated and its result becomes
+the result of the conditional logical implication operator expression.
+
+
+%  opr NAND(self, other: Boolean):  Boolean
+\Method{\EXP{\KWD{opr} \mathord{\nand}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON  \TYP{Boolean}}}
+
+The logical \scap{nand} (\scap{not and}) operator \EXP{\nand} (\STR{NAND}) returns \VAR{false} if both arguments are \VAR{true};
+otherwise it returns \VAR{true}.
+
+
+%  opr NOR(self, other: Boolean):  Boolean
+\Method{\EXP{\KWD{opr} \mathord{\nor}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON  \TYP{Boolean}}}
+
+The logical \scap{nor} (\scap{not or}) operator \EXP{\nor} (\STR{NOR}) returns \VAR{false} if both arguments are \VAR{false};
+otherwise it returns \VAR{true}.
+
+
+%  opr ===(self, other: Boolean): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{Boolean})\COLON \TYP{Boolean}}}
+
+Two boolean values are strictly equivalent if and only if they are the same
+boolean value
+(that is, both \VAR{true} or both \VAR{false}).
+
+
+%  majority(self, other1: Boolean, other2: Boolean)
+\Method{\EXP{\VAR{majority}(\KWD{self}, {other}_{1}\COLON \TYP{Boolean}, {other}_{2}\COLON \TYP{Boolean})}}
+
+If two or three of the argments are \VAR{true}, the result is \VAR{true};
+if two or three of the argments are \VAR{false}, the result is \VAR{false}.
+
+
+%  toString(): String
+\Method{\EXP{\VAR{toString}()\COLON \TYP{String}}}
+
+The \VAR{toString} method returns either \EXP{\hbox{\rm``\STR{true}''}}
+or \EXP{\hbox{\rm``\STR{false}''}} as appropriate.
+
+
+
+
+%% \section{Top-level Boolean Values}
+%%
+%% \Variable{\EXP{\VAR{true}\COLON \TYP{Boolean}}}
+%% \Variable*{\EXP{\VAR{false}\COLON \TYP{Boolean}}}
+%%
+%% The immutable variables \VAR{true} and \VAR{false} have as their
+%% values the true and false boolean values, respectively.
+%% They are top-level variables declared in the Fortress Core Library.
+
+
+\Trait{Fortress.Standard.BooleanInterval}
+
+A boolean interval is a set of boolean values.
+There are two distinct boolean values, \VAR{true} and \VAR{false},
+and therefore there are four distinct boolean intervals,
+which for convenience are given names:
+\begin{center}
+\begin{align*}
+\mathrm{True}       &= \{\mathit{true}\} \\
+\mathrm{False}      &= \{\mathit{false}\} \\
+\mathrm{Uncertain}  &= \{\mathit{true,false}\} \\
+\mathrm{Impossible} &= \{\,\}
+\end{align*}
+\end{center}
+Logical operations on intervals obey the interval containment rule:
+the result interval must contain every boolean result that can be produced
+by applying the operator to a boolean value taken from each argument interval.
+For example, if \VAR{P} and \VAR{Q} are boolean intervals, then
+by definition \EXP{P \wedge Q = \{\,x \wedge y \mid x \leftarrow P, y \leftarrow Q\,\}}.
+
+A principal application of boolean intervals is to express the results of
+numerical comparison of numerical intervals.  In this way numerical comparisons
+can also obey the interval containment rule.
+
+Set operations such as \EXP{\cup} and \EXP{\cap} may also be used on boolean intervals.
+
+
+\newpage
+
+%trait BooleanInterval
+%    extends { BooleanAlgebra[\BooleanInterval, INTERSECTION, UNION, SET_COMPLEMENT, SYMDIFF\],
+%              Set[\Boolean\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,AND\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,OR\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,XOR\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,EQV\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,=\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,IFF\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,NAND\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,NOR\],
+%              BinaryIntervalContainment[\BooleanInterval,Boolean,IMPLIES\],
+%              UnaryIntervalContainment[\BooleanInterval,Boolean,NOT\],
+%              Generator[\Boolean\] }
+%    comprises { ... }
+%  coerce (x: Boolean)
+%  getter hashCode(): ZZ64
+%  opr AND(self, other: BooleanInterval): BooleanInterval
+%  opr OR(self, other: BooleanInterval): BooleanInterval
+%  opr NOT(self): BooleanInterval
+%  opr XOR(self, other: BooleanInterval): BooleanInterval
+%  opr OPLUS(self, other: BooleanInterval): BooleanInterval
+%  opr EQV(self, other: BooleanInterval): BooleanInterval
+%  opr =(self, other: BooleanInterval): BooleanInterval
+%  opr IFF(self, other: BooleanInterval): BooleanInterval
+%  opr IMPLIES(self, other: BooleanInterval): BooleanInterval
+%  opr NAND(self, other: BooleanInterval): BooleanInterval
+%  opr NOR(self, other: BooleanInterval): BooleanInterval
+%  opr IN(other: Boolean, self): Boolean
+%  opr INTERSECTION(self, other: BooleanInterval): BooleanInterval
+%  opr UNION(self, other: BooleanInterval): BooleanInterval
+%  opr SET_COMPLEMENT(self): BooleanInterval
+%  opr SYMDIFF(self, other: BooleanInterval): BooleanInterval
+%  opr SETMINUS(self, other: BooleanInterval): BooleanInterval
+%  possibly(self): Boolean
+%  necessarily(self): Boolean
+%  certainly(self): Boolean
+%  opr ===(self, other: BooleanInterval): Boolean
+%  toString(): String
+%  property true IN True AND false NOTIN True
+%  property true NOTIN False AND false IN False
+%  property true IN Uncertain AND false IN Uncertain
+%  property true NOTIN Impossible AND false NOTIN Impossible
+%  property FORALL (a) necessarily(a) === NOT possibly(NOT a)
+%  property FORALL (a) possibly(a) IFF true IN a
+%  property FORALL (a) certainly(a) IFF (true IN a AND false NOTIN a)
+%  property FORALL (a,b) (a NAND b) IFF NOT (a AND b)
+%  property FORALL (a,b) (a NOR b) IFF NOT (a OR b)
+%end
+%True: BooleanInterval
+%False: BooleanInterval
+%Uncertain: BooleanInterval
+%Impossible: BooleanInterval
+%test testData[~] = { True, False, Uncertain, Impossible }
+\begin{Fortress}
+\(\KWD{trait} \TYP{BooleanInterval}\)\\
+{\tt~~~~}\pushtabs\=\+\(    \KWD{extends} \{\,\null\)\pushtabs\=\+\(\TYP{BooleanAlgebra}\llbracket\TYP{BooleanInterval}, \cap, \cup, \OPR{SET\_COMPLEMENT}, \OPR{SYMDIFF}\rrbracket,\)\\
+\(              \TYP{Set}\llbracket\TYP{Boolean}\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\wedge\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\vee\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\xor\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\equiv\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},=\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\leftrightarrow\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\nand\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\nor\rrbracket,\)\\
+\(              \TYP{BinaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\rightarrow\rrbracket,\)\\
+\(              \TYP{UnaryIntervalContainment}\llbracket\TYP{BooleanInterval},\TYP{Boolean},\neg\rrbracket,\)\\
+\(              \TYP{Generator}\llbracket\TYP{Boolean}\rrbracket\,\}\)\-\\\poptabs
+\(    \KWD{comprises} \{\,\ldots\,\}\)\-\\\poptabs
+{\tt~~}\pushtabs\=\+\(  \KWD{coerce} (x\COLON \TYP{Boolean})\)\\
+\(  \KWD{getter} \VAR{hashCode}()\COLON \mathbb{Z}64\)\\
+\(  \KWD{opr} \mathord{\wedge}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\vee}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\neg}(\KWD{self})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\xor}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\oplus}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\equiv}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\leftrightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\rightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\nand}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\nor}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\in}(\VAR{other}\COLON \TYP{Boolean}, \KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\cap}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\cup}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\OPR{SET\_COMPLEMENT}}(\KWD{self})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\OPR{SYMDIFF}}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \KWD{opr} \mathord{\setminus}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}\)\\
+\(  \VAR{possibly}(\KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \VAR{necessarily}(\KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \VAR{certainly}(\KWD{self})\COLON \TYP{Boolean}\)\\
+\(  \KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{Boolean}\)\\
+\(  \VAR{toString}()\COLON \TYP{String}\)\\
+\(  \KWD{property} \VAR{true} \in \TYP{True} \wedge \VAR{false} \not\in \TYP{True}\)\\
+\(  \KWD{property} \VAR{true} \not\in \TYP{False} \wedge \VAR{false} \in \TYP{False}\)\\
+\(  \KWD{property} \VAR{true} \in \TYP{Uncertain} \wedge \VAR{false} \in \TYP{Uncertain}\)\\
+\(  \KWD{property} \VAR{true} \not\in \TYP{Impossible} \wedge \VAR{false} \not\in \TYP{Impossible}\)\\
+\(  \KWD{property} \forall (a)\; \VAR{necessarily}(a) \sequiv \neg \VAR{possibly}(\neg a)\)\\
+\(  \KWD{property} \forall (a)\; \VAR{possibly}(a) \leftrightarrow \VAR{true} \in a\)\\
+\(  \KWD{property} \forall (a)\; \VAR{certainly}(a) \leftrightarrow (\VAR{true} \in a \wedge \VAR{false} \not\in a)\)\\
+\(  \KWD{property} \forall (a,b)\; (a \nand b) \leftrightarrow \neg (a \wedge b)\)\\
+\(  \KWD{property} \forall (a,b)\; (a \nor b) \leftrightarrow \neg (a \vee b)\)\-\\\poptabs
+\(\KWD{end}\)\\
+\(\TYP{True}\COLON \TYP{BooleanInterval}\)\\
+\(\TYP{False}\COLON \TYP{BooleanInterval}\)\\
+\(\TYP{Uncertain}\COLON \TYP{BooleanInterval}\)\\
+\(\TYP{Impossible}\COLON \TYP{BooleanInterval}\)\\
+\(\KWD{test} \VAR{testData}[~] = \{\,\TYP{True}, \TYP{False}, \TYP{Uncertain}, \TYP{Impossible}\,\}\)
+\end{Fortress}
+
+
+%  coerce (x: Boolean)
+\Method{\EXP{\KWD{coerce} (x\COLON \TYP{Boolean})}}
+
+A boolean value can always serve as a \TYP{BooleanInterval} value.
+The value \VAR{true} is coerced to \TYP{True}; the value \VAR{false} is coerced to \TYP{False}.
+
+
+%  getter hashCode(): ZZ64
+\Method{\EXP{\KWD{getter} \VAR{hashCode}()\COLON \mathbb{Z}64}}
+
+
+%  opr AND(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\wedge}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The logical \scap{and} operator \EXP{\wedge} (\STR{AND})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise it returns \TYP{False} if either argument is \TYP{False};
+otherwise it returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise it returns \TYP{True}.  It obeys the interval containment rule.
+The \EXP{\wedge} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\wedge} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{False} & \TYP{Impossible} \\
+\TYP{True} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\
+\TYP{False} & \TYP{False} & \TYP{False} & \TYP{False} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr OR(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\vee}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The logical \scap{or} operator \EXP{\vee} (\STR{OR})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise it returns \TYP{True} if either argument is \TYP{True};
+otherwise it returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise it returns \TYP{False}.  It obeys the interval containment rule.
+The \EXP{\wedge} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\wedge} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{True} & \TYP{Uncertain} & \TYP{Impossible} \\
+\TYP{True} & \TYP{True} & \TYP{True} & \TYP{True} & \TYP{Impossible} \\
+\TYP{False} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr NOT(self): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\neg}(\KWD{self})\COLON \TYP{BooleanInterval}}}
+
+The logical \scap{not} operator \EXP{\neg} (\STR{NOT})
+returns \TYP{Impossible} if its argument is \TYP{Impossible},
+\TYP{Uncertain} if its argument is \TYP{Uncertain},
+\TYP{False} if its argument is \TYP{True}, and
+\TYP{True} if its argument is \TYP{False}.  It obeys the interval containment rule.
+
+
+%  opr XOR(self, other: BooleanInterval): BooleanInterval
+%  opr OPLUS(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\xor}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+\Method*{\EXP{\KWD{opr} \mathord{\oplus}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The logical exclusive \scap{or} operator \EXP{\xor} (\STR{XOR})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise it returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise it returns \TYP{False} if the arguments are strictly equivalent;
+otherwise it returns \TYP{True}.  It obeys the interval containment rule.
+
+The operator \EXP{\oplus} (\STR{OPLUS}) does the same thing as \EXP{\xor}.
+The \EXP{\xor} or \EXP{\oplus} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\xor} or \EXP{\oplus} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{Impossible} \\
+\TYP{True} & \TYP{Uncertain} & \TYP{False} & \TYP{True} & \TYP{Impossible} \\
+\TYP{False} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr EQV(self, other: BooleanInterval): BooleanInterval
+%  opr =(self, other: BooleanInterval): BooleanInterval
+%  opr IFF(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\equiv}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+\Method*{\EXP{\KWD{opr} \mathord{=}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+\Method*{\EXP{\KWD{opr} \mathord{\leftrightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The logical equivalence, or exclusive \scap{nor}, operator \EXP{\equiv} (\STR{EQV})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise it returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise it returns \TYP{True} if the arguments are strictly equivalent;
+otherwise it returns \TYP{False}.  It obeys the interval containment rule.
+(Thus its behavior on boolean interval values is \emph{not} the same as that of the strict equivalence operator \EXP{\sequiv}.)
+
+The equality operator \EXP{=} and the if-and-only-if operator \EXP{\leftrightarrow} (\STR{IFF}) do the same thing as \EXP{\equiv}.
+The \EXP{\equiv} or \EXP{=} or \EXP{\leftrightarrow} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\equiv} or \EXP{=} or \EXP{\leftrightarrow} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{Impossible} \\
+\TYP{True} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\
+\TYP{False} & \TYP{Uncertain} & \TYP{False} & \TYP{True} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr IMPLIES(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\rightarrow}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The logical implication operator \EXP{\rightarrow} (\STR{IMPLIES})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise it returns \TYP{True} if the first argument is \TYP{False} or the second argument is \TYP{True};
+otherwise it returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise it returns \TYP{False}.  It obeys the interval containment rule.
+The \EXP{\rightarrow} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\rightarrow} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{True} & \TYP{Uncertain} & \TYP{Impossible} \\
+\TYP{True} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\
+\TYP{False} & \TYP{True} & \TYP{True} & \TYP{True} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr NAND(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\nand}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The logical \scap{nand} (\scap{not and}) operator \EXP{\nand} (\STR{NAND})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise it returns \TYP{True} if either argument is \TYP{False};
+otherwise it returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise it returns \TYP{False}.  It obeys the interval containment rule.
+The \EXP{\nand} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\nand} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{True} & \TYP{Impossible} \\
+\TYP{True} & \TYP{Uncertain} & \TYP{False} & \TYP{True} & \TYP{Impossible} \\
+\TYP{False} & \TYP{True} & \TYP{True} & \TYP{True} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr NOR(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\nor}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The logical \scap{nor} (\scap{not or}) operator \EXP{\nor} (\STR{NOR})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise it returns \TYP{False} if either argument is \TYP{True};
+otherwise it returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise it returns \TYP{True}.  It obeys the interval containment rule.
+The \EXP{\nor} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\nor} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{False} & \TYP{Uncertain} & \TYP{Impossible} \\
+\TYP{True} & \TYP{False} & \TYP{False} & \TYP{False} & \TYP{Impossible} \\
+\TYP{False} & \TYP{Uncertain} & \TYP{False} & \TYP{True} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr IN(other: Boolean, self): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\in}(\VAR{other}\COLON \TYP{Boolean}, \KWD{self})\COLON \TYP{Boolean}}}
+
+The operator \EXP{\in} (\STR{IN}) returns \VAR{true} if its first argument, a boolean value,
+is contained in its second argument, a boolean interval regarded as a set;
+otherwise it returns \VAR{false}.
+The \EXP{\in} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\in} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\VAR{true} & \VAR{true} & \VAR{true} & \VAR{false} & \VAR{false} \\
+\VAR{false} & \VAR{true} & \VAR{false} & \VAR{true} & \VAR{false}
+\end{tabular}
+\end{center}
+
+
+%  opr INTERSECTION(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\cap}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The intersection operator \EXP{\cap} (\STR{INTERSECTION} or \STR{CAP})
+returns \TYP{Impossible} if either argument is \TYP{Impossible};
+otherwise, if either argument is \TYP{Uncertain}, it returns the other argument;
+otherwise, if the arguments are the same value (strictly equivalent), it returns that value;
+otherwise it returns \TYP{Impossible}.
+The \EXP{\cap} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\cap} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\
+\TYP{True} & \TYP{True} & \TYP{True} & \TYP{Impossible} & \TYP{Impossible} \\
+\TYP{False} & \TYP{False} & \TYP{Impossible} & \TYP{False} & \TYP{Impossible} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr UNION(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\cup}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The union operator \EXP{\cup} (\STR{UNION} or \STR{CUP})
+returns \TYP{Uncertain} if either argument is \TYP{Uncertain};
+otherwise, if either argument is \TYP{Impossible}, it returns the other argument;
+otherwise, if the arguments are the same value (strictly equivalent), it returns that value;
+otherwise it returns \TYP{Uncertain}.
+The \EXP{\cup} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\cup} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{Uncertain} \\
+\TYP{True} & \TYP{Uncertain} & \TYP{True} & \TYP{Uncertain} & \TYP{True} \\
+\TYP{False} & \TYP{Uncertain} & \TYP{Uncertain} & \TYP{False} & \TYP{False} \\
+\TYP{Impossible} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr SET_COMPLEMENT(self): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\OPR{SET\_COMPLEMENT}}(\KWD{self})\COLON \TYP{BooleanInterval}}}
+
+The set complement operator \OPR{SET\_COMPLEMENT}
+returns \TYP{Uncertain} if its argument is \TYP{Impossible},
+\TYP{Impossible} if its argument is \TYP{Uncertain},
+\TYP{False} if its argument is \TYP{True}, and
+\TYP{True} if its argument is \TYP{False}.
+
+
+%  opr SYMDIFF(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\OPR{SYMDIFF}}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The symmetric difference operator \OPR{SYMDIFF} produces a result
+that contains a given boolean value if and only if exactly one of the arguments
+contains that boolean value.
+The \OPR{SYMDIFF} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\OPR{SYMDIFF} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Impossible} & \TYP{False} & \TYP{True} & \TYP{Uncertain} \\
+\TYP{True} & \TYP{False} & \TYP{Impossible} & \TYP{Uncertain} & \TYP{True} \\
+\TYP{False} & \TYP{True} & \TYP{Uncertain} & \TYP{Impossible} & \TYP{False} \\
+\TYP{Impossible} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  opr SETMINUS(self, other: BooleanInterval): BooleanInterval
+\Method{\EXP{\KWD{opr} \mathord{\setminus}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{BooleanInterval}}}
+
+The set difference operator \EXP{\setminus} (\STR{SETMINUS}) produces a result
+that contains a given boolean value if and only if the first argument contains that boolean
+value but the second argument does not.
+The \EXP{\setminus} operator may be described by this table:
+\begin{center}
+\begin{tabular}{r|cccc}
+\EXP{\setminus} & \TYP{Uncertain} & \TYP{True} & \TYP{False} & \TYP{Impossible} \\ \hline
+\TYP{Uncertain} & \TYP{Impossible} & \TYP{False} & \TYP{True} & \TYP{Uncertain} \\
+\TYP{True} & \TYP{Impossible} & \TYP{Impossible} & \TYP{True} & \TYP{True} \\
+\TYP{False} & \TYP{Impossible} & \TYP{False} & \TYP{Impossible} & \TYP{False} \\
+\TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible} & \TYP{Impossible}
+\end{tabular}
+\end{center}
+
+
+%  possibly(self): Boolean
+%  necessarily(self): Boolean
+%  certainly(self): Boolean
+\Method{\EXP{\VAR{possibly}(\KWD{self})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\VAR{necessarily}(\KWD{self})\COLON \TYP{Boolean}}}
+\Method*{\EXP{\VAR{certainly}(\KWD{self})\COLON \TYP{Boolean}}}
+
+The predicate \VAR{possibly} returns \VAR{true} if and only if \VAR{true} is a member of this boolean interval.
+
+The predicate \VAR{necessarily} returns \VAR{true} if and only if \VAR{false} is not a member of this boolean interval
+(thus ``necessarily'' is a concise way of saying ``not possibly not'').
+
+The predicate \VAR{certainly} returns \VAR{true} if and only if this boolean interval is \TYP{True},
+that is, it contains \VAR{true} but not \VAR{false} (thus ``certainly'' is a concise way
+of saying ``both possibly and necessarily'').
+
+The fourteen nontrivial functions from a value \VAR{x} of type \TYP{BooleanInterval} to type \TYP{Boolean} may
+thus be expressed as follows:
+\begin{center}
+\EXP{\VAR{necessarily}(x) \wedge \VAR{necessarily}(\neg x)} \\
+\EXP{\VAR{certainly}(\neg x)} \\
+\EXP{\VAR{necessarily}(\neg x)} \\
+\EXP{\VAR{certainly}(x)} \\
+\EXP{\VAR{necessarily}(x)} \\
+\EXP{\VAR{possibly}(x) \equiv \VAR{necessarily}(x)} \\
+\EXP{\VAR{necessarily}(x) \vee \VAR{necessarily}(\neg x)} \\
+\EXP{\VAR{possibly}(x) \wedge \VAR{possibly}(\neg x)} \\
+\EXP{\VAR{possibly}(x) \xor \VAR{necessarily}(x)} \\
+\EXP{\VAR{possibly}(\neg x)} \\
+\EXP{\neg \VAR{certainly}(x)} \\
+\EXP{\VAR{possibly}(x)} \\
+\EXP{\neg \VAR{certainly}(\neg x)} \\
+\EXP{\VAR{possibly}(x) \vee \VAR{possibly}(\neg x))}
+\end{center}
+There are other ways to express some of them; for example,
+\EXP{\VAR{necessarily}(x) \wedge \VAR{necessarily}(\neg x)}
+is the same as \EXP{x\sequiv\TYP{Impossible}},
+and \EXP{\VAR{possibly}(x) \wedge \VAR{possibly}(\neg x)}
+is the same as \EXP{x\sequiv\TYP{Uncertain}}.
+
+
+%  opr ===(self, other: BooleanInterval): Boolean
+\Method{\EXP{\KWD{opr} \mathord{\sequiv}(\KWD{self}, \VAR{other}\COLON \TYP{BooleanInterval})\COLON \TYP{Boolean}}}
+
+Two boolean intervals are strictly equivalent if and only if they are the same boolean interval.
+
+
+%  toString(): String
+\Method{\EXP{\VAR{toString}()\COLON \TYP{String}}}
+
+The \VAR{toString} method returns either \EXP{\hbox{\rm``{\tt True}''}} or \EXP{\hbox{\rm``{\tt False}''}}
+or \EXP{\hbox{\rm``{\tt Uncertain}''}} or \EXP{\hbox{\rm``{\tt Impossible}''}} as appropriate.
+
+
+
+
+\section{Top-level BooleanInterval Values}
+
+\Variable{\EXP{\TYP{True}\COLON \TYP{BooleanInterval}}}
+\Variable*{\EXP{\TYP{False}\COLON \TYP{BooleanInterval}}}
+\Variable*{\EXP{\TYP{Uncertain}\COLON \TYP{BooleanInterval}}}
+\Variable*{\EXP{\TYP{Impossible}\COLON \TYP{BooleanInterval}}}
+
+The immutable variables \TYP{True}, \TYP{False}, \TYP{Uncertain}, and
+\TYP{Impossible} have as their values the four boolean intervals.
+They are top-level variables declared in \library.

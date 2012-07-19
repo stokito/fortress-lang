@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component ReplicaTest
+export Executable
+
+(* Bug 125: replica is returning an inappropriately-typed result. *)
+
+expect[\T\](a:Array1[\T,0,5\]): () = println("OK")
+
+expect2[\T\](a:Array2[\T,0,5,0,5\]): () = println("OK")
+
+expect3[\T\](a:Array3[\T,0,5,0,5,0,5\]): () = println("OK")
+
+run() : () = do
+    y : ZZ32[5] = array1[\ZZ32,5\](17)
+    expect[\ZZ32\](y)
+    l = y.replica[\ZZ32\]()
+    expect[\ZZ32\](l)
+    m = y.replica[\RR64\]()
+    expect[\RR64\](m)
+    yy = y.map[\(ZZ32,ZZ32)\](fn (i:ZZ32):(ZZ32,ZZ32) => (i,i+1))
+    expect[\(ZZ32,ZZ32)\](yy)
+    x : ZZ32[5,5] = array2[\ZZ32,5,5\](17)
+    expect2[\ZZ32\](x)
+    n = x.replica[\RR64\]()
+    expect2[\RR64\](n)
+    w : ZZ32[5,5,5] = array3[\ZZ32,5,5,5\]().fill(17)
+    expect3[\ZZ32\](w)
+    p = w.replica[\RR64\]()
+    expect3[\RR64\](p)
+  end
+
+end

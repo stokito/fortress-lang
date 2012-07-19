@@ -1,0 +1,30 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Expr.Do.mySum
+
+export Executable
+
+(** EXAMPLE **)
+mySum(i:ZZ64):ZZ64 = do
+  acc:ZZ64 := 0
+  for j <- 0:i do
+    acc := acc + j
+  end
+  acc
+end
+(** END EXAMPLE **)
+
+run() = println mySum(3)
+
+end

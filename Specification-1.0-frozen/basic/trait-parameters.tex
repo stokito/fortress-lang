@@ -1,0 +1,399 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Static Parameters}
+\chaplabel{trait-parameters}
+
+\note{Non-type static parameters and static expressions are not yet supported.
+
+The examples in this chapter are not tested nor run by the interpreter.}
+
+Trait, object, and functional declarations may be
+parameterized with \emph{static parameters}.
+Static parameters are \emph{static variables} listed in white
+square brackets \EXP{\llbracket} and \EXP{\rrbracket}
+immediately after the name of a trait, object, or functional and
+they are in scope of the entire body of the declaration.
+Static parameters may be instantiated with static expressions discussed in
+\secref{static-expr}.
+In this chapter, we describe the forms that
+these static parameters can take.
+
+\begin{Grammar}
+\emph{StaticParams} &::=&
+\bTPl \emph{StaticParamList}\bTPr\\
+\emph{StaticParamList} &::=& \emph{StaticParam}(\EXP{,} \emph{StaticParam})$^*$\\
+\end{Grammar}
+
+\section{Type Parameters}
+\seclabel{type-param}
+
+\begin{Grammar}
+\emph{StaticParam} &::=&
+\emph{Id} \option{\emph{Extends}} \options{\KWD{absorbs} \KWD{unit}} \\
+\end{Grammar}
+
+Static parameters may include one or more type parameters.
+Syntactically, a type parameter consists of an identifier followed by an
+optional \KWD{extends} clause, followed by an optional
+``\EXP{\KWD{absorbs}\;\;\KWD{unit}}'' clause (described in
+\secref{absorbing-units}).
+If a type parameter does not have an \KWD{extends} clause, it has an
+implicit ``\EXP{\KWD{extends} \TYP{Object}}'' clause.
+
+
+Type parameters are instantiated with types such as trait types, tuple types,
+and arrow types (See \chapref{types} for a discussion of Fortress
+types).  We use the term \emph{naked type variable} to refer to an
+occurrence of a type variable as a stand-alone type (rather than as
+a parameter to another type).  Type parameters can appear in any context
+that an ordinary type can appear, except that a naked type variable must not
+appear in the \KWD{extends} clause of a trait or object declaration,
+nor in the \KWD{throws} clause of a functional or object declaration,
+nor as the type of a \KWD{wrapped} field (discussed in \secref{fields}).
+
+
+Here is a parameterized trait \TYP{List}:
+\input{\home/basic/examples/StatParam.Type.tex}
+
+
+\section{Nat and Int Parameters}
+\seclabel{natparams}
+
+\begin{Grammar}
+\emph{StaticParam} &::=& \KWD{nat} \emph{Id} \\
+&$|$& \KWD{int} \emph{Id} \\
+\end{Grammar}
+
+Static parameters may include one or more
+\KWD{nat} and \KWD{int} parameters.
+Syntactically, a \KWD{nat} parameter consists of
+\KWD{nat} followed by an identifier.
+An \KWD{int} parameter consists of
+\KWD{int} followed by an identifier.
+These parameters are instantiated at runtime with numeric values.
+A \KWD{nat} parameter may be used to instantiate other
+\KWD{nat} parameters, or to appear in any context that a
+variable of type \EXP{\mathbb{N}32} can appear,
+except that it cannot be assigned to.
+An \KWD{int} parameter may be used to instantiate other
+\KWD{int} parameters, or to appear in any context that a
+variable of type \EXP{\mathbb{Z}32} can appear,
+except that it cannot be assigned to.
+
+
+
+For example, the following function \VAR{makeVector}:
+\input{\home/basic/examples/StatParam.Nat.tex}
+declares a \KWD{nat} parameter \EXP{s_{0}}, which appears in both the parameter
+type and return type of \VAR{makeVector}.
+
+
+
+\section{Bool Parameters}
+\seclabel{boolparams}
+
+\begin{Grammar}
+\emph{StaticParam} &::=& \KWD{bool} \emph{Id} \\
+\end{Grammar}
+
+Static parameters may include one or more \KWD{bool} parameters.
+Syntactically, a \KWD{bool} parameter consists of
+\KWD{bool} followed by an identifier.
+These parameters are instantiated at runtime with boolean values. They may
+be used to instantiate other \KWD{bool} parameters, or
+to appear in any context that a variable of type \TYP{Boolean} can appear,
+except that they cannot be assigned to.
+
+
+For example, the following \KWD{coerce} declared in the trait \TYP{Boolean}:
+\input{\home/basic/examples/StatParam.Bool.tex}
+declares a \KWD{bool} parameter \VAR{b}, which appears in the parameter type.
+
+
+\section{Dimension and Unit Parameters}
+\seclabel{dimunitparams}
+
+\begin{Grammar}
+\emph{StaticParam} &::=& \KWD{dim} \emph{Id} \\
+&$|$& \KWD{unit} \emph{Id} \options{\EXP{\mathrel{\mathtt{:}}} \emph{Type}}
+ \options{\KWD{absorbs} \KWD{unit}}\\
+\end{Grammar}
+
+
+Static parameters may include one or more \KWD{dim} and \KWD{unit}
+parameters.  Syntactically, a \KWD{dim} parameter begins with
+\KWD{dim} followed by an identifier.
+A \KWD{unit} parameter begins with \KWD{unit}
+followed by an identifier, optionally followed by the token `\EXP{\COLONOP}'
+and a dimension, and the unit is thereby restricted to be a unit of
+the specified dimension.
+A \KWD{unit} parameter may include the clause
+``\EXP{\KWD{absorbs}\;\KWD{unit}}''; the meaning of this is described
+in \secref{absorbing-units}.
+A \KWD{dim} parameter is allowed to appear in any context that a
+dimension can appear.
+A \KWD{unit} parameter is allowed to appear in any context that a unit
+can appear.
+
+
+For example, here is a function (in this case actually a prefix operator definition) that is parameterized with a unit:
+\note{I manually added a space before U -- Sukyoung}
+%opr SQRT[\unit U\](x: RR64 U^2): RR64 U = numericalsqrt(x/U^2) U
+\begin{Fortress}
+\(\KWD{opr} \mathord{\surd}\llbracket\KWD{unit}\:U\rrbracket(x\COLON \mathbb{R}64\ U^{2})\COLON \mathbb{R}64\ U = \VAR{numericalsqrt}(x/U^{2})\:U\)
+\end{Fortress}
+
+
+\section{Operator Parameters}
+\seclabel{opr-ident}
+\begin{Grammar}
+\emph{StaticParam} &::=& \KWD{opr} \emph{Op} \\
+\end{Grammar}
+
+Static parameters may include one or more operator names.
+Syntactically, an operator parameter begins with
+\KWD{opr} followed by an operator name.
+
+
+Operator parameters may be freely intermixed with other
+static parameters.  For example, the following trait \TYP{IdentityOp}:
+\input{\home/basic/examples/StatParam.Opr.IdentityOp.tex}
+is parameterized with a type parameter \VAR{T} and
+an operator parameter \EXP{\odot}.
+Unlike other static parameters,
+operator parameters may be used in both type context and
+value context.  The operator parameter \EXP{\odot}
+is declared as the second static parameter of \TYP{IdentityOp},
+instantiated as a static argument in
+%IdentityOp[\T,ODOT\]
+\EXP{\TYP{IdentityOp}\llbracket{}T,\odot\rrbracket}
+which is the bound of \VAR{T},
+and declared as an operator method in \TYP{IdentityOp}.
+If a trait or object has an operator parameter \OPR{OP} and uses \OPR{OP}
+in an expression, then the trait or object must declare or inherit
+at least one operator method for \OPR{OP} of matching fixity.
+(That is because it would be impossible to type-check \VAR{T}
+with any global definition for \OPR{OP},
+because the actual operator name is not known
+yet, and a definition has to come from somewhere.)
+
+
+Operator parameters are instantiated with operators.
+They may be used to instantiate other operator parameters
+and the names of operator declarations.
+For example, the following trait \TYP{MyIdentity}:
+\input{\home/basic/examples/StatParam.Opr.MyIdentity.tex}
+instantiates the operator parameter of its supertrait \TYP{IdentityOp}
+with the operator name \OPR{IDENTITY}.  It inherits the \OPR{IDENTITY}
+operator from \TYP{IdentityOp}.
+Two restrictions apply to instantiations of operator parameters:
+1) If a trait or object \VAR{T} has operator parameters \EXP{\OPR{OP}_{1}} and
+\EXP{\OPR{OP}_{2}}, and \VAR{T} declares or inherits operator methods of the same
+fixity for both \EXP{\OPR{OP}_{1}} and \EXP{\OPR{OP}_{2}},
+then the actual operators passed in any instantiation of \VAR{T} must
+be different.
+(That's because it would be impossible to type check any code
+in trait \VAR{T} that uses either \EXP{\OPR{OP}_{1}} or
+\EXP{\OPR{OP}_{2}} in an expression if such
+aliasing were not forbidden.)
+Note that the clause ``of the same fixity'' allows both \EXP{\OPR{OP}_{1}} and
+\EXP{\OPR{OP}_{2}} to be given the same actual operator, say ``\EXP{-}'',
+if \EXP{\OPR{OP}_{1}} has only a prefix definition and \EXP{\OPR{OP}_{2}} has
+only an infix definition; this is desirable.
+2) If a trait or object \VAR{T} has an operator parameter \OPR{OP} and
+declares or inherits an operator method for \OPR{OP},
+and also declares or inherits an operator method of the same fixity for
+any actual operator \EXP{@} (that is, where \EXP{@} is not an operator
+parameter), then the actual operator passed for the \OPR{OP} parameter
+must not be \EXP{@}.
+(That's because it would be impossible to type check any code
+in trait \VAR{T} that uses the operator \EXP{@} in an expression if such
+aliasing were not forbidden.)
+
+
+Note that any declarations that may be associated with an actual operator name
+that is passed for an operator parameter are \emph{irrelevant} to the behavior
+of the operator parameter within the parameterized trait, object, or functional.
+When a trait or object extends a trait parameterized by operator names,
+the subtrait inherits methods whose names are the actual operator names instead
+of the operator parameter names.
+
+
+An operator method declaration whose name is one of the operator parameters
+of its enclosing trait or object may be overloaded with other operator
+declarations in the same component; the operator parameter may be instantiated
+with any operator in the same component.  Therefore, such an operator method
+declaration must satisfy the overloading rules
+(described in \chapref{multiple-dispatch}) with every operator declaration
+in the same component.
+For example, the above \OPR{IDENTITY} operator declaration is overloaded
+with the following \OPR{IDENTITY} operator declaration:
+%opr IDENTITY(x: ZZ) = x
+%opr +(x: ZZ) = x
+\begin{Fortress}
+\(\KWD{opr} \mathord{\OPR{IDENTITY}}(x\COLON \mathbb{Z}) = x\)\\
+\(\KWD{opr} +(x\COLON \mathbb{Z}) = x\)
+\end{Fortress}
+where both \OPR{IDENTITY} and \EXP{+} are top-level operator declarations
+in the same component.
+Therefore, the declaration of the operator \EXP{\odot} in \TYP{IdentityOp}
+must satisfy the overloading rules with \OPR{IDENTITY} and with \EXP{+}.
+
+
+Here are the things programmers can do with an operator parameter:
+\begin{enumerate}
+\item[(1)] Use it as the defined name in an operator declaration.
+    This is what trait
+%BinaryOperator[\T,ODOT\]
+\EXP{\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket}
+(described in \secref{opr-properties}) does.
+
+\item[(2)] Pass it as an actual operator to another trait that takes
+     an operator parameter.  This is what
+\EXP{\TYP{Associative}\llbracket{}T,\odot\rrbracket}
+(described in \secref{opr-properties}) does when it extends
+\EXP{\TYP{BinaryOperator}\llbracket{}T,\odot\rrbracket}.
+
+\item[(3)] Use it to distinguish various objects.
+    This is what
+\EXP{\TYP{Identity}\llbracket\odot\rrbracket}
+(described in \secref{opr-properties}) does.
+
+\item[(4)] Use it as an operator in an expression.
+    To do this, an operator declaration for that operator parameter
+    must be accessible at the ponit of use, and for that to
+    happen, the parameterized trait must either declare
+    an operator method with that operator parameter as the name,
+    as in case (1), or inherit such a declaration, and the
+    only way to do the latter is to use case (2).
+\end{enumerate}
+
+Many interesting examples are described in \secref{opr-properties}.
+
+
+
+\section{Where Clauses}
+\seclabel{where-clauses}
+
+\note{The \KWD{where} clause syntax in this section is out of date.}
+
+\begin{Grammar}
+\emph{Where} &::=& \KWD{where} \{ \emph{WhereClauseList} \}\\
+\emph{WhereClauseList} &::=& \emph{WhereClause}(\EXP{,}
+\emph{WhereClause})$^*$ \\
+\emph{WhereClause} &::=& \emph{Id} \emph{Extends}\\
+&$|$& \emph{TypeAlias} \\
+&$|$& \emph{NatConstraint} \\
+&$|$& \emph{IntConstraint} \\
+&$|$& \emph{BoolConstraint} \\
+&$|$& \emph{UnitConstraint} \\
+&$|$& \emph{TypeRef} \KWD{coerces} \emph{TypeRef}\\
+&$|$& \emph{TypeRef} \KWD{widens} \emph{TypeRef}\\
+\end{Grammar}
+
+
+Static parameters may have constraints placed on them
+in a \KWD{where} clause.
+A \KWD{where} clause begins with
+\KWD{where}, followed by a sequence of static
+parameter constraints enclosed in braces \EXP{\{} and \EXP{\}},
+and separated by commas.
+
+
+A \KWD{where} clause may introduce new static variables, i.e., identifiers
+for types and other static entities that may not be static parameters.
+We use the term \emph{\KWD{where}-clause variables} to refer to
+static variables that are not also static parameters.
+The \KWD{where}-clause variables must be bound in a \KWD{where} clause.
+
+
+A static parameter constraint is one of the following forms:
+\begin{itemize}
+\item a trait constraint consisting of the identifier of
+a naked type variable, followed by \KWD{extends}
+followed by a set of trait references which may include naked type variables,
+\item a type alias (described in \secref{type-alias}),
+\item an arithmetic constraint,
+\item a boolean constraint,
+\item a unit equality constraint,
+\item a \KWD{coerces} constraint (described in
+  \secref{coercion-declarations}), or
+\item a \KWD{widens} constraint (described in
+  \secref{coercion-declarations}).
+\end{itemize}
+A \KWD{where} clause may include mutually recursive constraints.
+All static variables in a trait, object, or functional declaration must
+occur either as a static parameter or as a \KWD{where}-clause variable.
+\appref{where-calculus} describes a Fortress core calculus with
+\KWD{where} clauses.
+
+Trait declarations are allowed to extend other instantiations of
+themselves. For example, we can write:
+%trait C[\S\] extends C[\T\]
+%  where {S extends T, T extends Object}
+%end
+\begin{Fortress}
+\(\KWD{trait} C\llbracket{}S\rrbracket \KWD{extends} C\llbracket{}T\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{where} \{S \KWD{extends} T, T \KWD{extends} \TYP{Object}\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+In this declaration, for every subtype \VAR{S} of \VAR{T}, \EXP{C\llbracket{}S\rrbracket}
+is a subtype of \EXP{C\llbracket{}T\rrbracket}. Effectively, we have expressed
+  the fact that the static parameter \VAR{S} of \VAR{C} is covariant.
+
+
+Trait declarations need not have any static parameters in order
+to have a \KWD{where} clause. For example, the following trait
+declaration is legal:
+%trait C extends D[\T\]
+%  where {T extends Object}
+%end
+\begin{Fortress}
+\(\KWD{trait} C \KWD{extends} D\llbracket{}T\rrbracket\)\\
+{\tt~~}\pushtabs\=\+\(  \KWD{where} \{T \KWD{extends} \TYP{Object}\}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+In this declaration, trait \VAR{C} is a subtrait of \emph{every}
+instantiation of parametric trait \VAR{D}. Thus, trait \VAR{C} has all
+of the methods of every instantiation of \VAR{D}. By thinking of the
+declaration this way, we can see what restrictions we need to impose on
+the trait \VAR{C} in order for it to be sensible. If trait
+\VAR{C} inherits a method declaration that refers to \VAR{T}, it really
+contains infinitely many methods (one for each instantiation of \VAR{T}).
+However, instantiations of the \KWD{where}-clause variables are not
+explicit from the program text as static parameters are.
+It must be possible to infer which method is referred to at the call site.
+%%So every method invocation is annotated with static types by type inference.
+If there is not enough information to infer which method is called,
+type checking rejects the
+program and requires more type information from the programmer.
+Programmers always can provide more type information by using type
+ascription as described in \secref{type-ascription}.
+
+
+Object or functional declarations may include \KWD{where} clauses.
+Here is an example declaration of an \TYP{Empty} list:
+%object Empty extends List[\T\] where {T extends Object}
+%  first() = throw Error
+%  rest() = throw Error
+%  cons(x) = Cons(x,self)
+%  append(xs) = xs
+%end
+\begin{Fortress}
+\(\KWD{object} \TYP{Empty} \KWD{extends} \TYP{List}\llbracket{}T\rrbracket \KWD{where} \{T \KWD{extends} \TYP{Object}\}\)\\
+{\tt~~}\pushtabs\=\+\(  \VAR{first}() = \;\KWD{throw} \TYP{Error}\)\\
+\(  \VAR{rest}() = \;\KWD{throw} \TYP{Error}\)\\
+\(  \VAR{cons}(x) = \TYP{Cons}(x,\KWD{self})\)\\
+\(  \VAR{append}(\VAR{xs}) = \VAR{xs}\)\-\\\poptabs
+\(\KWD{end}\)
+\end{Fortress}
+where \TYP{Cons} is declared in \secref{object-decls}.

@@ -1,0 +1,56 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%   Copyright 2009, Oracle and/or its affiliates.
+%   All rights reserved.
+%
+%
+%   Use is subject to license terms.
+%
+%   This distribution may include materials developed by third parties.
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+The state of an executing Fortress program consists of a set of
+\emph{threads}, and a \emph{memory}.  Communication with the outside
+world is accomplished through \emph{input and output actions}.  In
+this chapter, we give a general overview of the execution process and
+introduce terminology used throughout this specification
+to describe the behavior of Fortress constructs.
+
+Executing a Fortress program consists of \emph{evaluating}
+the body expression of the \VAR{run} function and
+the initial-value expressions of all top-level variables and singleton
+object fields in parallel.
+All initializations must complete normally before any reference to the
+objects or variables being initialized.
+
+Threads evaluate expressions by taking \emph{steps}.
+We say evaluation of an expression \emph{begins} when the first step is
+taken.
+A step may \emph{complete} the evaluation, in which case no more steps
+are possible on that expression, or it may result in an
+\emph{intermediate expression}, which requires further evaluation.
+\emph{Dynamic program order} is a partial order among the expressions
+evaluated in a particular execution of a program.  When two
+expressions are ordered by dynamic program order, the first must
+complete execution before any step can be taken in the second.
+\chapref{expressions} gives the dynamic program order constraints for
+each expression in the language.
+
+Intermediate expressions
+are generalizations of ordinary Fortress expressions:
+some intermediate expressions cannot be written in programs.
+We say that one expression
+is \emph{dynamically contained} within a second expression
+if all steps taken in evaluating the first expression
+must be taken between the beginning and completion of the second.
+A step may also have effects on the program state
+beyond the thread taking the step,
+for example, by modifying one or more locations in memory,
+creating new threads to evaluate other expressions,
+or performing an input or output action.
+Threads are discussed further in \secref{threads-parallelism}.
+The memory consists of a set of \emph{locations},
+which can be \emph{read} and \emph{written}.
+New locations may also be \emph{allocated}.
+The memory is discussed further in \secref{memory-ops}.
+Finally, \emph{input actions} and \emph{output actions} are described in \secref{io-actions}.

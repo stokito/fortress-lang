@@ -1,0 +1,43 @@
+(*******************************************************************************
+    Copyright 2012, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component deterministicRandomTest
+
+export Executable
+
+genRandoms() : RR64 = do
+  var sum : RR64 = 0.0
+  for _ <- 1#10 do
+    r : RR64 = drandom(100.0)
+    (*) println(r)
+    atomic do sum := sum + r end
+  end
+  sum
+end
+
+genRandomsZZ32() : ZZ32 = do
+  var sum : ZZ32 = 0
+  for _ <- 1#10 do
+    r : ZZ32 = drandomZZ32(5)
+    (*) println(r)
+    atomic do sum := sum + r end
+  end
+  sum
+end
+
+run() : () = do
+  result : RR64 = genRandoms()
+  println("Returned : " || result)
+  resultZZ32 : ZZ32 = genRandomsZZ32()
+  println("Returned : " || resultZZ32)
+  println("PASS");
+end
+end

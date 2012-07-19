@@ -1,0 +1,33 @@
+(** COPYRIGHT **)
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+(** END COPYRIGHT **)
+
+component Block1
+
+import Set.{...}
+export Executable
+
+foo(x: ZZ32): ZZ32 =
+(** EXAMPLE **)
+do
+  f(w: ZZ32) = w+1     (*) Local function declaration
+  y = x+1              (*) Local variable declaration (immutable)
+  println("y is" y)    (*) Expression (has a useful side effect)
+  var z: RR64 = 0      (*) Local variable declaration (mutable)
+  z += f(y)            (*) Compound assignment
+  |z|                  (*) Expression (the value of the block)
+end
+(** END EXAMPLE **)
+
+run() = println foo(3)
+
+end

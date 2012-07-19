@@ -1,0 +1,22 @@
+#    Copyright 2009,2010, Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+
+tests=\
+Compiled1.ag Compiled1.ah Compiled1.ai Compiled1.aj Compiled1.ak Compiled1.as Compiled1.au Compiled1.av \
+Compiled2.g Compiled2.t \
+Compiled3.b Compiled3.c Compiled3.d Compiled3.e Compiled3.f Compiled3.h Compiled3.i Compiled3.j Compiled3.k Compiled3.m Compiled3.p Compiled3.t Compiled3.v Compiled3.x \
+Compiled5.e Compiled5.o Compiled5.p Compiled5.ah Compiled5.ai Compiled5.aj Compiled5.ak Compiled5.al Compiled5.am Compiled5.bc Compiled5.bf Compiled5.bg Compiled5.bh Compiled5.bi Compiled5.bm Compiled5.br Compiled5.bs Compiled5.bu \
+Compiled6.a Compiled6.o Compiled6.r Compiled6.u Compiled6.ad Compiled6.ae Compiled6.af Compiled6.ag Compiled6.ah Compiled6.ai Compiled6.al Compiled6.ao Compiled6.ap Compiled6.aq Compiled6.ar Compiled6.as Compiled6.av Compiled6.aw Compiled6.ax Compiled6.ay Compiled6.az Compiled6.ba Compiled6.bb Compiled6.bc Compiled6.bd Compiled6.be Compiled6.bf Compiled6.bg Compiled6.bl \
+Compiled7.f Compiled7.g Compiled7.PatternMatching.a Compiled7.PatternMatching.b Compiled7.PatternMatching.d \
+Compiled80 \
+Compiled9.g Compiled9.j Compiled9.k Compiled9.l Compiled9.m Compiled9.o Compiled9.p Compiled9.t Compiled9.u Compiled9.y Compiled9.ab Compiled9.ac Compiled9.ah Compiled9.ai Compiled9.aj \
+Compiled10.Comprehensions3 Compiled10.l Compiled10.m Compiled10.r \
+Compiled12
+Compiled210
+typecheck

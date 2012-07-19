@@ -1,0 +1,142 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component Exception
+export Executable
+
+object Scooby extends CheckedException
+    getter asString(): String = "ScoobyDoobyDoo"
+end
+
+object Shaggy extends CheckedException
+    getter asString(): String = "RuhRohRaggy"
+end
+
+(* test1 tests basic catch mechanism *)
+test1():() = do
+    var x:ZZ32 := 3
+    try
+        throw Scooby
+        x := 5
+    catch e
+        Shaggy => x := 7
+        Scooby => x := 9
+    end
+    assert(x, 9, "Test1: Failed to catch appropriate error")
+end
+
+(* Test2 tests forbid mechanism *)
+foo():() = do
+    try
+        throw Scooby
+    catch e
+        Shaggy => assert(false, "Test2: Caught wrong exception")
+    forbid Scooby
+    end
+end
+
+test2():() = do
+    var x:ZZ32 := 3
+    try
+        foo()
+        assert(false, "Test2: Continued after thrown exception")
+    catch e
+        ForbiddenException => x := 7
+    end
+    assert(x,7, "Didn't catch forbidden exception")
+end
+
+(* Test3 tests finally mechanism *)
+
+test3():() = do
+    var x:ZZ32 := 3
+    (* not caught *)
+    try
+        try
+            throw Scooby
+        catch e
+            Shaggy => fail("test3: caught Shaggy instead of Scooby!")
+        finally x := 5
+        end
+        fail("test3: Fell through try/catch")
+    catch e
+        Scooby => ()
+    end
+    assert(x, 5, "Test3: Finally not run when exception uncaught")
+    (* caught *)
+    try
+        throw Scooby
+    catch f
+        Scooby => x := 7
+    finally x := 9
+    end
+    assert(x, 9, "Test3: Finally not run when exception caught")
+end
+
+(* Test4 tests return values *)
+bar():ZZ32 = do
+    try
+        throw Scooby
+        1
+    catch e
+        Shaggy  => 3
+        Scooby  => 5
+    finally 7
+    end
+end
+
+test4():() = do
+    assert(bar(), 5, "Test3 returned wrong value")
+end
+
+(* Test5 tests bindings *)
+
+test5():() = do
+    var x:CheckedException := Scooby
+    try
+        throw Shaggy
+    catch e
+        Shaggy => x := e
+    end
+    assert(x.asString, "RuhRohRaggy", "Test5: Improper binding of exception");
+end
+
+(* Test6 tests that catch clauses match before forbid clauses *)
+
+baz():ZZ32 = do
+    var x:ZZ32 :=  1
+    try
+        throw Scooby
+    catch e
+        Scooby => x := 3
+    forbid Scooby
+    end
+    x
+end
+
+test6():() = do
+    try
+        baz()
+    catch x
+        ForbiddenException => assert(true, "Should prefer catch over forbid in baz")
+    end
+end
+
+run():()=do
+    test1()
+    test2()
+    test3()
+    test4()
+    test5()
+    test6()
+    ()
+end
+end

@@ -1,0 +1,103 @@
+#!/bin/bash
+
+################################################################################
+#    Copyright 2011 Oracle and/or its affiliates.
+#    All rights reserved.
+#
+#
+#    Use is subject to license terms.
+#
+#    This distribution may include materials developed by third parties.
+#
+################################################################################
+
+export FORTRESS_HOME="`${0%fformat}fortress_home`"
+
+# This does the work of rendering a .fss into a cropped pdf and png for other uses.
+
+if [ $# -lt 1 ] ; then
+  echo "Input: somefile.fss file name on the command line"
+  echo "Outputs:"
+  echo " somefile.tex"
+  echo " somefile-wrapper.tex"
+  echo " somefile.pdf"
+  echo " somefile.png"
+  echo " somefile.html"
+  echo " somefile.mediawiki"
+  echo "Depends on emacs, pdflatex, pdfcrop, gs, ImageMagick (identify), and awk"
+  exit 1
+fi
+
+dotfss="$1"
+dot="`basename "$dotfss" .fss`"
+
+${FORTRESS_HOME}/bin/fortify "$dotfss"
+
+# Tex includes of file names with space, not so good
+ns_dot=`echo "$dot" | tr " " "_"`
+
+if [ "$dot" '!=' "$ns_dot" ] ; then
+  cp "$dot".tex "$ns_dot".tex
+fi
+
+cat > "${dot}-wrapper.tex" <<EOF
+\documentclass{article}
+\pagestyle{empty}
+\textheight=120in
+\usepackage{fortify}
+\usepackage{graphicx}
+\begin{document}
+\include{${ns_dot}}
+\end{document}
+EOF
+
+TEXINPUTS=".:$FORTRESS_HOME/Fortify:" pdflatex "${dot}-wrapper.tex"
+
+pdfcrop "${dot}-wrapper.pdf" "${dot}.pdf"
+
+# rm "${dot}-wrapper."{pdf,aux,log}
+
+gs -sDEVICE=png48 -r600 -dNOPAUSE -sOutputFile="${dot}.png" "${dot}.pdf" < /dev/null
+
+X=`identify -format "%w" "${dot}.png"`
+Y=`identify -format "%h" "${dot}.png"`
+SX=400
+SHRINK=5
+
+# Attempt a SHRINK x shrink; if that fits in SX, good, else shrink to SX.
+
+WIDTH=`awk "END { sx = int(0.5 + $X/$SHRINK); \
+                  sy = int(0.5 + $Y/$SHRINK); \
+                  if(sx < $SX)  { x=sx; y=sy} \
+                  else {x=$SX; y=int(0.5 + ($Y * $SX / $X))} ; \
+                  print x;}" < /dev/null`
+
+HEIGHT=`awk "END { sx = int(0.5 + $X/$SHRINK); \
+                  sy = int(0.5 + $Y/$SHRINK); \
+                  if(sx < $SX)  { x=sx; y=sy} \
+                  else {x=$SX; y=int(0.5 + ($Y * $SX / $X))} ; \
+                  print y;}" < /dev/null`
+
+echo "$ATTRS"
+
+cat > "${dot}.html" <<EOF
+<!DOCTYPE html>
+<html><body><head>
+<meta charset="utf-8" />
+<title>${dot}</title></head>
+<table>
+<tr><th align="center">ascii</th><th align="center">rendered</th></tr>
+<tr><td align="left">
+<pre>
+EOF
+
+cat "${dot}.fss" >> "${dot}.html"
+
+cat >> "${dot}.html" <<EOF
+</pre>
+</td><td align="center">
+<img src="${dot}.png" WIDTH="$WIDTH" HEIGHT="$HEIGHT" ALT="Fortified ${dot}.fss" /></td></tr></table>
+</body></html>
+EOF
+
+awk "{printf(\" %s\\n\", \$0);} END { printf(\"[[image:${dot}.png|%dx%dpx]]\n\",$WIDTH,$HEIGHT);}" > "${dot}.mediawiki" < ${dot}.fss

@@ -1,0 +1,38 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component conditionalExtension
+
+export Executable
+
+trait PartialOrderAndBoundedLattice[\T, opr LEOPR, opr MINOPR, opr MAXOPR\] end
+trait Identity[\opr PLUS\] end
+
+trait RationalQuantity[\unit U absorbs unit, bool ninf, bool lt, bool eq,
+                        bool gt, bool pinf, bool nan\]
+    extends {
+      RationalQuantity[\U, ninf', lt', eq', gt', pinf', nan'\]
+              where [\bool ninf', bool lt', bool eq', bool gt', bool pinf',
+                      bool nan' \]
+                    { ninf IMPLIES ninf', lt IMPLIES lt',
+                      eq IMPLIES eq', gt IMPLIES gt', pinf IMPLIES pinf',
+                      nan IMPLIES nan'
+                    },
+              PartialOrderAndBoundedLattice[\RationalQuantity[\U, ninf, lt, eq, gt, pinf, nan\], <=, MIN, MAX\]
+              where { ninf AND pinf AND NOT nan }
+            }
+    where { ninf OR lt OR eq OR gt OR pinf OR nan }
+  coerce(x: Identity[\+\]) = 0
+end
+
+run() = println "Conditional extension with where clauses can be parsed."
+
+end

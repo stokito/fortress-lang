@@ -1,0 +1,23 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Tests that LocalVarDecl correctly binds each variable over successive
+ * definitions and its enclosing Block. *)
+
+run():() = do
+  x:IntLiteral = 23
+  y:IntLiteral = x
+  ignore(y)
+  ignore(x)
+  ()
+end

@@ -1,0 +1,128 @@
+(*******************************************************************************
+    Copyright 2011, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component IntegerChoose1
+import java com.sun.fortress.nativeHelpers.{simpleIntArith.intSlowCautiousChoose => jIntSlowCautiousChoose}
+export Executable
+
+(*) Test CHOOSE operator on ZZ32
+
+(*) shouldOverflow(f: () -> ZZ32): Boolean =
+(*)   try
+(*)     ignore f()
+(*)     false
+(*)   catch e
+(*)     IntegerOverflow => true
+(*)     Exception => false
+(*)   end
+
+verifyChoose(i: ZZ32, j: ZZ32):() = do
+    assert(i CHOOSE j = jIntSlowCautiousChoose(i, j),
+           i.asString " CHOOSE " j.asString "  " (i CHOOSE j).asString "=/=" jIntSlowCautiousChoose(i, j).asString)
+    assert(i CHOOSE j = ((i-1) CHOOSE (j-1)) + ((i-1) CHOOSE j),
+           i.asString " CHOOSE " j.asString "  " (i CHOOSE j).asString "=/=" ((i-1) CHOOSE (j-1)).asString "+" ((i-1) CHOOSE j).asString)
+end
+
+run(): () = do
+  zero: ZZ32 = 0
+  one: ZZ32 = 1
+  two: ZZ32 = 2
+  three: ZZ32 = 3
+  four: ZZ32 = 4
+  five: ZZ32 = 5
+  six: ZZ32 = 6
+  seven: ZZ32 = 7
+  nine: ZZ32 = 9
+  ten: ZZ32 = 10
+  eleven: ZZ32 = 11
+  twelve: ZZ32 = 12
+  sixteen: ZZ32 = 16
+  thirty: ZZ32 = 30
+  forty: ZZ32 = 40
+  fortyone: ZZ32 = 41
+
+  assert(zero CHOOSE zero = 1)
+
+  assert(one CHOOSE zero = 1)
+  assert(one CHOOSE one = 1)
+
+  assert(two CHOOSE zero = 1)
+  assert(two CHOOSE one = 2)
+  assert(two CHOOSE two = 1)
+
+  assert(three CHOOSE zero = 1)
+  assert(three CHOOSE one = 3)
+  assert(three CHOOSE two = 3)
+  assert(three CHOOSE three = 1)
+
+  assert(four CHOOSE zero = 1)
+  assert(four CHOOSE one = 4)
+  assert(four CHOOSE two = 6)
+  assert(four CHOOSE three = 4)
+  assert(four CHOOSE four = 1)
+
+  assert(five CHOOSE zero = 1)
+  assert(five CHOOSE one = 5)
+  assert(five CHOOSE two = 10)
+  assert(five CHOOSE three = 10)
+  assert(five CHOOSE four = 5)
+  assert(five CHOOSE five = 1)
+
+  assert(six CHOOSE zero = 1)
+  assert(six CHOOSE one = 6)
+  assert(six CHOOSE two = 15)
+  assert(six CHOOSE three = 20)
+  assert(six CHOOSE four = 15)
+  assert(six CHOOSE five = 6)
+  assert(six CHOOSE six = 1)
+
+  assert(thirty CHOOSE eleven = 54627300)
+  assert(thirty CHOOSE sixteen = 145422675)
+
+  assert((forty CHOOSE nine) + (forty CHOOSE ten) = (fortyone CHOOSE ten))
+
+  for i <- seq(1:33), j <- seq(0:i) do
+    verifyChoose(i,j)
+  end
+
+  for i <- seq(34:40), j <- seq(0:9) do
+    verifyChoose(i,j)
+    verifyChoose(i,i-j)
+  end
+
+  (*) These are the points that separate use of the fast algorithm from th
+  (*) slow, cautious algorithm.  Check a range -3:3 around them.
+  for j <- seq(-3:3) do
+    verifyChoose(46341+j, 2)
+    verifyChoose(1626+j, 3)
+    verifyChoose(338+j, 4)
+    verifyChoose(140+j, 5)
+    verifyChoose(82+j, 6)
+    verifyChoose(58+j, 7)
+    verifyChoose(46+j, 8)
+    verifyChoose(39+j, 9)
+    verifyChoose(35+j, 10)
+    verifyChoose(33+j, 11)
+    verifyChoose(31+j, 12)
+    verifyChoose(30+j, 13)
+    verifyChoose(30+j, 14)
+    verifyChoose(29+j, 15)
+    verifyChoose(29+j, 16)
+  end
+
+  for i <- seq(-10:10), j <- seq(-10:20) do
+     if j < 0 OR j > i then assert(i CHOOSE j = 0) end
+  end
+
+  println("PASS")
+end
+
+end

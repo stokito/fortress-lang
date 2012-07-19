@@ -1,0 +1,42 @@
+(*******************************************************************************
+    Copyright 2010, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+export Executable
+
+(* Generic dotted methods in non-generic types *)
+
+(* variant: inherit the generic method from a trait. *)
+
+trait T
+  f[\S\]():ZZ32 = 0
+end
+
+trait V
+  g[\S, U\]():ZZ32 = 5
+end
+
+object O extends {T,V}
+  
+end
+
+run() =do
+  o = O
+  a = O.f[\ZZ32\]()        (*) 0
+  b = O.g[\ZZ32,String\]() (*) 5
+  c = O.f[\String\]()      (*) 0
+  d = O.g[\String,ZZ32\]() (*) 5
+
+  sum =  a + b + c + d
+  println(
+  if (sum = 10)
+     then "pass" else "fail" end
+  )
+end

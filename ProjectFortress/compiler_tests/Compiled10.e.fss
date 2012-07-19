@@ -1,0 +1,25 @@
+(********************************************************************************
+    Copyright 2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+********************************************************************************)
+export Executable
+
+(* (2) Modification to syntax of `comprises` clauses. *)
+
+(*  a) For each trait T
+ *     for each naked type variable V in T's comprises clause
+ *     V should be one of the static parameters of T.
+ *)
+
+trait Baz[\T\] comprises S end
+trait Two[\S, T\] comprises { One, S, T } end
+object One extends Two[\One, One\] end
+
+run() = ()
+

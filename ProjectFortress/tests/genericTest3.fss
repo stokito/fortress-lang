@@ -1,0 +1,50 @@
+(*******************************************************************************
+    Copyright 2008,2009, Oracle and/or its affiliates.
+    All rights reserved.
+
+
+    Use is subject to license terms.
+
+    This distribution may include materials developed by third parties.
+
+ ******************************************************************************)
+
+component genericTest3
+export Executable
+
+(* Tests that differently instantiated generics match different overloads *)
+
+g[\T\](x:T, y:T):T=do
+  aGc += 1
+  x y;
+  end
+
+var aGc:ZZ32 = 0
+var aZc:ZZ32 = 0
+var aSc:ZZ32 = 0
+
+a(f:(ZZ32, ZZ32)->ZZ32):RR64=do
+  println("a ZZ32 called")
+  aZc := 1;
+  0.0 + f(1,2)
+end
+
+a(f:(String, String)->String):RR64=do
+  println("a " f("String ", "called"));
+  aSc := 1;
+  7.0
+end
+
+t(b:Boolean) = println (if b then "pass" else "fail")
+
+run():()=do
+
+  t( a(g[\ZZ32\]) = 2 )
+  a(g[\String\])
+  t( (aSc = 1) )
+  t( (aZc = 1) )
+  t( (aGc = 2) )
+
+end
+
+end
