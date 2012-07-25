@@ -49,16 +49,21 @@ public abstract class BaseTask extends FortressExecutable {
     private static Random gen = new Random();
 
     private static Boolean debug = false;
-    private static AtomicInteger counter = new AtomicInteger();
 
     private static void debug(String s) {
         if (debug)
             System.out.println("BaseTaskDebug: " + Thread.currentThread().getName() + ":" + s);
     }
 
+    /** Each base task has a depth in the pedigree tree, the value of
+    the next magic number, a unique gamma value that is the dot
+    product of the task's pedigree and the magic numbers array, and a
+    dot product that is the task's gamma value with extra magic added
+    in for each random number the task generates **/
+
     private int depth;
-    private int nextMagicNumber;
-    private int gamma;
+    private int nextMagicNumber; 
+    private int gamma; 
     private long dotProduct;
     
     // The constructor used by the primordial task.
@@ -188,7 +193,7 @@ public abstract class BaseTask extends FortressExecutable {
 
         if (useExponentialBackoff) {
             double r = gen.nextDouble() + 0.5; // Random number between 0.5 and 1.5
-            long waitNanoseconds = (long) ((2 ^ (ftr.getRetries() + machineConstant)) * r);
+            long waitNanoseconds = (long) ((1L << (ftr.getRetries() + machineConstant)) * r);
             
             while (elapsedTime < waitNanoseconds) {
                 elapsedTime = System.nanoTime() - startTime;
