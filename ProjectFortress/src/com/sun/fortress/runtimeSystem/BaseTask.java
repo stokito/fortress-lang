@@ -62,8 +62,8 @@ public abstract class BaseTask extends FortressExecutable {
     in for each random number the task generates **/
 
     private int depth;
-    private int nextMagicNumber; 
-    private int gamma; 
+    private long nextMagicNumber; 
+    private long gamma; 
     private long dotProduct;
     
     // The constructor used by the primordial task.
@@ -74,8 +74,10 @@ public abstract class BaseTask extends FortressExecutable {
 
         // Pedigree information
         this.depth = 0;
-        this.nextMagicNumber = MagicNumbers.a(this.depth + 1);
-        this.gamma = MagicNumbers.a(this.depth);
+        this.nextMagicNumber = 
+            MagicNumbers.trulyRandomLongNumbers(this.depth + 1);
+        this.gamma = 
+            MagicNumbers.trulyRandomLongNumbers(this.depth);
         this.dotProduct = this.gamma;
     }
 
@@ -86,7 +88,8 @@ public abstract class BaseTask extends FortressExecutable {
 
         // Pedigree information
         this.depth = parent.getDepth() + 1;
-        this.nextMagicNumber = MagicNumbers.a(this.depth + 1);
+        this.nextMagicNumber = 
+            MagicNumbers.trulyRandomLongNumbers(this.depth + 1);
         this.gamma = parent.makeNewChild();
         this.dotProduct = this.gamma;
     }
@@ -96,7 +99,7 @@ public abstract class BaseTask extends FortressExecutable {
     }
 
     /* Returns a unique gamma for a child task */
-    public int makeNewChild() {
+    public long makeNewChild() {
         this.gamma += this.nextMagicNumber;
         return this.gamma;
     }
