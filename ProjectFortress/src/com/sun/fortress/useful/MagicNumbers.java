@@ -391,7 +391,7 @@ public final class MagicNumbers {
         0xBA7F1E961E899DA5L|1, 0x8084E958945BEA16L|1, 0x91673D71CFCAA9A1L|1, 0xBBD6771B9BA86215L|1,
         };
     
-    public final long trulyRandomLongNumbers(int which) {
+    public final static long trulyRandomLongNumbers(int which) {
         return oddLongRandomBits[which & (oddLongRandomBits.length - 1)];
     }
     
