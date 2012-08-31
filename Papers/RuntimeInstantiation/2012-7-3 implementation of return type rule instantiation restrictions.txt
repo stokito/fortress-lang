@@ -1,0 +1,55 @@
+2012-7-3 implementation of return type rule restrictions on instantiation
+
+see "2012-6-15 return type instantiation restrictions" for discussion of what
+    implementation is necessary.
+
+In order to implement the return type rule restrictions, we need a way to
+find out if there is a restriction to add.  In other words, we need to determine
+when the position of a type parameter exists in a given type.
+
+(**
+    Takes a pair of constructed types t1 and t2.  If t1 is not a subtype of
+    t2, then it return None.  If t1 is a subtype of t2, then
+    it returns a list that is the size of the number of type parameters for
+    t1.  Each entry in the list is a either none or a list of natural numbers
+    None indicates that the type parameter from t1 is not related to any
+    of the type parameters of t2, while a list entry lists the type parameters
+    of t2 that this type parameter of t1 is related to.
+
+    examples:
+    1) 
+        trait Foo[\X\] ... end
+        trait Bar[\Y\] extends Foo[\Y\] ... end
+    
+        relatedPositions(Bar[\Z\], Foo[\X\]) = Some( [Some( [0] )] )
+    
+    2) 
+        trait Foo[\X\] ... end
+        trait Bar[\Y\] extends Foo[\String\] ... end
+    
+        relatedPositions(Bar[\Z\], Foo[\X\]) = Some( [None] )
+    
+    3) 
+        trait Foo[\X\] ... end
+        trait Bar[\Y\] extends Foo[\Y\] ... end
+        trait Baz[\Z\] extends Bar[\Z\] ... end
+        
+        relatedPositions(Baz[\Z\], Foo[\X\]) = Some( [Some ( [0] )] )
+        
+    4) 
+        trait Foo[\X, Y, Z\] ... end
+        trait Bar[\A, B, C\] extends Foo[\C, String, B\] ... end
+
+        relatedPositions(Bar[\A,B,C\], Foo[\X,Y,Z\]) = Some( [None,Some( [2] ),Some( [0] )] )
+        
+    5) 
+        trait Foo[\X, Y, Z\] ... end
+        trait Bar[\A, B, C\] extends Foo[\C, String, C\] ... end
+
+        relatedPositions(Bar[\A,B,C\], Foo[\X,Y,Z\]) = Some( [None,None,Some( [0,2] )] )
+        
+        
+    tricky thing: case 4 where you might have to go several levels back to find t2
+    in the ancestors of t1
+*)
+relatedPositions(Type t1, Type t2) : Maybe[\List[\ZZ32\]\]

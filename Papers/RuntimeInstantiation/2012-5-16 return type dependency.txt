@@ -1,0 +1,44 @@
+return type rule example
+
+question: 
+
+f[\ T \](   ):G[\T\]
+
+f[\ U,V \](   ):G[\U\]
+
+attempt to create dependency between U and V through return types U and T
+
+f[\ T <: Object \]( x:T, y:T) : Pair[\T,T\]
+
+f[\ U <: ZZ, V\] (u:U,v:V) : Pair[\U,V\]
+
+substitution witness for existential subtyping:
+    \sigma = [U \cup V / T]
+
+--------
+
+\forall[\U<:ZZ,U\](U,V)->Pair[\U,V\] \sqcup 
+    \forall[\U<:ZZ,V\] (U,V)->Pair[\ U\cup V,U\cup V\]
+
+Pair[\ U,V \] <: Pair[\ U\cup V, U\cup V\]
+
+induces U=U \cup V, V=U \cup V => U = V
+
+So we have induced a mutual dependency between U and V, which breaks the right to left scoping
+Questions:
+-is this a problem?
+-what are the implications for runtime dispatch/type instantiation?
+-understand how these constraints might get added
+
+-----
+look at subtyping rules for checking that this is a valid overloading and understand how they work
+
+can we force programmers to write things in a certain order
+does it occur through equality constraints on type variables
+
+------
+
+Thoughts on return type rule
+
+Issue that guy's example brings up is that there are implicit dependencies that can break 
+the left to right scoping of type parameters.  However, this is only really true at compile time when we don't necessarily care because we're not as concerned with efficiency or decidability.
