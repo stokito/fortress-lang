@@ -1,0 +1,781 @@
+\documentclass[preprint]{sigplanconf}
+\usepackage{amsmath,amsthm,amssymb,longtable,proof,listings,tabulary,float,graphicx,stmaryrd}
+
+\usepackage{tipa} %textramshorns
+\usepackage{semantic} %mathlig
+\usepackage{microtype} %fixes some stupid texttt behaviour with margins
+\usepackage{url}
+\usepackage{flushend}
+\usepackage{appendix}
+
+\lstset{tabsize=3, basicstyle=\ttfamily\small, commentstyle=\itshape\rmfamily, numbers=left, numberstyle=\tiny, language=java, mathescape=true, showspaces=false, showstringspaces=false, columns=fullflexible, frame=single, xleftmargin=15pt, numberbychapter=false, captionpos=b}
+
+\newcommand{\columnWidth}{3.2in}
+\newcommand{\pagewidth}{7.0in}
+\newcommand{\vb}{\ensuremath{~\big{|}~}}
+\newcommand{\inferlbl}[3] {\inferrule{#2}{#3}{\textsf{\footnotesize{\sc #1}}}}
+\newcommand{\with}{\text{~\textramshorns~}}
+\newcommand{\labl}{\texttt{l}}
+% put in oxford brackets
+\newcommand{\ob}[1]{\ensuremath{\llbracket {#1} \rrbracket}}
+% put in oxford brackets and an overbar
+\newcommand{\obb}[1]{\ensuremath{\llbracket \overline{#1} \rrbracket}}
+\newcommand{\minisec}[1]{\vspace{2ex}\noindent\textbf{#1}}
+\newcommand{\ms}{\preceq}
+
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{insight}{Insight}
+
+%%
+%% Tune Latex for better usage of white space
+%%
+\renewcommand{\topfraction}{0.98}
+\renewcommand{\textfraction}{0.02}
+\renewcommand\floatpagefraction{.98}
+\renewcommand\dbltextfloatsep{12pt}
+\renewcommand\textfloatsep{12pt}
+\setlength{\abovecaptionskip}{0pt}
+\setlength{\belowcaptionskip}{0pt} 
+
+
+
+\begin{document}
+\title{The Return Type Rule and Generics}
+
+\authorinfo{Karl Naden}
+           {Oracle Labs}
+           {karl.naden@oracle.com}
+
+\maketitle
+
+\begin{abstract}
+
+The combination of multiple inheritance and parametric polymorphism over types and functions
+adds technical complexity to a system with symmetric multiple dispatch on overloaded functions.
+In our OOPSLA 2011 paper, we proposed an interpretation of generic functions, overload 
+rules, and type restrictions that allow us to write desirable overload sets.  This write-up provides
+a more in-depth discussion of these rules as well as alternate options and justifies our choice.
+
+\end{abstract}
+
+\section{Introduction}
+
+Dynamic dispatch, especially symmetric multiple dispatch, on overloaded functions, multiple inheritance,
+and parametric polymorphism are three powerful features of programming languages.  Each has
+proven benefits in the literature.  The Fortress programming language attempts to provide support
+for all three features.  Our OOPSLA 2011 publication presented rules needed to allow modular checking
+of valid overload sets as well as type system features and restrictions that ensure that interesting
+overload sets are valid.
+
+In particular, an interesting overload set that the paper discusses is the tail function:\\
+
+$\begin{array}{l}
+{\it tail}\ob{X}(x : {\tt List}\ob{X}) : {\tt List}\ob{X} \\
+{\it tail}(x : {\tt List}\ob{\mathbb{Z}}) : {\tt List}\ob{\mathbb{Z}}
+\end{array}$\\
+
+\noindent where a generic function that takes a generic type as an input is specialized for a particular instantiation
+of the type.  This sort of function is desirable so that programmers can call functions that have the same effect by
+the same name.  The only difference is the algorithm which can take advantage of a specific representation
+in the case of {\it def2}, so it seems natural to allow them to be called the same name, especially since the
+goal of the runtime is to choose the most specific applicable definition so that as much information can
+be used to make the algorithm efficient.
+
+However, this overload is potentially unsound.  Under the paper's interpretation of polymorphic functions, 
+the second definition is considered to be strictly more specific than the first because it can accept a strictly 
+smaller set of inputs.  This means that the overloading passes both the no-duplicates and meet rules 
+which restrict the domains of overloaded functions.  However, the overloading is fundamentally unsound 
+in the presence of multiple inheritance. If a type ${\tt BadList} <: \{ {\tt List}\ob{{\tt String}},{\tt List}\ob{\mathbb{Z}}\}$ 
+statically known to be a  ${\tt List}\ob{{\tt String}}$ was passed to the {\it tail} function, then the statically 
+guaranteed return type would be ${\tt List}\ob{{\tt String}}$. But at runtime the more specific function for 
+${\tt List}\ob{\mathbb{Z}}$ would be chosen and return a ${\tt List}\ob{\mathbb{Z}}$ which is not a subtype 
+of ${\tt List}\ob{{\tt String}}$ thus breaking type safety.
+
+Since these are overload sets that we want to express, the OOPSLA paper suggests adding a type-level 
+restriction called {\it multiple instantiation exclusion}
+which outlaws {\tt BadList} by preventing traits and objects from being subtypes of multiple instantiations
+of a single type.  However, the paper does not further motivate this restriction, nor provide any
+alternative solutions, nor explain what overloads the restriction allows and why it works.  We supplement
+the OOPSLA paper by expanding on this exposition to clearly explain why multiple instantiation 
+exclusion works and is (arguably) the best choice for the Fortress programming language.
+
+\section{Terminology}
+
+We start with a brief introduction to the terminology of types and overloaded functions in the 
+Fortress programming language. TODO - introduce types.
+
+A function declaration consists of a name, a sequence of type parameters enclosed in white square brackets 
+with associated bounds in curly braces, a type for the domain of the function, and the return type of the function. 
+In the example\\
+
+$\begin{array}{l}
+{\it f}\ob{X<: \{M\}, Y<:\{N\}}({\tt List}\ob{X}, {\tt Tree}\ob{Y}) : {\tt Map}\ob{X,Y} \\
+\end{array}$\\
+
+\noindent $f$ is the name of the function, $X$ and $Y$ are declared type parameters bounded
+by types $M$ and $N$ respectively, the tuple type $({\tt List}\ob{X},{\tt Tree}\ob{Y})$
+is the domain of the function, and $ {\tt Map}\ob{X,Y}$ is its return type.  To reduce clutter, we omit
+the white square braces when there are no type parameters and the curly braces for singleton bounds.
+
+A function declaration $d=f\obb{X <: \{\overline{M}\}}S :T$ may be {\it instantiated} with type arguments
+$\overline{W}$ if $|\overline{W}| = |\overline{X}|$ and $W_i <: [\overline{W}/\overline{X}]N_{ij}$ for all
+$i$ an $j$.  We call $[\overline{W}/\overline{X}]f~S:T$ an {\it instantiation} of $d$.  When we do not
+need to refer to $W$, we can say $f(U):V$ is an {\it instance} of $d$ with the substitution implicit.
+We let $\mathcal{D}$ represent a finite collection of sets of function declarations and $\mathcal{D}_f$
+the subset of $\mathcal{D}$ that contains all declarations with name $f$.
+
+An instance $f(U):V$ of a declaration $d$ is {\it applicable} to a type $T$ if and only if $T <: U$.  A function
+declaration is applicable to a type if and only if at least one of its instances is.  For any type $T$, the
+set $\mathcal{D}_f(T)$ contains precisely those declarations in $\mathcal{D}_f$ that are applicable
+to $T$.  We define a specificity relationship $\ms$ on function declarations.  Intuitively, one declaration
+is more specific than another if it is applicable to a strictly smaller set of types.  It is implemented as
+existential subtyping on the domain of the declarations.  
+
+For overload sets to be valid, there cannot be any ambiguity in which function declaration should be
+used for a given type.  To achieve this, we require that for a given overload set $\mathcal{D}_f$ and
+type $T$ there exists a unique definition $d\in\mathcal{D}_f(T)$ such that for all $d'\in\mathcal{D}_f(T)$
+we have $d \ms d'$.  We call this definition the {\it most specific applicable definition} or ${\bf MSAD}(\mathcal{D}_f(T))$.
+This requirement is enforced by the {\it No Duplicates Rule} which ensures that no two definitions
+are equally specific and the {\it Meet Rule} which checks that the overload set forms a meet semi-lattice
+under the specificity relationship.  A third rule, the {\it Return Type Rule} makes sure that executing
+the most specific applicable definition at runtime is always type safe.  This last rule is the subject of the 
+next section.
+
+\section{Ensuring Type Safety}
+
+When choosing a function definition to execute at runtime, it is not enough to simply choose the most
+specific definition.  The runtime must also preserve type safety by choosing a function definition that
+returns a subtype of the return type guaranteed by the static type system.
+At compile time, Fortress' type system finds the {\bf MSAD} for each function call based on the
+static information it has available.  This provides a static return type.  The runtime may have more information
+about the actual types of the inputs that allows it to select a more specific function definition based on the 
+parameter types.  However in order to preserve type safety, it
+can only choose a definition that returns a subtype of the return type given by the static {\bf MSAD}.  There
+are two approaches to this requirement
+\begin{enumerate}
+\item Automatically restrict the choices the runtime can make within an overload set, or
+\item Restrict overload sets to force programmers to write overloads that only offer sound choices at runtime.
+\end{enumerate}
+The second restricts what overload sets are expressible while the first prevents us from always choosing the
+most specific function based on the types at runtime.  We use examples to help us
+flesh out these two approaches and their associated tradeoffs.
+
+\subsection{Overloading Examples}
+
+It is not hard to write a function overload that could be unsound if the most specific function definition
+is chosen at runtime.  Let $\mathcal{D}_{{\it confused}}=$\\
+
+$\begin{array}{l}
+{\it confused}({\tt Object}) : {\tt String}~(*){\it def1}\\
+{\it confused}(\mathbb{Z}) : \mathbb{Z}~(*){\it def2}\\
+\end{array}$\\
+
+To see why this is potentially unsound, consider an application of {\it confused} to an {\tt Object} at
+compile time.  $\mathcal{D}_{confused}({\tt Object})$ includes only {\it def1} and so this is the {\bf MSAD}
+and the return type is {\tt String}.  However, it is possible at runtime to discover that the parameter is
+in fact an object of type $\mathbb{Z}$.  $\mathcal{D}_{{\it confused}}(\mathbb{Z})$ includes both 
+{\it def1} and {\it def2} and since {\it def2} $\ms$ {\it def1}, {\it def2} would be the {\bf MSAD}.  However,
+because the return type $\mathbb{Z}$ of {\it def2} is not a subtype of {\tt String}, this function definition
+could not be chosen without breaking type safety.  
+
+It is not clear that we should support the {\it confused} overload.  The purpose of an overload set it
+to be able to determine which definition should be executed dynamically.  However, the restriction
+on the return type means that whichever definition is chosen statically is the one that must be executed
+dynamically to preserve type safety.  This suggests that the programmer should be forced to give each
+definition separate names and explicitly choose the correct definition.
+
+The same intuition does not apply when considering overload sets that include polymorphic functions.
+Consider the polymorphic identity function and a specialization for a particular type.  $\mathcal{D}_{{\it polyBad}}=$\\
+
+$\begin{array}{l}
+{\it polyBad}\ob{X}(X) : X~(*){\it def1}\\
+{\it polyBad}(\mathbb{Z}) : \mathbb{Z}~(*){\it def2}\\
+\end{array}$\\
+
+It seems logical that we might want to have special functionality for a particular representation.  However,
+if {\it def2} was not visible at compile time but was available at runtime (as is possible in the Fortress component 
+system), then this overload set could be unsound.  Consider an argument of type $\mathbb{N}$.  {\it def1}
+provides a return type of $\mathbb{N}$, but the more specific {\it def2} found at runtime will provide a $\mathbb{Z}$
+if it is allowed to be chosen.  We can fix this issue by making {\it def2} polymorphic as well: $\mathcal{D}_{{\it polyOk}}=$\\
+
+$\begin{array}{l}
+{\it polyOk}\ob{X}(X) : X~(*){\it def1}\\
+{\it polyOk}\ob{Y <: \mathbb{Z}}(Y) : Y~(*){\it def2}\\
+\end{array}$\\
+
+Now, in the above situation {\it def2} is simply instantiated at $\mathbb{N} <: \mathbb{Z}$ and type safety is maintained.
+
+We are not so lucky when considering examples that involve generic types such as the {\it tail} example from
+the introduction.  Consider a similar definition for the {\it head} function: $\mathcal{D}_{{\it head}}=$\\
+
+$\begin{array}{l}
+{\it head}\ob{X}({\tt List}\ob{X}) :X~(*){\it def1}\\
+{\it head}({\tt List}\ob{{\tt Bit}}) : {\tt Bit}~(*){\it def2}\\
+\end{array}$\\
+
+To see the potential for unsoundness, consider the type
+${\tt ConfusedList} <: \{{\tt List}\ob{{\tt Bit}}, {\tt List}\ob{{\tt String}}\}$.  {\tt ConfusedList} could
+be known statically as a ${\tt List}\ob{{\tt String}}$ and the ${\bf MSAD}(\mathcal{D}_{{\it head}}({\tt List}\ob{{\tt String}})$
+is {\it def1} with a return type of {\tt String}.  At runtime,  ${\bf MSAD}(\mathcal{D}_{{\it head}}({\tt ConfusedList})$
+is {\it def2} which returns a {\tt Bit} which is not a subtype of {\tt String}. Furthermore, the trick of making
+the second definition polymorphic does not work as there is no way to return a combination of the elements
+from each list. \footnote{We can add a third definition to disambiguate, but the reasoning is complex: 
+${\it head}\ob{Y, Z <: \{ {\tt List}\ob{Y}, {\tt List}\ob{{\tt Bi}}\}}(Z) : Y$.  Essentially, we force the original return type
+to be used by defining a yet more specific definition that must apply if both do.  Unfortunately, besides being
+complex, it is non-local.}  Therefore, if we want the flexibility to write overloads that manipulate generic structures but
+still allow special cases, we need some way to allow these overload sets.
+
+%The common thread through all of these examples that we want to support is that type safety is
+%compromised when we are allowed to disregard static type information.  In particular, the {\it head}
+%function is problematic because we can treat an input as a ${\tt List}\ob{{\tt String}}$ at compile time,
+%but then drop that information and only use the fact that it is a ${\tt List}\ob{{\tt Bit}}$ for dispatch at runtime.
+%In order to safely support overload sets like {\it head}, we need a way to prevent the runtime from forgetting
+%type information in this manner.
+
+\section{Limiting Runtime Choices Automatically}
+
+In order to allow overloads like {\it tail} and {\it head}, one option is to prevent the runtime from choosing
+function definitions that cause the unsoundness.  One obvious place to put this logic is when determining
+function applicability at runtime.
+
+\subsection{Dynamic Dispatch}
+
+The runtime is already responsible for inspecting the runtime types of the inputs to a function call and 
+selecting the most specific applicable function definition to execute.  It does so by solving a set of constraints 
+based on the input types and the parameter types of the different definitions in the overload.  The runtime could
+be enhanced to include return type constraints when considering applicability.  
+
+For example, in the {\it head} example above we know statically that {\tt String} must be returned 
+from the call to {\it head}.  Therefore, when the runtime checks if {\it def2} is applicable, it checks
+that it can return a subtype to {\tt String}.  Since it cannot, this definition is not chosen, even if it
+is applicable to the provided arguments.
+
+\subsection{Static Transformation}
+
+We notice that we actually could tell that {\it def2} could not be used at compile time once we found
+that the return type needed to be a {\tt String}.  This suggests that we could limit the choices that the
+runtime can make by rewriting overload sets and function calls.  
+
+In the case of a call to {\it head} with a parameter
+with static type ${\tt List}\ob{{\tt String}}$, the compiler would recognize that {\it def2} could not apply at runtime
+and partition the overload set.  In fact, this particular set could be partitioned easily into two functions\\
+
+$\begin{array}{l}
+{\it head\_poly}\ob{X}({\tt List}\ob{X}) :X\\
+{\it head\_bit}({\tt List}\ob{{\tt Bit}}) : {\tt Bit}\\
+\end{array}$\\
+
+At compile time, we know that any application of {\it head} to a subtype of ${\tt List}\ob{{\tt Bit}}$ uses {\it def2} and
+everything else uses {\it def1}.  Therefore, the compiler could rewrite these calls into calls to {\it head\_bit} and 
+{\it head\_poly} respectively.  
+
+In general, overload sets would be partitioned to prevent type information known
+at compile time from being discarded to choose a more specific function definition at runtime.  Though complex
+in some cases, we believe that this translation would be possible (though it might not interact well with modules
+and hiding).
+
+\subsection{Evaluation}
+
+These solutions achieve the goal of allowing names like {\it head} and {\it tail} to be overloaded in the 
+manner that we want.  However, they do so at the price of complicating the concept of an overload
+set.  Each call site of a given function name has a different overload set in the sense that the static 
+context may restrict what functions are applicable.  One implication of this is that programmers can
+no longer understand the execution of a program without static type information.  By adding contextual
+information to the concept of the overload set, we muddy its semantics in an undesirable way.
+
+Secondly, this rule allows non-sensical overloads such as {\it confused} above.  We can justify our desire to
+write examples like {\it head} and {\it tail}.  In contrast, {\it confused} does not seem to have much use, further
+diluting the usefulness of overload sets as a concept.
+
+Another positive aspect of these solutions is that they recognize a quirk of the function specificity relationship.  If statically
+{\it def1} of {\it head} applies instantiated at {\tt String} with a domain of ${\tt List}\ob{{\tt String}}$, is it really 
+the case that {\it def2} with a domain of ${\tt List}\ob{{\tt Bit}}$ is more specific?  The rules would say
+no in these monomorphic cases. This suggests that by checking specificity at the polymorphic level,
+we are causing monomorphic instantiations to have a specificity relationship they would not otherwise have.
+However, our previous work showed that this version of specificity is useful for other reasons, so changing
+it is not an option.  
+
+Given this high price in added complexity, we do not consider these to be good options and so turn to
+restrictions on overload sets.
+
+\section{Manual Restrictions}
+
+In order to ensure type safety without muddying the semantics of overloading we propose restrictions 
+to overload sets.  However, since we also want to be able to write overloads like {\it tail} and {\it head},
+we also propose restrictions on the type system that allow this kind of overload.
+
+\subsection{The Return Type Rule}
+
+Examples like {\it head} and {\it tail} are unsound because a more specific function definition can be chosen
+at runtime that returns a type that is not more specific.  The return type rule prevents this: 
+
+\begin{quote}Given a pair of function
+definitions $d_2 \ms d_1$ in an overload set and a type $T$ to which both are applicable. For every instance
+of $d_1$ applicable to $T$ with return type $R_1$, there exists an instance of $d_2$ that is applicable to $T$ which
+has a return type $R_2 <: R_1$.  
+\end{quote}
+
+The return type rule guarantees that if a more specific function definition is applicable, then
+the static return type cannot prevent it from being used because there must exist an instance that is both applicable
+and provides a type safe return type.
+
+For example, taking the {\it head} example where {\it def1} is $d_1$ and {\it def2} is $d_2$ and $T={\tt ConfusedList}$.
+{\it def1} instantiated at {\tt String} is applicable to $T$ with return type {\tt String}.  However, {\it def2} can only return
+a {\tt Bit} which is not a subtype of {\tt String} and thus the {\it head} overload fails the return type rule.  By similar
+reasoning, examples like {\it confused} above also fail this rule.
+
+\subsection{Restricting the Type System}
+
+Unfortunately, the return type rulerejects overload sets such as {\it head} and 
+{\it tail} that we are interested in writing.  Since we saw that weakening this rule led
+to confusing semantics, we look for other ways to allow these overload sets.  One potential
+way to do this is by preventing the types that cause problems.  Our problematic examples
+suggest that types that extend multiple instantiations of a single type are the culprits.
+We restrict these types with a new kind of exclusion.
+
+\subsubsection{multiple instantiation exclusion}
+
+The goal of {\it multiple instantiation exclusion} is to make these types illegal.  Multiple instantiation exclusion 
+says that any type which is a subtype of two distinct instantiations of a single generic type is equivalent to 
+{\tt Bottom}, the uninhabited type.  This means that examples such as {\tt ConfusedList} are no longer problematic 
+because they are not valid types.  
+
+Multiple instantiation exclusion does restrict expressibility of the type system by preventing programmers
+from writing types that they might want to write such as 
+${\tt HasStringAndInt} <: \{ {\tt Has}\ob{{\tt String}}, {\tt Has}\ob{\mathbb{Z}} \}$ for example.  However, since it
+removes the examples that cause the overloads {\it head} and {\it tail} to fail the return type rule, we hypothesize
+that it will make them safe.  In order to prove this, we first need to characterize the types of overload sets
+that we want to allow.
+
+\subsubsection{More Examples}
+
+We already saw that {\it head} and {\it tail} are examples of overloads that we want to write
+that are potentially unsound.  We believe (and will shortly prove) that multiple instantiation
+exclusion makes these overloadings safe by eliminating problematic examples.  However,
+in order to prove that it works, we need to characterize the overload sets that we are interested
+in allowing.  The general form of these overload sets is that they contain a
+polymorphic function for manipulating the general form of a polymorphic type along with
+a function specialized to take advantage of a specific representation for a particular 
+instantiation of that type.  Both {\it head} and {\it tail} take a generic type as an input and output either
+the same type or its instantiation.  Given our {\it polyOk} example that is not unsound, the generic type 
+appears to be important.  But does it need to be an input, and does the return type need to be
+related?
+
+The {\it size} function addresses the second question.  Let $\mathcal{D}_{{\it size}}=$\\
+
+$\begin{array}{l}
+{\it size}\ob{X}({\tt List}\ob{X}) : \mathbb{Z}~(*){\it def1}\\
+{\it size}({\tt List}\ob{{\tt Bit}}) : \mathbb{Z}~(*){\it def2}\\
+\end{array}$\\
+
+Since the return type is the same for both definitions, the return type rule does not fail.
+Therefore, it seems that there does need to be a relationship between the instantiation
+of the input type and the return type.
+
+For the first question, we consider a factory method for singleton lists.  Let $\mathcal{D}_{{\it singletonList}}=$\\
+
+$\begin{array}{l}
+{\it singletonList}\ob{X}(X) : {\tt List}\ob{X}~(*){\it def1}\\
+{\it singletonList}({\tt Bit}) : {\tt List}\ob{{\tt Bit}}~(*){\it def2}\\
+\end{array}$\\
+
+This example is unsound even with multiple instantiation exclusion.  
+The ${\bf MSAD}(\mathcal{D}_{{\it singletonList}}({\tt Object})$ is {\it def1}, but
+at runtime we could get a ${\tt Bit} <: {\tt Object}$ which would make choosing
+the more specific {\it def2} unsound.  Since our example was not of the same
+form as {\tt ConfusedList} multiple instantiation exclusion will not help.
+On closer inspection, this does not appear to be as problematic because intuitively
+this sort of overload should not be valid.  This function creates a {\tt List} that starts with a single element, but to which
+other elements could later be added.  Given that the type of the first element added to
+the list does not necessarily represent the type of all the elements added we actually
+do not want the runtime system to choose a more specific instantiation for a call to
+{\it singletonList} at runtime as it may cause later uses of the list to become unsound.  
+Therefore, it is appropriate that this overload is rejected even with the added exclusion.
+
+Finally, we note that the more specific definition does not need to be monomorphic.
+For instance, if we wanted to specialize some function for all lists of numbers, we 
+would write an overload set like $\mathcal{D}_{{\it specializeRange}}=$\\
+
+$\begin{array}{l}
+{\it specializeRange}\ob{X}({\tt List}\ob{X}) : X~(*){\it def1}\\
+{\it specializeRange}\ob{Y <: {\tt Number}}({\tt List}\ob{Y}) : Y~(*){\it def2}\\
+\end{array}$\\
+
+This sort of overloads acts much like the monomorphic examples and appears to
+be allowed with multiple instantiation exclusion.
+
+These examples give us confidence that we can characterize the type of overloads
+that we are trying to enable.  Informally, these are overloaded functions that take generic types
+as arguments and return a type related to that generic type.  Formally,
+
+\begin{definition}[special case]
+Given a generic function definition $f\ob{X <: U}(x : T\ob{X}) : R$
+where $T$ is a generic trait and $X$ appears in $R$.  We say that for any $V <: U$ the following 
+definitions constitute special cases
+	\begin{enumerate}
+    	\item $f\ob{Y <: V}(x : W) : R'$ where $Y$ appears in $W$ and $R'$ and for all $V' <: V$
+        		$[V'/Y]W <: T\ob{V'}$ and $[V'/Y]R' <: [V'/X]R$
+	\item $f(x : W) : R'$ where $W <: T\ob{V}$ and $R' <: [V/X]R$
+	\end{enumerate}
+\end{definition}
+
+This definition is not as general as it could be as in reality, we would want to account for
+other parameters.  However, it captures the key concepts in a relatively simple definition.
+We note that {\it tail}, {\it head}, and {\it specializeRange} are all overloaded functions which
+include a generic function definition and a special case.
+
+\subsubsection{Proof}
+
+We can now prove that multiple instantiation exclusion allows these special cases
+to pass the return type rule.
+
+\begin{lemma} 
+Given a generic function definition $d=f\ob{X <: U}(x : T\ob{X}) : R$.  If $d'$ is a special 
+case of $d$ using $V <: U$, then $d'$ is more specific than $d$ and furthermore, $d$ and $d'$ pass 
+the return type rule.
+\end{lemma}
+
+\begin{proof}
+The definition of a special case is sufficient to prove that $d'$ is more specific
+than $d$.  To show the return type rule succeeds, we take an ilk $I$ to which both $d$ and $d'$
+are applicable.  Since $d'$ is applicable to $I$, there exists some $A <: V$ such that 
+$I <: T\ob{A}$.  By multiple instantiation exclusion, we know that there exists no $B \not= A$
+such that $I <: T\ob{B}$.  Since generic types are invariant, we know that there exist no
+$B \not= A$ such that $T\ob{A} <: T\ob{B}$.  Therefore, $A$ is the only instantiation of $X$ for which 
+$d$ is applicable to $I$.  The definition of a special case guarantees that this pair of
+instantiations pass the return type rule and since it is the only pair of instantiations
+that are applicable, we are done.
+\end{proof}
+
+The proof is informative in terms of how this restriction achieves the desired effect.
+Effectively, multiple instantiation exclusion rules out any instantiation other than
+the one known at compile time, thereby preventing the runtime from having the option
+of choosing a different instantiation.  We can therefore trust the instantiation known at
+compile time.
+
+\subsection{Evaluation}
+
+There are several benefits of this scheme over the prior proposals.  First, overload sets
+do not depend on the calling context, but can be understood as a separate concept.
+Secondly, multiple instantiation exclusion provides a simple restriction to the type system
+that provably allows overrides that we want to write ({\it tail}) while still prohibiting questionable 
+overloads ({\it confusing}).
+
+The price that we must pay is the restriction on the type system.  This means that we cannot
+use some types as we might like.  For instance, given a type ${\tt Has}\ob{X}$, we cannot
+define ${\tt hasStringAndInt} <: \{ {\tt Has}\ob{String}, {\tt Has}\ob{\mathbb{Z}}\}$.  On the other
+hand, it is unclear how to use these kind of types and in particular whether you could reasonably
+write overload sets that are specialized.  In other words, you would need to use the static
+information rather than dynamic dispatch.  This suggests that perhaps we could consider
+adding syntax to allow some generic traits to be be multiple instantiation excluded and others
+not.  The tradeoff would be specialization of generic functions or multiple instantiation inheritance,
+but not both.
+
+On the other hand, when we consider the runtime system, we realize that there is a strong
+benefit to multiple instantiation exclusion.  It guarantees that for any type that extends a generic
+trait, there exists a canonical instantiation of that trait for that object.  This is important for
+overloads such as\\
+
+$\begin{array}{l}
+{\it headOrID}({\tt Object}) : {\tt Object}~(*){\it def1}\\
+{\it headOrID}\ob{X}({\tt List}\ob{X}) : X~(*){\it def2}\\
+\end{array}$\\
+
+If {\it def1} is all that is known at compile time, but at runtime the object is a 
+{\tt ConfusedList}, which instantiation of {\it def2} is used, {\tt Bit} or {\tt String}?
+Context does not give us any clue because we only need an {\tt Object}.  Thus,
+we need to choose an instantiation without any means to do so.  Outlawing this
+type of overload is a slippery slope into special cases.
+
+Ultimately, Fortress implements blanket multiple instantiation exclusion for the semantic
+benefits and the simplicity of the restriction.
+
+\section{Variant Generics}
+
+In the above sections, we assumed that generics were {\it invariant} in the sense that $T\ob{X} <: T\ob{Y}$ if and only if $X = Y$.  However,
+many abstractions can support more permissive subtyping between generic instantiations.   Fortress
+supports variant generic types, including
+
+\begin{enumerate}
+\item {\bf Covariance}: $T\ob{X} <: T\ob{Y}$ if and only if $X <: Y$
+\item {\bf Contravariance}: $T\ob{X} <: T\ob{Y}$ if and only if $Y <: X$
+\end{enumerate}
+
+We deal explicitly with covariance only as for our purposes, contravariance is the same with the subtyping relationship switched.
+
+\subsection{Covariant multiple instantiation exclusion}
+
+We need to update the definition of multiple instantiation exclusion to include covariant generic types.
+We could leave the restriction the same and prevent multiple instantiations just like for invariant generics.
+However, this is more restrictive than we need.  In fact, as long as we can identify some minimal instance
+we can ensure type safety. 
+
+To see why, consider the {\it head} function on the covariant list type ${\tt CoList}\ob{X}$.  Additionally,
+we specialize it for some type {\tt A}.\\
+
+$\begin{array}{l}
+{\it coHead}\ob{X}({\tt CoList}\ob{X}) :X~(*){\it def1}\\
+{\it coHead}\ob{Y <: {\tt A}}({\tt CoList}\ob{Y}) : Y~(*){\it def2}\\
+\end{array}$\\
+
+Note that we must make {\it def2} generic.  This is for the same reasons as the {\it polyOk} example above.
+Consider the type {\tt B} unrelated to but not excluding {\tt A} and ${\tt C} <: \{ {\tt A}, {\tt B}\}$.  The type
+${\tt AmbiguousCoList} <: \{ {\tt CoList}\ob{A}, {\tt CoList}\ob{B} \}$ causes the {\it coHead} overload to fail the 
+return type rule.  Type parameter $X$ of {\it def1} can be instantiated to {\tt B} and since {\tt B} is not a subtype
+of {\tt A}, there is no way to instantiate $Y$ of {\it def2} to be both applicable and type safe.  However, if we add
+${\tt CoList}\ob{C}$ to make the type ${\tt OkCoList} <: \{ {\tt CoList}\ob{A}, {\tt CoList}\ob{B} {\tt CoList}\ob{C} \}$,
+then the problem goes away since we can now choose to instantiate {\it def2} at {\tt C} and return ${\tt C} <: {\tt B}$
+which is sound.
+
+Thus, to multiple instantiation exclusion, we add that if the type parameter is covariant, then a type can extend multiple
+instantiations of that type parameter as long as there exists a minimal instantiation that is a subtype of all other instantiations.
+This is the ancestor meet rule that appears in the failed OOPSLA 2012 submission.
+
+\subsubsection{Cross Instantiation}
+
+There is one more problematic situation that we did not encounter with invariant type parameters.  Consider the
+type ${\tt CoArrayList}\ob{X} <: {\tt CoList}\ob{X}$ which holds for all $X$.  Now, we specialize {\it coTail} for
+the array list case:\\
+
+$\begin{array}{l}
+{\it coTail}\ob{X}({\tt CoList}\ob{X}) :{\tt CoList}\ob{X}~(*){\it def1}\\
+{\it coTail}\ob{Y}({\tt CoArrayList}\ob{Y}) : {\tt CoArrayList}\ob{Y}~(*){\it def2}\\
+\end{array}$\\
+
+We consider {\it def2} to be more specific as usual since it handles a subset of the inputs of {\it def1}.
+Now, consider the type ${\tt CrossInstance} <: \{ {\tt CoArrayList}\ob{{\tt Object}}, {\tt CoList}\ob{{\tt Number}} \}$.
+This type provides a counter example to the return type rule for the {\it coTail} overload.  We can instantiate
+{\it def1} to {\tt Number}, but in order to make {\it def2} applicable, we must instantiate it at {\tt Object} and
+{\tt Object} is a not a subtype of {\tt Number}.
+
+In light of this problem, we must add a second restriction to prevent these crossed instantiations.  
+
+\begin{quote}
+Given type ${\tt T}\ob{X}$ where $X$ is covariant and type ${\tt S}\ob{Y}$ were $Y$ is covariant and for all $Z$
+${\tt S}\ob{Z} <: {\tt T}\ob{Z}$. Let {\tt A} and {\tt B} be distinct ground types where ${\tt A} <: {\tt B}$.  If
+$I <: {\tt S}\ob{B}$ and $I <: {\tt T}\ob{A}$, then $I <: {\tt S}\ob{A}$.
+\end{quote}
+
+With these two restrictions, we can prove that special case overloads involving covariant type parameters 
+will now pass the return type rule as well (TODO).
+
+\subsubsection{Exception for selfless types}
+
+This restriction is problematic for expressing certain types of relationships such as the numeric hierarchy
+that is expressed using the so called self-type idiom (now selfless types or trolls). Some sets of numbers
+and the operators over them give rise to special algebraic properties known as rings and the more specialized fields.  Fortress
+aims to support them in the following way:\\
+
+$\begin{array}{l}
+{\bf trait}~{\tt Ring}\ob{X <: {\tt Number}}~{\bf comprises}~X~\dots~{\bf end}\\
+{\bf trait}~{\tt Field}\ob{X <: {\tt Number}}~{\bf comprises}~X~{\bf extends}~{\tt Ring}\ob{X}~\dots~{\bf end}
+\end{array}$\\
+
+The self-type idiom is realized with the {\bf comprises} clause which contains the instantiation of the self type.
+The {\bf comprises} clause limits the types that can extend the given type to those appearing in the clause.
+In this idiomatic usage, the type ${\tt Ring}\ob{X}$ is identified as $X$.  Thus a ${\tt Field}\ob{\mathbb{Q}}$
+is really just $\mathbb{Q}$ itself.
+
+Unfortunately, the numerical hierarchy contains crossed instantiations of the kind that we determined
+must be outlawed:\\
+
+$\begin{array}{l}
+{\bf trait}~\mathbb{Q}~{\bf extends}~{\tt Field}\ob{\mathbb{Q}}~\ldots~{\bf end}\\
+{\bf trait}~\mathbb{Z}~{\bf extends}~\{ \mathbb{Q}, {\tt Ring}\ob{\mathbb{Z}}\}~\ldots~{\bf end}\\
+\end{array}$\\
+
+A $\mathbb{Z}$ is a ${\tt Field}\ob{\mathbb{Q}}$ and a ${\tt Ring}\ob{\mathbb{Z}}$ but not
+a ${\tt Field}\ob{\mathbb{Z}}$ which breaks our rule given above.  As above, we can come
+up with an example that is unsound if we allow this type hierarchy.\\
+
+$\begin{array}{l}
+{\it add}\ob{X}({\tt Ring}\ob{X}, {\tt Ring}\ob{X}) :{\tt Ring}\ob{X}~(*){\it def1}\\
+{\it add}\ob{Y}({\tt Field}\ob{Y},{\tt Field}\ob{Y}) : {\tt Field}\ob{Y}~(*){\it def2}\\
+\end{array}$\\
+
+Take type $\mathbb{Z}$ which is provided as the inputs to {\it add}.  Both {\it def1} and {\it def2}
+are applicable.  But if we instantiate {\it def1}
+at $\mathbb{Z}$, then we have a return type of ${\tt Ring}\ob{\mathbb{Z}}$ for the less specific
+definition.  The more specific {\it def2} is only applicable when instantiated at $\mathbb{Q}$, but the
+resulting return type ${\tt Field}\ob{\mathbb{Q}}$ is not a subtype of ${\tt Ring}\ob{\mathbb{Z}}$,
+thus witnessing the failure of the return type rule.
+
+Recall that the return type rule handles two failure cases: first, the possibility that more specific
+type information at runtime will cause a more specific function definition to be chosen.  Second
+is that the more specific function may not be visible to the compiler (hidden behind an API).  Note
+that the first failure case should not actually apply here.  When we statically know that we have
+a ${\tt Ring}\ob{\mathbb{Z}}$, we actually know much more than this.  The self-type idiom means
+that this type is equivalent to $\mathbb{Z}$.  But $\mathbb{Z} <: \mathbb{Q} <: {\tt Field}\ob{\mathbb{Q}}$
+which implies that based on static information {\it def2} should apply.  However, this does not extend to
+the second failure case when the more specific definition is hidden.
+
+One way to ensure that the first situation cannot happen is to rewrite the overload so that the self-type
+is a bound rather than the parameter type:\\
+
+$\begin{array}{l}
+{\it add}\ob{X <:{\tt Ring}\ob{X}}(X,X) : X~(*){\it def1}\\
+{\it add}\ob{Y <: {\tt Field}\ob{Y}}(Y,Y) : Y~(*){\it def2}\\
+\end{array}$\\
+
+This forces us to recognize the type ${\tt Ring}\ob{\mathbb{Z}}$ as $\mathbb{Z}$ in order for {\it def1} to
+apply which will automatically also mean that {\it def2} applies.  This approach suggests further that
+the self-type idiom should be more than simply an idiom and instead a separate construct which cannot
+be used as a first class type, but instead only in bounds.  Victor and John have started working on this
+sort of theory with their {\it trolls}.  However, the visibility problem shows that this is not sufficient to fix the
+unsoundness problems with the cross instantiation.  Therefore, more work needs to be done in order
+to understand how to best support the numerical hierarchy in the Fortress type system.
+
+%\section{Fortress Features, Design, and Related Work}
+%
+%In this section, we outline the design of the Fortress programming language and describe the features
+%that we want to the language to have.
+%
+%\subsection{Overloaded Functions and Symmetric Multiple Dispatch}
+%
+%A key piece of supporting a mathematical syntax is to allow the definition of different operators such
+%as addition, multiplication, and so on to be {\it overloaded}.  By this we mean that we will need to change
+%our algorithm depending on whether the operands are integers, floating point numbers, matrices, or some
+%combination thereof.  Object-oriented languages provide {\it dynamic dispatch} on method calls whereby
+%the code that is executed is determined by the runtime type of the receiver of the method.  However, this
+%runtime dispatch behavior does not extend to the other inputs to the function. Thus, for so called
+%{\it binary methods}, such as multiplication, programmers must implement dispatch on the second
+%parameter themselves using, for instance, the double dispatch pattern.  Unfortunately, this pattern
+%is tedious, error prone, and difficult to extend because extra cases must be added to existing classes
+%when the type hierarchy is extended, otherwise known as the {\it expression problem}.
+%
+%To solve this problem, Fortress supports {\it symmetric multiple dispatch}.  Under these semantics, 
+%the most specific applicable function or method is chosen based on the runtime types of {\it all} inputs
+%to the function instead of only a single distinguished input (the receiver).  This has two benefits.  First,
+%it takes the burden of writing manual dispatch code off the programmer in exchange for a set of well-formedness
+%requirements on each set of overloaded functions that amounts to ensuring that there is always an
+%unambiguous choice given any set of parameters.  Secondly, by separating dispatch from the algorithm
+%code, extra cases can be added separate from the definitions of the types in question providing a mechanism
+%to avoid the expression problem.
+%
+%Symmetric multiple dispatch has been extensively studied in several contexts, including MultiJava, a conservative
+%extension to Java (cite) , functional languages with polymorphism (cite B and Merz), as well as others.  However,
+%none of these systems have attempted to include the full set of features that Fortress supports.
+%
+%\subsection{Multiple Inheritance}
+%
+%The second feature that contributes to the flexibility of Fortress is multiple inheritance.  Many object-oriented
+%languages such as Java allow code reuse from only a single class relegating multiple inheritance
+%to interfaces which cannot contain code.  Fortress separates types into {\it traits} and {\it objects}.
+%Traits are like Java interfaces, but can contain methods with bodies.  Objects are like final classes
+%in Java.  They can extend multiple traits, but no object can be extended by a trait or object.  This
+%structure allows a high level of flexibility in the reuse of code.
+%
+%Symmetric multiple dispatch deals with traditional diamond problem of multiple inheritance where it can
+%be unclear from which superclass to inherit a given method.  In order to be unambiguous, the creator of
+%the class must provide the correct definition.  However, for non-receiver arguments, multiple inheritance
+%introduces ambiguity that is more difficult to resolve.  This is one of the challenges that we explore below
+%as no previous system has supported both.  For instance, MultiJava outlaws dispatch on interface types.
+%
+%\subsection{Variant Polymorphic Types and Non-Erased Generics}
+%
+%Parametric polymorphic types is a feature widely supported in statically typed programs.  Indeed, Java
+%originally did not support them, but it was added as users clamored for the feature.  However, languages like
+%Java do not keep the generic type instantiation around at runtime.  This limits the expressiveness of the
+%language as that information cannot be used to at runtime.  Fortress, like languages such as C\#, supports
+%non-erased generic types where the instantiation information is carried around at runtime and can be
+%referenced.
+
+
+
+
+%The Fortress programming language follows {\it symmetric multiple dispatch} semantics.  Multiple function
+%definitions can be given the same name forming an {\it overload set} (or simply overload).  When an
+%overloaded function is called at runtime, the most specific applicable definition is chosen based on the
+%number of types of {\it all} the inputs to the function.  In order to ensure that there is always an unambiguous 
+%choice, the Fortress type system places restrictions on the overload sets that can be defined. 
+%
+%While symmetric multiple dispatch has been studied extensively in the monomorphic case, Fortress is
+%unique in that it allows generic functions to participate in overload sets with monomorphic functions.
+%This flexibility allows programmers to express overload sets that would not otherwise be possible.
+%However, it also introduces new possibilities for ambiguity in the choice of which function definition
+%to choose at runtime, requiring updates to the static type system and overloading rules.  A second
+%distinguishing  feature of Fortress is its support for multiple inheritance.  This also adds the
+%potential for ambiguity that must be dealt with.
+%
+%We investigate the issues that arise when generics are involved by reviewing the monomorphic
+%case and noticing how the same issues arise when we allow generic functions involving invariant generic
+%types.  We present, analyze, and justify several solutions and finally prove that our choice has the 
+%intended effect.  We finish by considering the additional problems that arise with covariant generic
+%types and so called selfless types or trolls.
+%
+%\section{Monomorphic Overloading}
+%
+%In this section, we introduce some of the ways that ambiguity can appear in overload sets using
+%examples of monomorphic function overloads.  There are three ways that ambiguity can
+%appear.
+%
+%\subsection{Indistinguishable Definitions}
+%
+%Function definitions which provide no way to choose between them introduce ambiguity. For
+%example:
+%
+%$\begin{array}{l l}
+%\texttt{print(x : Object) : ()} & \texttt{(*)print1}\\
+%\texttt{print(x : Object) : ()} & \texttt{(*)print2}
+%\end{array}$
+%
+%These two definitions have the same {\it domain} and are thus applicable to the same set of types
+%meaning that we cannot distinguish between them.  This situation is outlawed by the {\it no duplicates}
+%rule.
+%
+%\subsection{Incomparable Entries}
+%
+%A second source of ambiguity are incomparable entries like the following:
+%
+%$\begin{array}{l l}
+%\texttt{foo(x : Object, y : $\mathbb{Z}$) : ()} & \texttt{(*)foo1}\\
+%\texttt{foo(x : $\mathbb{Z}$, y : Object) : ()} & \texttt{(*)foo2}
+%\end{array}$
+%
+%These two definition are incomparable in the sense that neither domain is contained within the other.
+%This opens the possibility of a set of arguments that could be applicable to either without a way
+%to determine which function definition should be invoked.  For instance, if {\tt foo} is passed two 
+%$\mathbb{Z}$ arguments, then both {\tt foo1} and {\tt foo2} apply.  In this case, the {\it meet rule} requires 
+%that a third definition be supplied that applies whenever both incomparable functions are applicable.  
+%In this case, we would require the following definition:
+%
+%$\begin{array}{l l}
+%	\texttt{foo(x : $\mathbb{Z}$, y : $\mathbb{Z}$) : ()} & \texttt{(*)foo3}
+%\end{array}$
+%
+%{\tt foo3} applies whenever both {\tt foo1} and {\tt foo2} do, and so it would be the unique most specific
+%applicable function when two $\mathbb{Z}$ arguments are provided.
+%
+%However, in the presence of multiple inheritance, this is not enough for us to be able to write overload
+%sets that seem intuitively correct.  Consider the following overload:
+%
+%$\begin{array}{l l}
+%\texttt{print(x : String) : ()} & \texttt{(*)print3}\\
+%\texttt{print(x : $\mathbb{Z}$) : ()} & \texttt{(*)print4}
+%\end{array}$
+%
+%While this overload might seem valid, it does not account for the possibility of a type that extends both
+%String and $\mathbb{Z}$ as can occur in a multiple inheritance hierarchy.  With intersection types,
+%we could specify a definition that was more specific than both, but Fortress does not allow programmers
+%to write intersection types.  Instead, types can be defined to {\it exclude} each other, guaranteeing that
+%no type is a subtype of both of them.  In fact, {\tt String} and $\mathbb{Z}$ exclude each other which
+%makes {\tt print3} and {\tt print4} a valid overload set as there does not exist any type to which both are
+%applicable.  This last restriction is an example of adding more power to the type system in order
+%to allow more overload sets to be valid.  We will see other examples of this later.
+%
+%\subsection{Type Safety}
+%
+%Finally, ambiguity is introduced when type safety can be compromised at runtime.  For example
+%
+%$\begin{array}{l l}
+%\texttt{bar(x : Object) : String} & \texttt{(*)foo1}\\
+%\texttt{bar(x : $\mathbb{Z}$) : $\mathbb{Z}$} & \texttt{(*)foo2}
+%\end{array}$
+
+\end{document}
