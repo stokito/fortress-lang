@@ -1,0 +1,412 @@
+2012-6-15 thoughts on the return type rule and its impact on runtime type instantiation
+
+general problem: It is possible that the static return type may require extra
+restrictions be placed on the instantiation of generics appearing in the 
+return type of a more specific function that we find to be applicable at runtime.
+
+For instance:
+
+object thing[\X\](x : X) end
+
+f[\X\](x : X, x : Object) : thing[\X\] (*) def1
+f[\X\](x : X, x : String) : thing[\X\] (*) def2
+
+if we only know that def1 is applicable statically, but it
+turns out that def2 is applicable at runtime, we cannot let
+the runtime type of the first parameter change the instantiation
+of X because by the return type rule we must return the same instantiation
+of X to guarantee type safety.
+
+There are two questions:
+1) How can we characterize pairs of overloaded functions for which return type
+    restrictions must be added?
+2) What is the best way to implement these restrictions
+
+Hypotheses:
+A) Restrictions are only added when both functions have a generic return type
+B) Restrictions are only added when the generic type parameters of the two
+    return types appear 'in the same position', where 'in the same position'
+    can include relationships between parameters in subtraits.
+C) Restrictions are only added when the type parameter in question is invariant.
+D) We can hard code the restrictions at compile time based on static information.
+
+I think I believe A and B for sure, possibly C and I want to believe D, 
+but I'm not particularly optimistic.
+
+XXXXXXXXXXXXX 2012-7-3 summary of results below XXXXXXXXXXXXXXX
+
+B and D were the only ones that actually held true.  However, D is the most
+important, so that's fine.
+
+See other document for implementation.
+
+-------------
+A) Restrictions are only added when both functions have a generic return type
+
+This should be guaranteed by the return type rule, which says that given a type
+T and two function definitions d_1 more specific than d_2 for each instantiation
+of d_2 S_2->T_2 which is applicable to T, there exists an instantiation of d_1
+S_1->T_1 that is applicable to T where T_1 <: T_2.
+
+If we statically know that d_2 is applicable to the static type M of the arguments, 
+then the typechecker chooses a particular instantiation of d_2 which is used
+(will this be true in general - what if there is dynamic instantiation in between?)
+in the generated code that has return type D_2.  Now the dynamic type N of the 
+arguments at runtime must be a subtype of M by safety.  Therefore, the particular 
+chosen instantiation is still applicable to N.  If N is also applicable to d_1, 
+then by the return type rule, there is an instantiation of d_1 that is applicable
+to N and has return type D_1 <: D_2.
+
+Assume that the return type of d_1 is not generic.  Then D_1 is fixed and for the
+return type rule to apply, it must be the case D_1 <: D_2 for any instantiation
+of d_2 regardless of the choice of the instantiation of d_1, so we are done.
+
+Assume that the return type of d_2 is not generic.  Then D_2 is fixed and therefore,
+we cannot choose the instantiation of d_1 such that D_1 is not a subtype of D_2.  
+However, checking the return type rule ensures that all valid instantiations...
+
+So this is false.  Counter example:
+
+trait empty[\X\] end
+
+f(x : Object) : empty[\Object\] (*) def1
+f[\P\](x : String) : empty[\P\] (*) def2
+
+If we statically know that def1 is applicable, then if it so happens that
+def2 is applicable at runtime, we need to find an instantiation of X for that
+call.  Here we know that since X is invariant in empty, X must be Object.  If 
+X was covariant, then we would have infinite choices for X which is some ways a more
+difficult problem, but we note that it does not add restrictions (keeping hypothesis
+C alive).
+
+------
+B) Restrictions are only added when the generic type parameters of the two
+    return types appear 'in the same position', where 'in the same position'
+    can include relationships between parameters in subtraits.
+    
+This hypothesis is dead in its current form.  My revised hypothesis is that restrictions
+only appear when the type parameters in the return type correspond to instantiated
+type parameters in the static return type.  In the above example the static return type
+was empty[\Object\] and the compared generic return type was empty[\P\], the position
+of P, namely as the type parameter to empty, also exists in the static return type,
+empty[\Object\] which provides the bound, Object for P (upper and lower because of
+invariant position).
+
+So I need to try and prove that if the position of the type parameter does not exist
+in the static return type, then the static checking handles all the restrictions. 
+
+-Case 1: generic return type is X (raw type variable).  The position trivially exists.
+Furthermore, the statically known return type provides an upper bound on X.
+(this may or may not need to be added to the bounds for X, will prove elsewhere)
+
+-Case 2: generic return type is Foo[\X\] and static return type is Bar for some Foo
+and Bar that is not generic. The return type rule requires 
+
+    \forall[\...X...\]a->Foo[\X\] <: \forall[\...X...\](a\cap b)->Bar
+
+which conceptually means that \forall[\X\]Foo[\X\] <: Bar, which in turn
+implies that any instantiation of Foo that meets the bounds on X must be a 
+subtype of Bar.  Therefore, any instantiation we choose at runtime must
+be valid and no restrictions need to be added.
+
+This is the same when nested inside a generic - ie Foo[\Bar[\X\]\] <: Foo[\Baz\].
+
+-Case 3: statically known type is an instantiated generic, but the type parameter
+is not related to it.  For instance
+    
+    trait Foo[\X\] end
+    trait Bar[\Y\] extends Foo[\String\] end
+
+    f(x : Object) : Foo[\String\] (*) def1
+    f[\P\](x : String) : Bar[\P\] (*) def2
+
+Here we say that the position of P does not appear in Foo[\String\].  Therefore,
+the instantiations of P are governed in the same way as in case 2 and so all 
+restrictions are imposed statically.
+
+-Case 4: statically known type is an instantiated generic, and the type
+parameter is related to one of the generics.
+    
+    trait Foo[\X\] end
+    trait bar[\Y\] extends Foo[\Y\] end
+    
+    f(x : Object) : Foo[\String\] (*) def1
+    f[\P\](x : String) : Bar[\P\] (*) def2
+
+Here we say that the position of P does appear in Foo[\String\]: in this
+case it is related to String, so there could be extra restrictions.  The restrictions
+will depend on whether the type parameter is covariant or invariant.  Covariant adds
+an upper bound from the static instantiation, invariant adds both an upper and lower
+bound.
+
+-Case 5: deeper nesting of the generic type is handled by recursion.  For instance
+
+    Foo[\\alpha\] <: Foo[\g'\]. (*) \alpha contains X
+
+reduces to \alpha <: g' (or equiv if an invariant position).  If the generics are
+different, then either case 3 or 4 applies.  Note that in the case of 4, an invariant
+position enclosing a covariant position forces invariance.
+
+----
+C) Restrictions are only added when the type parameter in question is an invariant
+position in the return type.
+
+Is false:
+
+    trait Foo[\covariant X\] end
+    object bar[\X\] extends Foo[\X\] end
+
+    f[\X extends Number\](x : Object) : Foo[\X\] = bar[\X\] (*) def1
+    f[\Y extends ZZ32\](y : String) : Foo[\Y\] = bar[\Y\]   (*) def2
+
+If only def1 is applicable statically, then its static instantiation, which could
+be more specific than Number, is an upper bound on any applicable instantiation of
+def2.  Note this could easily lead to an instantiation that must be bottom, but it
+is valid.
+
+To come up with this example we had to assume that the type parameter in question
+did not appear in the type of the domain of the function.  What if we know that 
+it must appear there, in that case can a covariant occurrence in the return type
+add a restriction that is not there already?  Let's start with an example:
+
+    object thing[\covariant X\](x : X) end
+
+    f[\X\](x : X, y : Object) : thing[\X\] (*) def1
+    f[\X\](x : X, y : String) : thing[\X\] (*) def2
+    
+If we statically know that def1 applies with X=Number, and at runtime the 
+first parameter is a ZZ32 and the second is a String which means that def2
+applies.  Now, we must choose X to be a subtype of Number and a supertype
+of ZZ32.  So the answer is, yes, a restriction can be placed.  The question
+is whether it matters.  Currently, it does not because we are choosing to
+instantiate X at the lowest possible type, meaning that adding an upper bound
+really does not impact anything, assuming that the extra restriction would not
+invalidate all the instantiations that made the more specific function applicable.
+
+What would such a situation look like?  Ways to invalidate:
+1) added upper bound pushes below a lower bound
+2) added upper bound is unrelated to an existing lower bound
+3) added equivalence constraint is not within range dictated by the domain
+    and declared bounds
+    
+Try 1).  Lower bounds given by covariant instances in the domain.  The previous example
+has one of those.  So lower bound on X is the runtime type of the argument.  This
+is guaranteed to be a subtype of the original instantiation of X, thus we are
+not able to push it lower.  Try covariant position that is in a trait type:
+
+    trait Foo[\covariant X\] end
+    
+    f[\X\](x : Foo[\X\], y : Object) : thing[\X\] (*) def1
+    f[\X\](x : Foo[\X\], y : String) : thing[\X\] (*) def2
+
+Again, we know that the runtime type must be a subtype of the static instantiation
+of Foo from checking the meet rule.  Try removing the generic from the def1:
+
+    f[\X <: Object\](x : Object) : thing[\X\] (*) def1
+    f[\X <: Object\](x : Foo[\X\]) : thing[\X\] (*) def2
+
+Statically, we could use def1 instantiated at String, but at runtime we could get
+def2 with an instantiation of ZZ32.  Turns out this overloading is illegal:
+
+Talked with Victor and finally understood how the return type rule actually works and
+should be able to prove this now.  The above example does not work because assuming
+that we have a particular type that def2 is applicable to, we can choose an instantiation
+of def1 that we cannot pick an instantiation of def2 that is both applicable and
+has a smaller return type.
+
+The return type rule says that given d1 more specific than d2 and a type T that 
+some instantiation of d1 is applicable to (there must be such an instantiation
+of d2 as well since d1 is more specific than d2), if we take an arbitrary instantiation
+of d2 that is applicable to T with return type T2, then there exists an instantiation
+of d1 that is applicable to T with return type T1 such that T1 <: T2.  
+
+Lemma: Given d1 and d2 elements of the same overload set with d1 -< d2 and we
+know d2 to be applicable statically to argument type As with return type Rs.  
+If there exists an instantiation of d1 that is applicable to the runtime argument type 
+As, then there must also exist an instantiation of d1 which is applicable to As and
+provides return type Rr where Rr <: Rs.
+
+Pf: We are given an instantiation of d2 that is applicable to the static type As of the 
+arguments that results in return type Rs.  At runtime, we get ilk Ar for which we
+can find an instantiation of d1 that is applicable to it.  Since Ar < : As, we know that
+the static instantiation d2 is applicable to Ar. Therefore, the return type rule
+tells us that there must be an instantiation of d1 that is both applicable to Ar
+and provides a return type Rr such that Rr <: Rs. QED.
+
+This proves that we can add the restrictions given by the return type rule before finding
+an instantiation and will not remove all possibilities that make the definition
+applicable if at least one exists.
+
+Lemma: Let d be a function definition that has a generic return type where a type parameter
+X appears in the return type, but not in the domain type. If d' is a member of the same
+overload with d' -< d, then either
+1) the return type of d' is not generic in the same position as X in the 
+    return type of d, OR
+2) the return type of d' has type parameter Y in the same position as X and Y does not
+    appear in the domain of d'
+
+Pf: Since there is no mention of X in the domain of d, then we can choose X anywhere
+within its bounds.  In the first case, we know by the return type rule that for all
+instantiations of X the return type of d' is a subtype of that of d, so this will be
+possible.  In the second case, the return type rule tells us that for any instantiation
+of X, there is an instantiation of Y that makes the return type work.  Since Y also
+does not appear in the domain we can freely choose it and so this is also a valid
+situation.  If Y also appears in the domain of d', then we show that the return
+type rule cannot be satisfied.  We assume that X must have an upper bound that is not
+an object type as in this case it would essentially not be generic.  We know that the 
+bound By on Y must be a subtype of the bound Bx on X since we have only invariant and
+covariant generics.  Now, assume that we have an ilk I to which an instantiation of
+d' is applicable with Y instantiated to Iy <: By <: Bx where Iy != Bx. Since Bx is a 
+trait type, we can define a type Bn <: Bx such that Iy !<: Bn.  Since X and Y appear
+in the same position in the respective return types, if we choose Bn as the instaniatation
+for X in d, then the return type of d' with Y instantiated at Iy will not be a subtype of 
+d's instantiated return type. QED.
+
+What is the consequence of this?  It means that generic functions where a type
+parameter appears only in the return type are fairly restricted in terms of 
+what functions can be more specific than them.
+
+---------
+D) We can hard code the restrictions at compile time based on static information.
+
+I think this is actually true (unlike the rest, fortunately it seems the most important).
+Any return type restrictions will be an upper bound and possibly a lower bound as
+well (for invariant positions).  Each bound comes from a particular location in the
+statically-known return type.  The statically known return type will either be a constant
+if the statically-known entry point is a non-generic function, or a generic itself based
+on the instantiation of a generic function.
+
+This exposes the danger: might we choose an instantiation at runtime that is more
+specific than the static restriction which might cause the wrong bound to be imposed
+and result in unsoundness.  So we need to be careful that the first call to a function
+or method always uses the static information.  We will then infer if anything can
+be made more specific, but use static bound information.  Places that we could possibly
+get this wrong would be:
+    -method calls on generic methods: if we use the runtime instantiation of the trait
+        instead of the static information, we could get into trouble
+    -I recall seeing examples of initial function dispatch that used dynamic RTTI 
+        right off the bat instead of dispatching to a compiled entry point first.
+        This could also be problematic.
+
+
+I feel like I can probably do this with methods.  What is the situation I'm interested
+in?  Statically, I know one thing, and at runtime, I know something different.  So we
+need a covariant trait and an overloaded method that makes use of the trait parameter,
+maybe in an invariant manner?
+
+
+    object cell[\X\](var x : X) end
+    object thing[\covariant X\](x : X)
+    
+        getCell(x : X) : cell[\X\] = cell[\X\](x)
+        
+    end
+    
+    run() = do 
+        t1 : thing[\Object\] = thing("foo")
+        c1 : cell[\Object\] = t1.getCell("bar") (*) static type is cell[\Object\] but constructor to cell could easily be called as something else
+    end
+    
+This example should be illegal by variance checking: the covariant type parameter
+X of thing appears in an invariant position in the return type of getCell.
+
+So we know that we cannot mix invariant and covariant generics in this way to get
+the bad case that we're looking for.  If the object's type parameter is invariant,
+then we're guaranteed to get that same exact instantiation, so there's no danger there.
+So what about the case where there is a covariant parameter.  Then we know that any
+occurrence of that type parameter in a return type of a method must also be in a
+covariant position, which means either raw, or as a covariant type parameter.  A
+covariant position in the return type could add an upper bound.  If the added bound
+at runtime was different (smaller) than was given at compile time, could it cause
+problems?  It would cause problems by disqualifying an overload arm that would 
+otherwise be applicable with the static bound.  This could be possible by using lower 
+bounds on trait type parameters and having the lower bound drive it down below that lower
+bound.  I don't think there is another way to invalidate a covariant instantiation.
+
+Restart:  We know that static information is good and will provide accurate return type
+rule information.  However, there are some cases where static information is not 
+necessarily available.  For instance, for a trait with a covariant type parameter, we 
+could get a more specific type instantiated at runtime than we expected at compile
+time.  If this type parameter appears as the return type of a method then it might be
+used as "static" information even though the instantiation is encoded dynamically and
+so is actually runtime information.  The runtime information could be more specific
+than the compile time information.  The questions is whether this causes problems. We
+proved that with static information we do not get ourselves into trouble in terms of
+returning something that is not type safe.  We only need to worry about type parameters
+that are covariant, since invariance ensures that compile time and runtime type will
+coincide.  As covariant return occurrences, they could add an upper bound.  A naive
+implementation of the return type rule in a scenario where we used the instantiation
+rather than the static info could use a tighter upper bound that is actually statically
+required.  Our question is whether this would ever get us into trouble either by
+1) returning something unsound, or
+2) invalidating an overload arm that with the static information would have been 
+    acceptable.
+
+The only way I can think of to possibly break 1) is to have a trait with a
+covariant trait parameter that also has a lower bound and end up returning an
+instantiation that is below the bound.  However, that's going to break static
+rules that require bounds to ensure that the return type is valid (ie within
+bounds) regardless of the instantiation.  So that's out I think.
+
+For 2), its hard to think of how this would work.  Need method call to object
+with a static instantiation but at runtime have a lesser instantiation. This 
+instantiation must be related to the return type of a method on the object.
+    
+Ok, let's start by just constructing a situation where we have a situation
+where non-static information is used.  For that we need a trait with a static
+parameter and a method:
+
+    trait T1[\covariant X\]
+        m() : X
+    end
+
+    object O1[\X\](x : X) extends T1[\X\]
+        m() : X = x
+    end
+    
+    run() = do
+        a1 : T1[\Object\] = O1("foo") (*) runtime will be O1[\String\] <: T1[\String\] <: T1[\Object\]
+        r : Object = a1.m()
+    end
+
+Reconsider again what the situation I'm looking at is.  I have some object o with a
+static type T1[\X\] where T1 is covariant in X and at runtime the actual instantiation
+is something more specific, Y strict <: X. A method m is called on o which statically
+dispatches to a method which includes X in the return type (must be a covariant 
+occurrence as shown above) say T2[\X\].  Type safety requires that T2[\X\] be an
+upper bound on the value returned.  A naive implementation would instead grab an
+upper bound of T2[\Y\].
+
+Now we consider a more specific overload of m which will be considered at runtime and
+assume that based on the domain type, it is applicable.  We know by the return type rule
+that it is also applicable with an instantiation such that its return type R is a subtype
+of T2[\X\].  Is there also guaranteed to be an instantiation such that its return type
+is a subtype of T2[\Y\]?  Well, we have characterized above when restrictions are added
+by the return type rule and we know if a restriction is added, then R must be of the
+form R'[\Z\] where R' is a declared subtrait of T2 and the type parameter Z is in the
+same position as the type parameter of T2.  That would mean that X is an upper bound
+on type parameter Z.  To decide if this would cause problems, I need to look at the
+other bounds placed on type parameters of the receiver, because this is what we
+are talking about here, which is why I'm having trouble characterizing it.
+
+When I have an object o that has an ilk T[\a\] where T is a trait with a covariant
+type parameter, then for all b :> a, we can say that o has type T[\b\].  Therefore,
+when choosing an instantiation of a generic method on T, a is a lower bound on the
+instantiation of the receiver's type parameter.  We also know that if p was the 
+statically known instantiation of T, then a <: p.  This gives us a range for the
+instantiation of the static parameter of T when attempting to dispatch to and
+instantiate a method on it.
+
+Finally thought about this clearly and it is guaranteed to be ok by the return
+type rule.  We know statically that the method with the receiver instantiated
+at T[\p\] is applicable and so by covariance, we know that the method must also
+be applicable with the receiver instantiated at T[\a\].  If it turns out that
+there is another method definition that is more specific and applicable, then
+since we know that an instantiation at T[\a\] is applicable, the return type
+rule guarantees that we can also find an instantiation of the more specific method
+that has a return type that is type safe.  Thus, we are fine!
+
+Upshot: We can grab the RTTI of the instantiated type parameter for use
+as an upper bound without worrying if it is the precise static information or not.
+
+---------------

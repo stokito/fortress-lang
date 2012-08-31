@@ -1,0 +1,106 @@
+2012-7-10 implementation of return type rule for runtime instantiation
+
+We need an algorithm that can find relationships between the type parameters
+of traits.  For example in the following type hierarch
+
+trait Foo[\X\] ... end
+trait Bar[\Y\] extends Foo[\Y\] ... end
+trait Baz[\W,Z\] extends Bar[\Z\] ... end
+trait Taz[\U\] extends Foo[\String\] ... end
+
+X, Y, and Z are all related, but W and U are not related to anything.
+
+We need this ability because in order to incorporate the return type rule
+into runtime type instantiation.  The kind of questions we get are:
+
+    What restrictions on the type parameters of signature S are needed to
+    ensure that it is a subtype of ground type G.
+    
+Concretely, what restrictions are needed on Y to ensure that Bar[\Y\] is
+a subtype of Foo[\String\].  In this case the answer would be that Y must
+equal String (upper and lower bound on Y).
+
+The return type rule tells us that it must be possible that
+Bar[\Y\] can in fact be a subtype of Foo[\String\], so we do not need to worry
+about that.  What we need to do is for each type parameter in the signature type,
+we need to find any constraints placed on it by the known ground type.  Note that
+the ground type G may actually have type parameters within it.  However, we can
+assume that when we are actually asking these questions that it will have been
+instantiated and can use the name of the type variable as a handle to get at
+its runtime type, which as we shall see is what we really need.
+
+We start by enumerating several cases for S and G.  We assume that traits have exactly
+one type parameter for ease of exposition.  The case where they have more or fewer
+easily generalizes because each type parameter is independent of the others.
+
+case same trait: S = T[\S'\], G = T[\X\]
+    this case is easy because we know that X is related to S' (which will be fully
+    instantiated at runtime.  Thus, we simply need to add S' to the upper bounds
+    of X, and the lower bounds if X is invariant in T.
+    
+case direct subtrait: S = T[\S'\], G = T'[\X\] where trait T'[\X\] extends T[\U\]
+    We need to do different things depending on what U is:
+    case U = X: Here the type parameter for T' is related to the type parameter for
+        T directly and so U must be added to the bounds of X
+    case U = U'[\V\] where X appears in V:
+        Then they are related.  In order for T'[\X\] <: T[\S'\], we
+        need S' to be an instantiation of U' from which we can pull the runtime
+        type of V and recursively find the runtime instantiation of X to use as a
+        bound.  By lemma 1 below, even though we do not know at runtime whether
+        S' (which could itself be a type variable) is a descendant of U', we can
+        ask the question and fail dispatch if it is not because in this case the
+        return type rule guarantees that the more specific definition cannot apply.
+        Thus, the algorithm is to ask S' if it is a U' and get the type of its
+        type parameter, recursing until we get the instantiation of X and add
+        that to the bounds as appropriate.
+        
+        [Optimization opportunity...
+        The further question is whether in some cases we can do better and encode
+        some of this information statically.  I think this depends on the form of
+        S'.  If S' is a type variable Y, then we cannot statically access any 
+        deeper instantiation pieces.  However, if S' is U', then we have a handle
+        on U' which we can use to get at V directly and continue with it as needed.  
+        If S' is U'', then the position of S' in T must be covariant and U' <: U''
+        in some way (guaranteed by the return type rule).  This is where the recursion
+        comes - if we are in a covariant context.. leave for now 
+        ]
+    case X does not appear in U:
+        then all instantiations for X result in a subtype relationship, so there
+        is no restriction.
+        
+case indirect subtrait: S = T[\S'\], G = T'[\X\] where T'[\X\] extends T0[\U0\]
+                                                       Ti[\Xi\] extends Ti+1[\Ui+1\]
+                                                       Tn[\Xn\] extends T[\U\]
+    case exists k st Xk does not appear in Uk:
+        all instantiation for X must result in a subtype relationship by the static
+        requirements, so no restrictions are needed
+    case ...
+    
+-----
+Thought about this a little bit more and it is looking more and more like the 
+constraint generation that is used in typechecking.  There is some subtlety in
+how the generated constraints need to be interpreted, but I think this might be a
+much more fruitful direction.
+
+lemma 1: (If the instantiated return type is of the wrong form, then the more specific
+    function cannot be applicable.)
+    
+    Given 
+        trait T[\X\] ... end
+        trait T'[\X\] extends T[\U[\S\]\] ... end, where S contains X
+        m[\X extends ...\](...) : T[\X\] = ... (*) def1
+        m[\Y\](...) : T'[\X\] = ... (*) def2, more specific than def1
+        
+    If statically def1 applies instantiated at G and G is not a subtype of an 
+    instantiation of U, then def2 cannot apply.
+    
+pf: The static information tells us that regardless of the actual parameters provided at
+    runtime, def1 exists for some instantiation, in particular the statically given 
+    instantiation.  By the return type rule, if def2 is applicable to the actual 
+    parameters at runtime, then for any instantiation of def1 that is applicable, there
+    must exist an instantiation of def2 that has a more specific return type.  However,
+    by the relationship between T and T', we know that since G is not an instantiation
+    of U, def2 cannot have a more specific return type than T[\G\].  Therefore, it
+    cannot be the case that there is an instantiation of def2 that is applicable at 
+    runtime. QED.
+        

@@ -1,0 +1,252 @@
+2012-7-12 return type rule algorithm
+
+Yesterday, we noticed that it looked as if the constraint generation infrastructure
+might be able to point us in the direction that we wanted.  However, we need to make
+how it works a little bit more precise.
+
+Let's start with some examples:
+
+trait A[\X\] end
+trait B[\X\] extends A[\X\] end
+
+m[\X\](...) : A[\X\]
+m[\Y\](...) : B[\Y\]
+
+Our goal is to ask what restrictions need to be placed on Y to make B[\Y\] a
+subtype of a particular instantiation of A[\X\].  In other words, we need to 
+generate constraints of the form Y ? T where ? \in {=, <:, :>}.  Thus, we turn
+these type variables into inference variables.  For our example then, we need
+to generate constraints for
+
+X |- B[\I\] <: A[\X\] <= ??
+
+This is going to proceed by finding that B[\Z\] extends A[\Z\] (in general there
+will be a list of disjunctions for each parent of B, but we simplify for exposition):
+
+X |- A[\I\] <: A[\X\] <= ??
+--------------------------
+X |- B[\I\] <: A[\X\] <= ??
+
+Since X is invariant in A, we will get that X is both an upper and lower bound on I:
+
+---------------------        ---------------------
+X |- I <: X <= I <: X        X |- X <: I <= X <: I
+--------------------------------------------------
+X |- A[\I\] <: A[\X\] <= I <: X && X <: I
+--------------------------
+X |- B[\I\] <: A[\X\] <= I <: X && X <: I
+
+From this, we know that we need to add X as both an upper and a lower bound on I (in
+this case Y).  Also note that if X was covariance in A, then we would only add an upper
+bound.
+
+What about a more complex example:
+
+trait C[\X\] extends A[\List[\X\]\] end
+
+m[\X\](...) : A[\List[\X\]\]
+m[\Y\](...) : C[\Y\]
+
+This is just going to proceed in the same manner, with an extra step and possibly
+some normalization by getting rid of duplicate constraints.  What about
+
+m[\X, Z extends List[\X\]\](...) : A[\Z\]
+m[\Y\](...) : C[\Y\]
+
+
+                                        X,Z |- X <: I     (X,Z |- I <: X)
+                                        --------------------------------   
+X,Z |- List[\I\] <: Bottom <= false     X,Z |- List[\X\] <: List[\I\]
+-----------------------------------    ---------------------------------
+X, Z<:List[\X\] |- List[\I\] <: Z      X, Z<:List[\X\] |- Z <: List[\I\] 
+-----------------------------------------------------------------------
+X,Z |- List[\I\] == Z
+-------------------------------
+X,Z |- A[\List[\I\]\] <: A[\Z\]
+-------------------------------------
+X, Z <: List[\X\] |- C[\I\] <: A[\Z\]
+
+Something is wrong here....
+
+First, the requirement that List[\I\] <: Z generates a false condition which is not
+helpful.  But even then, when we replace Z with its bound in the other case, we
+start looking at List[\X\] <: List[\I\] which doesn't look right.  In fact, if
+List happens to have a covariant type parameter, then we will add X as a lower
+bound on I, which is exactly the opposite of what we wanted.  All of this suggests
+that treating X as a bound variable and doing substitution of type bounds is wrong.  
+
+|- List[\I\] = J <= List[\I\] = J
+--------------------
+|- A[\List[\I\]\] <: A[\J\] <= List[\I\] = J
+---------------------
+|- C[\I\] < : A[\J\] <= List[\I\] = J
+
+This kind of restriction seems much easier to interpret and deal with than what we
+had earlier, though still not necessarily simple.  I think I interpret this as:
+    J must be a List[\J'\] (preferably exactly, but we may not have that fine-grained
+    information, and it may not matter because of static guarantees) and J' = I,
+    meaning that J' becomes an upper and lower bound on I since we were looking for
+    bounds on I.
+Thus, we have different kinds of inference variables:
+    sources: generate bounds, these come from the type variables of the less specific 
+        declaration
+    sinks: bounds are added to these, come from type variables of more specific 
+        declaration
+We are only interested in contraints that relate types containing sources on one side
+and sinks on the other (preferably exactly one on each in fact, though I don't think this
+is true in general).
+
+The above example I was trying was a red herring because the following example works as 
+well.  Same traits, but the overloading is
+
+m[\X\](...) : A[\X\]
+m[\Y\](...) : C[\Y\]
+
+So we won't necessarily have a restriction on X that ensures that it is a List[\Z\]
+meaning that we cannot rely on that.  This makes sense because the return type rule 
+applies on in the case that both are actually applicable.  There is a further question 
+which we might want to tackel later about whether or not we can take advantage of the
+additional information in the static context.  It is alluring in the second example
+to instead of asking Z if it is a List and then getting its RTTI to instead just get
+the RTTI of X.  But let's put that aside for now. (Note it would only be usable if
+the type parameter in question is invariant - covariance wouldn't necessarily give
+the tight bound that you would need since X could be Number and Z could be List[\ZZ32\])
+
+One of the benefits of using this constraint generation strategy is that it naturally
+takes care of the case where the traits in the return type are not direct subtypes.
+For instance
+
+trait D[\X\] extends C[\X\] end
+
+m[\X\](...) : A[\X\]
+m[\Y\](...) : D[\Y\]
+
+|- List[\Y\] = X <= List[\Y\] = X
+---------------------
+|- A[\List[\Y\]\] <: A[\X\] <= List[\Y\] = X
+---------------------
+|- C[\Y\] <: A[\X\] <= List[\Y\] = X
+---------------------
+|- D[\Y\] <: A[\X\] <= List[\Y\] = X
+
+Our previous examples have been of the following forms:
+(1) raw sink related to raw source
+(2) raw source related to sink as instantiation of a trait
+
+Clearly, either a sink or a source needs to be raw for the constraint to be added
+according to the rules for constraint generation, so we now look for the third possible
+combination:
+(3) raw sink related to source as instantiation of a trait
+
+m[\X\](...) : A[\X\]
+m[\Y\](...) : B[\List[\Y\]\]
+
+|- List[\Y\] = X <= List[\Y\] = X
+----------------------
+|- A[\List[\Y\]\] <: A[\X\] <= List[\Y\] = X
+----------------------
+|- B[\List[\Y\]\] <: A[\X\] <= List[\Y\] = X
+
+oops, this was an example of (2) again....
+
+m[\X\](...) : A[\List[\X\]\]
+m[\Y\](...) : B[\Y\]
+
+|- Y = List[\X\]
+---------------------
+|- A[\Y\] <: A[\List[\X\]\]
+---------------------
+|- B[\Y\] <: A[\List[\X\]\]
+
+This is no barrier because List[\X\] is actually a concrete type that we can use
+to get a runtime type and add it to the bounds on Y.  Thus, case (3) does not actually
+look any different than case (1) and case (2) is the only one that we have to treat 
+differently.
+
+It is also possible that we could relate a sink to a concerete type
+(4) raw sink related to a concrete type with no (source) variables
+
+However, in this case by the return type rule, we are guaranteed that any valid 
+instantiation of the sink will result in its being a subtype, meaning that we do 
+not need to include it at runtime.  The final one would be a source and concerete
+type which is also meaningless from a runtime type instantiation perspective.
+(5) raw source related to a concerte type with no (sink) variables
+
+Next, we will consider covariance.
+
+trait M[\covariant X\] end
+
+trait N[\covariant X\] extends M[\X\] end
+trait O[\X\] extends N[\X\]
+
+trait P[\X\] extends M[\X\] end
+trait Q[\covariant X\] extends P[\X\] end
+
+here we have a hierarchy with alternating covariance and invariance.  First we consider
+what happens when both the super and sub types have covariant type parameters.
+
+m[\X\](...) : M[\X\]
+m[\Y\](...) : N[\Y\]
+
+|- Y <: X <= Y <: X
+-----------------------
+|- M[\Y\] <: M[\X\] <= Y <: X
+-----------------------
+|- N[\Y\] <: M[\X\] <= Y <: X
+
+Here, we get an upper bound on Y from X instead of the upper and lower bound we got
+with invariance.  However, it appears that even if the subtype has an invariant type
+parameter that we get the same case:
+
+m[\X\](...) : M[\X\]
+m[\Y\](...) : P[\Y\]
+
+|- Y <: X <= Y <: X
+-----------------------
+|- M[\Y\] <: M[\X\] <= Y <: X
+-----------------------
+|- P[\Y\] <: M[\X\] <= Y <: X
+
+This makes sense because any instantiation U of P is a subtype of M[\U\], which is itself
+a subtype of any instantiation U' of M satisfying U <: U'.  Thus, we only need to
+discover the instantiation X of M at runtime and ensure that Y is instantiated below it.
+What about the case that the supertype is invariant and the subtype is covariant?
+
+m[\X\](...) : P[\X\]
+m[\Y\](...) : Q[\Y\]
+
+|- Y = X <= Y = X
+-----------------------
+|- P[\Y\] <: P[\X\] <= Y = X
+-----------------------
+|- Q[\Y\] <: P[\X\] <= Y = X ???
+
+A naive use of the rules would suggest that X is both an upper and a lower bound on
+Y.  However, I think that it should only be an upper bound.  Given an instantiation U
+for X, we do need Q[\Y\] <: P[\U\].  Definitely Q[\U\] <: P[\U\] and for any U' <: U
+we know Q[\U'\] <: Q[\U\], so it would seem that we should be able to use U as an upper
+bound only.  On the other hand, I wonder if the hierarchy above isn't illegal because
+in the definition of Q the covariant type parameter X appears in an invariant position
+in the extends clause P[\X\].  Now that I think about it, I feel that this is right.
+
+trait P[\X\]
+    add(x : X) : () = ...
+end
+
+trait Q[\covariant X\] extends P[\X\] 
+    add(x : X) : () = ...  (*) illegal because X appears in a contravariant position
+                           (*) which is not compatible with its covariant declaration 
+                           (*) Since add is inherited from P, we cannot avoid having
+                           (*) this declaration in some form
+end
+
+Indeed, we cannot declare a type parameter to be covariant and then use it in a
+invariant position in the extends clause.  The practical implication of this is
+that we can switch from an covariant parameter to an invariant parameter (more 
+restrictive to less restrictive) but not vice-versa (less restrictive to more
+restrictive).  Therefore, we can consider the variance at the top to be the final
+word: If it is invariant any related type parameters must be invariant all the way
+down and so the equivalence requirement is appropriate.  If it is covariant at 
+the top, it may have been changed to invariant somewhere down below, but as we
+showed above, being covariant at the top gives us enough flexibility to make the bound
+an upper bound only.
